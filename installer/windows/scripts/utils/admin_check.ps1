@@ -2,9 +2,9 @@
 # Ensures the installer runs with Administrator privileges.
 # Prompts user to elevate if not already elevated (supports GUI and headless mode).
 # Example:
-#   Initialize-Environment
+#   Authorize-Environment
 
-function Initialize-Environment {
+function Authorize-Environment {
 
     $principal = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
     if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -35,8 +35,7 @@ function Initialize-Environment {
                 )
                 $userAccepted = ($res -eq [System.Windows.MessageBoxResult]::Yes)
             }
-        }
-        catch {
+        } catch {
             # No GUI subsystem available (headless mode, CI/CD, etc.)
             $useConsoleFallback = $true
         }

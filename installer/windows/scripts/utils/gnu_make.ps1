@@ -1,57 +1,53 @@
-﻿# 🧰 --- Install GNU Make ---------------------------------------------
-# Installs GNU Make using Chocolatey if available.
-# Logs success or failure and continues gracefully if Chocolatey is missing.
-# Example:
-#   Install-GnuMake -Ui $ui -Step 2 -Total $steps
-
-function Install-GnuMake {
+﻿# 🧰 --- Ensure-GnuMake -------------------------------------------------------
+# Ensures GNU Make is installed; installs via Chocolatey if needed; sets $script:GnuMakeAvailable.
+function Ensure-GnuMake {
     param(
-        [Parameter(Mandatory)][object]$Ui,
-        [Parameter(Mandatory)][int]$Step,
-        [Parameter(Mandatory)][int]$Total
+        [Parameter()][switch]$AdvanceStep   # optional flag: true if called within step sequence
     )
 
-    Update-ProgressForm -Ui $Ui -Step $Step -Total $Total -Message "Installing GNU Make..."
+    if ($AdvanceStep) { Advance-Step "Checking GNU Make..." }
+    else { Write-LogInfo "Checking GNU Make..." }
+
     try {
-        if (Get-Command choco.exe -ErrorAction SilentlyContinue) {
-            choco install make -y --no-progress | Out-Null
-            Write-LogOk "GNU Make installed via Chocolatey."
-        } else {
-            Write-LogFail "Chocolatey not found — cannot install Make."
-        }
-    } catch {
-        Write-LogFail "Make installation failed: $($_.Exception.Message)"
-    }
-}
-
-# 🔍 --- Step 4: Verify GNU Make ----------------------------------------------
-# Checks whether GNU Make is available and functioning.
-# Runs 'make --version' and logs the result.
-# Example:
-#   Verify-GnuMake -Ui $ui -Step 4 -Total $steps
-
-function Verify-GnuMake {
-    param(
-        [Parameter(Mandatory)][object]$Ui,
-        [Parameter(Mandatory)][int]$Step,
-        [Parameter(Mandatory)][int]$Total
-    )
-
-    Update-ProgressForm -Ui $Ui -Step $Step -Total $Total -Message "Verifying GNU Make..."
-    try {
-        Update-EnvironmentPath
+        Ensure-Path
         $makeCmd = Get-Command make.exe -ErrorAction SilentlyContinue
         if ($makeCmd) {
-            $ver = & $makeCmd.Source --version 2>$null
+            $ver = (& $makeCmd.Source --version 2>$null)
             if ($LASTEXITCODE -eq 0 -and $ver) {
+                $script:GnuMakeAvailable = $true
                 Write-LogOk ("GNU Make detected: " + ($ver -split "`r?`n")[0])
-            } else {
-                Write-LogFail "'make --version' failed to execute."
+                return
             }
-        } else {
-            Write-LogFail "make.exe not found on PATH."
         }
+
+        # --- Attempt install -------------------------------------------------
+        $script:GnuMakeAvailable = $false
+        Write-LogWarn "GNU Make not found — attempting installation..."
+
+        if ($script:ChocoAvailable) {
+            if ($AdvanceStep) { Advance-Step "Installing GNU Make..." }
+            choco install make -y --no-progress | Out-Null
+        } else {
+            Write-LogFail "Chocolatey not available — cannot install Make."
+            return
+        }
+
+        # --- Verify after install -------------------------------------------
+        Ensure-Path
+        $makeCmd2 = Get-Command make.exe -ErrorAction SilentlyContinue
+        if ($makeCmd2) {
+            $ver2 = (& $makeCmd2.Source --version 2>$null)
+            if ($LASTEXITCODE -eq 0 -and $ver2) {
+                $script:GnuMakeAvailable = $true
+                Write-LogOk ("GNU Make installed successfully: " + ($ver2 -split "`r?`n")[0])
+                return
+            }
+        }
+
+        $script:GnuMakeAvailable = $false
+        Write-LogFail "GNU Make installation failed or not detected on PATH."
     } catch {
-        Write-LogFail "Verification step failed: $($_.Exception.Message)"
+        $script:GnuMakeAvailable = $false
+        Write-LogFail "Ensure-GnuMake error: $($_.Exception.Message)"
     }
 }

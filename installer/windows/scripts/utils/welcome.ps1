@@ -1,25 +1,8 @@
-﻿
-# 💬 --- Welcome Form ---------------------------------------------------------------
+﻿# 💬 --- Welcome Form ---------------------------------------------------------------
 # Displays the MagBridge Project welcome screen with project info, logo, and component selection.
 # Automatically falls back to console mode if no GUI is available.
-# Example:
-#   if ($script:UIAvailable) {
-#       Show-WelcomeForm
-#   } else {
-#       Write-Host "Running in headless mode..."
-#   }
 
 function Show-WelcomeForm {
-    $script:UIAvailable = $true
-    try {
-        Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
-        Add-Type -AssemblyName System.Drawing       -ErrorAction Stop
-        Write-Host "⚙️  OK environment detected — GUI welcome screen."
-    } catch {
-        $script:UIAvailable = $false
-        Write-Host "⚙️  Headless environment detected — skipping GUI welcome screen."
-    }
-
     if ($script:UIAvailable) {
         # --- Form setup -----------------------------------------------------
         $form = New-Object System.Windows.Forms.Form
@@ -59,7 +42,7 @@ This installer will:
 
         # --- Checkboxes -----------------------------------------------------
         $chkChoco = New-Object System.Windows.Forms.CheckBox
-        $chkChoco.Text = "Chocolatey – Windows Package Manager"
+        $chkChoco.Text = "Chocolatey - Windows Package Manager"
         $chkChoco.Left = 60; $chkChoco.Top = 260; $chkChoco.Width = 400
         $chkChoco.Checked = $true
 
@@ -130,72 +113,4 @@ Tasks to perform:
             Make       = $true
         }
     }
-}
-
-# 👋 --- Final Goodbye Form ----------------------------------------------
-# Displays the installation summary and offers optional system restart.
-# Supports both GUI and console fallback modes; skips reboot in CI/CD.
-# Example:
-#   Show-FinalForm -Ui $ui
-
-function Show-FinalForm {
-    param([Parameter(Mandatory)][object]$Ui)
-
-    $summary = ($report -join "`n")
-    $goodbyeText = @"
-MagBridge Project — Installation Complete 🎉
-
-$summary
-
-Installation finished successfully.
-You can now use 'make' in new PowerShell or CMD sessions.
-
-A restart is recommended so PATH updates take effect.
-Would you like to restart now?
-"@
-
-    if ($script:UIAvailable) {
-        try {
-            Add-Type -AssemblyName PresentationFramework -ErrorAction Stop
-            $res = [System.Windows.MessageBox]::Show(
-                $goodbyeText,
-                "GNU Make Installer — Summary",
-                [System.Windows.MessageBoxButton]::YesNo,
-                [System.Windows.MessageBoxImage]::Information
-            )
-            if ($res -eq [System.Windows.MessageBoxResult]::Yes) {
-                Write-Host "🔄 Restarting system..."
-                shutdown.exe /r /t 5 /c "Rebooting to complete GNU Make installation."
-            } else {
-                Write-Host "ℹ️  Please restart your computer later."
-            }
-        } catch {
-            $script:UIAvailable = $false
-        }
-    }
-
-    if (-not $script:UIAvailable) {
-        Write-Host ""
-        Write-Host "========================================================"
-        Write-Host " MagBridge Project — Installation Complete 🎉"
-        Write-Host "--------------------------------------------------------"
-        Write-Host ($report -join "`n")
-        Write-Host ""
-        Write-Host "You can now use 'make' in new shells."
-        Write-Host "A system restart is recommended."
-        Write-Host "========================================================"
-        if (-not ($env:CI -or $env:GITHUB_ACTIONS)) {
-            $resp = Read-Host "Restart now? (Y/N)"
-            if ($resp -match '^[Yy]') {
-                Write-Host "🔄 Restarting system..."
-                shutdown.exe /r /t 5 /c "Rebooting to complete GNU Make installation."
-            } else {
-                Write-Host "ℹ️  Please restart your computer later."
-            }
-        } else {
-            Write-LogInfo "CI environment detected — skipping reboot."
-        }
-    }
-
-    exit 0
 }

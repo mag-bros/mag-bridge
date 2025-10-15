@@ -6,7 +6,7 @@ if ($MyInvocation.MyCommand.Path) {
 }
 $UtilsDir = Join-Path $ScriptRoot 'utils'
 
-# --- Verify required file exists ----------------------------------------
+# --- Quick Path Verification  ----------------------------------------
 $checkPath = Join-Path $UtilsDir 'admin_check.ps1'
 if (-not (Test-Path $checkPath)) {
     Write-Host "Invalid ScriptRoot — missing admin_check.ps1 in $UtilsDir"
@@ -16,9 +16,10 @@ if (-not (Test-Path $checkPath)) {
 # --- Import Scripts -----------------------------------------------------
 . (Join-Path $UtilsDir 'admin_check.ps1')
 . (Join-Path $UtilsDir 'logging.ps1')
-. (Join-Path $UtilsDir 'ui_helpers.ps1')
-. (Join-Path $UtilsDir 'path.ps1')
-. (Join-Path $UtilsDir 'forms.ps1')
+. (Join-Path $UtilsDir 'helpers.ps1')
+. (Join-Path $UtilsDir 'welcome.ps1')
+. (Join-Path $UtilsDir 'progress.ps1')
+. (Join-Path $UtilsDir 'goodbye.ps1')
 . (Join-Path $UtilsDir 'choco.ps1')
 . (Join-Path $UtilsDir 'gnu_make.ps1')
 
@@ -28,62 +29,99 @@ if (-not (Test-Path $checkPath)) {
 # Example:
 #   Start-MagBridgeInstaller
 
-function Start-MagBridgeInstaller {
-    try {
-        Write-Host "Starting MagBridge Installer..."
-        Initialize-Environment
-        Test-UIAvailable
-        Show-WelcomeForm
+try {
 
-        # shared state
-        $script:InstallerState = [PSCustomObject]@{
-            StepsTotal  = 4
-            StepCurrent = 0
-            Ui          = $null
+    Write-Host "Starting MagBridge Installer..."
+    Authorize-Environment
+    Check-UIAvailable
+    Show-WelcomeForm
+
+    # --- Compute steps based on user choices -------------------------------------
+    $selectedSteps = @()
+    if ($Global:InstallOptions.Chocolatey) { $selectedSteps += 'Chocolatey' }
+    if ($Global:InstallOptions.Make) { $selectedSteps += 'GnuMake' }
+
+    # --- Shared Installer State -------------------------------------
+    $script:InstallerState = [PSCustomObject]@{
+        StepsTotal  = [Math]::Max(1, $selectedSteps.Count)
+        StepCurrent = 0
+        Ui          = $null
+    }
+
+    # --- Progress UI -------------------------------------------------------------
+    $script:InstallerState.Ui = New-ProgressForm -Title "MagBridge Dependencies Installer" -Max $script:InstallerState.StepsTotal
+    if ($script:UIAvailable -and $script:InstallerState.Ui.Form) {
+        $script:InstallerState.Ui.Form.Show()
+        Invoke-UiPump
+    }
+
+    try {
+        # --- Step 1: Chocolatey --------------------------------------------------
+        if ($Global:InstallOptions.Chocolatey) {
+            Advance-Step "Ensuring Chocolatey..."
+            Ensure-Choco
+            if ($script:ChocoAvailable) {
+                Write-LogOk "Chocolatey available."
+            } else {
+                Write-LogFail "Chocolatey not found or installation failed. Dependent steps will be skipped."
+            }
         }
 
-        # progress UI
-        $script:InstallerState.Ui = New-ProgressForm -Title "GNU Make Installer" -Max $script:InstallerState.StepsTotal
-        if ($script:InstallerState.Ui.Form) { $script:InstallerState.Ui.Form.Show() }
-
-        # Step 1: Chocolatey
-        $script:InstallerState.StepCurrent++
-        Update-ProgressForm -Ui $script:InstallerState.Ui -Step $script:InstallerState.StepCurrent -Total $script:InstallerState.StepsTotal -Message "Ensuring Chocolatey..."
-        Ensure-Chocolatey
-
-        # Step 2: GNU Make
-        $script:InstallerState.StepCurrent++
-        Install-GnuMake -Ui $script:InstallerState.Ui -Step $script:InstallerState.StepCurrent -Total $script:InstallerState.StepsTotal
-
-        # Step 3: PATH (append dirs if missing, then refresh current session)
-        $script:InstallerState.StepCurrent++
-        Update-ProgressForm -Ui $script:InstallerState.Ui -Step $script:InstallerState.StepCurrent -Total $script:InstallerState.StepsTotal -Message "Updating PATH..."
-        try {
-            $makeDir  = "C:\ProgramData\chocolatey\lib\make\tools\install\bin"
-            $chocoBin = "C:\ProgramData\chocolatey\bin"
-            foreach ($dir in @($chocoBin,$makeDir)) {
-                if (Test-Path $dir) {
-                    $machine = [Environment]::GetEnvironmentVariable('Path','Machine')
-                    if (-not ($machine -split ';' | Where-Object { $_ -ieq $dir })) {
-                        [Environment]::SetEnvironmentVariable('Path', "$machine;$dir", 'Machine')
-                    }
+        # --- Step 2: GNU Make ----------------------------------------------------
+        if ($Global:InstallOptions.Make) {
+            if ($script:ChocoAvailable) {
+                Ensure-GnuMake -AdvanceStep
+                if ($script:GnuMakeAvailable) {
+                    Write-LogOk "GNU Make is available."
+                } else {
+                    Write-LogFail "GNU Make installation or verification failed."
                 }
+            } else {
+                Advance-Step "Skipping GNU Make (Chocolatey unavailable)..."
+                Write-LogWarn "Skipped GNU Make because Chocolatey was not installed."
             }
-            Update-EnvironmentPath
-            Write-LogOk "PATH updated successfully."
-        } catch { Write-LogFail "Failed to update PATH: $($_.Exception.Message)" }
-
-        # Step 4: Verify
-        $script:InstallerState.StepCurrent++
-        Verify-GnuMake -Ui $script:InstallerState.Ui -Step $script:InstallerState.StepCurrent -Total $script:InstallerState.StepsTotal
-
-        Show-FinalSummary
-        Close-ProgressForm -Ui $script:InstallerState.Ui
-        Write-Host "Installer finished."
-    } catch {
-        Write-Host "Fatal error: $($_.Exception.Message)"
-        exit 1
+        }
+    } finally {
+        # --- Always close UI to prevent hanging ----------------------------------
+        Close-ProgressForm $script:InstallerState.Ui
     }
-}
 
-Start-MagBridgeInstaller
+    # --- Step 3: Update PATH ----------------------------------------------------
+    if ($Global:InstallOptions.Chocolatey -or $Global:InstallOptions.Make) {
+        Advance-Step "Updating PATH..."
+        Ensure-Path
+    } else {
+        Advance-Step "Skipping PATH update..."
+        Write-LogInfo "PATH update skipped (no installable components selected)."
+    }
+
+    # --- Step 4: Final summary ---------------------------------------------------
+    Advance-Step "Finalizing installation..."
+
+    try {
+        # Optional sanity echo (short summary in log only)
+        if ($script:ChocoAvailable) {
+            Write-LogInfo "Chocolatey: available."
+        } else {
+            Write-LogWarn "Chocolatey: not installed or unavailable."
+        }
+
+        if ($script:GnuMakeAvailable) {
+            Write-LogInfo "GNU Make: available."
+        } else {
+            Write-LogWarn "GNU Make: not installed or unavailable."
+        }
+
+        Show-GoodbyeForm 
+    } catch {
+        Write-LogFail "Error during finalization: $($_.Exception.Message)"
+    } finally {
+        Close-ProgressForm $script:InstallerState.Ui
+        Write-Host "✅ Installer finished."
+    }
+
+
+} catch {
+    Write-Host "Fatal error: $($_.Exception.Message)"
+    exit 1
+}
