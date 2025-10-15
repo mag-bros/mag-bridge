@@ -86,8 +86,32 @@ function Update-ProgressForm($Ui, [int]$Step, [int]$Total, [string]$Msg) {
 
 function Close-ProgressForm($Ui) {
     if (-not $Ui) { return }
+
     if ($Ui.Form) {
-        try { $Ui.Close.Invoke() } catch { Write-Warning "Failed to close progress form: $_" }
+        try {
+            $f = $Ui.Form
+
+            # If we're not on the UI thread, marshal the close to it.
+            if ($f.InvokeRequired) {
+                $null = $f.BeginInvoke([System.Windows.Forms.MethodInvoker] { 
+                        try { $f.Close() } catch {}
+                    })
+            } else {
+                try { $f.Close() } catch {}
+            }
+
+            # Give the message loop a tick to process the close.
+            [System.Windows.Forms.Application]::DoEvents()
+            Start-Sleep -Milliseconds 150
+
+            # Final safeguard: dispose if still hanging around.
+            if ($f -and -not $f.IsDisposed) {
+                try { $f.Hide() } catch {}
+                try { $f.Dispose() } catch {}
+            }
+        } catch {
+            Write-Warning "Failed to close progress form: $_"
+        }
     } else {
         Write-Host "Installation completed."
     }

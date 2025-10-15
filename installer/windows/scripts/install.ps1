@@ -81,25 +81,13 @@ try {
                 Write-LogWarn "Skipped GNU Make because Chocolatey was not installed."
             }
         }
-    } finally {
-        # --- Always close UI to prevent hanging ----------------------------------
-        Close-ProgressForm $script:InstallerState.Ui
-    }
 
-    # --- Step 3: Update PATH ----------------------------------------------------
-    if ($Global:InstallOptions.Chocolatey -or $Global:InstallOptions.Make) {
+        # --- Step 3: Update PATH -------------------------------------------------
         Advance-Step "Updating PATH..."
         Ensure-Path
-    } else {
-        Advance-Step "Skipping PATH update..."
-        Write-LogInfo "PATH update skipped (no installable components selected)."
-    }
 
-    # --- Step 4: Final summary ---------------------------------------------------
-    Advance-Step "Finalizing installation..."
-
-    try {
-        # Optional sanity echo (short summary in log only)
+        # --- Step 4: Final summary ----------------------------------------------
+        Advance-Step "Finalizing installation..."
         if ($script:ChocoAvailable) {
             Write-LogInfo "Chocolatey: available."
         } else {
@@ -111,14 +99,16 @@ try {
         } else {
             Write-LogWarn "GNU Make: not installed or unavailable."
         }
-
-        Show-GoodbyeForm 
     } catch {
-        Write-LogFail "Error during finalization: $($_.Exception.Message)"
+        Write-LogFail "Fatal installer error: $($_.Exception.Message)"
     } finally {
+        # --- Always close progress form before showing goodbye ------------------
         Close-ProgressForm $script:InstallerState.Ui
-        Write-Host "✅ Installer finished."
     }
+
+    # --- Goodbye summary --------------------------------------------------------
+    Show-GoodbyeForm
+    Write-Host "✅ Installer finished."
 
 
 } catch {
