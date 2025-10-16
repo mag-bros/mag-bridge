@@ -1,8 +1,12 @@
 {
   "steps": [
     {
-      "name": "Initialize Environment",
+      "name": "Ensuring Choco...",
       "action": "Scripts\\Ensure-Choco.ps1"
+    },
+    {
+      "name": "Ensuring Gnu Make...",
+      "action": "Scripts\\Ensure-GnuMake.ps1"
     }
   ]
 }

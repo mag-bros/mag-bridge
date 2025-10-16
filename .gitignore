@@ -211,8 +211,12 @@ installer/tmp/
 # ============================================
 # 🔧 C# / .NET Build Artifacts
 # ============================================
-bin/*
-obj/*
+bin/
+obj/
+**/bin/
+**/obj/
+**/publish/
+**/artifacts/
 [Bb]uild/
 [Ll]og/
 *.log
