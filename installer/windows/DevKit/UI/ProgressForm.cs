@@ -68,6 +68,12 @@ public class ProgressForm : Form
 
         cancelButton.Click += (_, __) =>
         {
+            if (cancelButton.Text == "Quit")
+            {
+                Close();
+                return;
+            }
+
             controller.Cancel();
             if (currentProcess != null && !currentProcess.HasExited)
             {
@@ -86,6 +92,7 @@ public class ProgressForm : Form
             }
         };
 
+
         await RunInstallerAsync();
     }
 
@@ -93,7 +100,6 @@ public class ProgressForm : Form
     {
         try
         {
-            // Capture controller safely for background use
             var ctl = controller ?? throw new InvalidOperationException("ProgressController not initialized.");
             string baseDir = AppContext.BaseDirectory;
             var manifest = InstallerManifest.Load(baseDir);
@@ -146,7 +152,6 @@ public class ProgressForm : Form
 
                     await currentProcess.WaitForExitAsync(ctl.Token);
 
-                    // cleanup after each process
                     currentProcess.CancelOutputRead();
                     currentProcess.CancelErrorRead();
                     currentProcess.Dispose();
@@ -171,28 +176,44 @@ public class ProgressForm : Form
                 ctl.UpdateStatus("✅ All steps completed successfully!");
                 ctl.Log("Installation completed successfully.");
             }
+
+            // After installation completes → change Cancel → Quit
+            Invoke(() =>
+            {
+                cancelButton.Text = "Quit";
+                cancelButton.Enabled = true;
+            });
         }
         catch (OperationCanceledException)
         {
-            controller?.UpdateStatus("❌ Installation cancelled.");
-            controller?.Log("Operation cancelled by user.");
-
+            controller.UpdateStatus("❌ Installation cancelled.");
+            controller.Log("Operation cancelled by user.");
             if (currentProcess != null && !currentProcess.HasExited)
             {
                 currentProcess.Kill();
-                controller?.Log("🛑 Process forcibly stopped.");
+                controller.Log("🛑 Process forcibly stopped.");
             }
-
-            await Task.Delay(2000);
-            controller?.Log("💤 Closing installer after cancellation...");
-            Invoke(() => Close());
         }
         catch (Exception ex)
         {
-            controller?.UpdateStatus("❌ Installation failed.");
-            controller?.Log($"[ERR] {ex}");
+            controller.UpdateStatus("❌ Installation failed.");
+            controller.Log($"[ERR] {ex}");
             MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+    }
+
+    private void ConvertCancelToQuit()
+    {
+        if (cancelButton.InvokeRequired)
+        {
+            cancelButton.Invoke((Action)ConvertCancelToQuit);
+            return;
+        }
+
+        // Update appearance and behavior
+        cancelButton.Enabled = true;
+        cancelButton.Text = "Quit";
+        cancelButton.Click += (_, __) => Close();
     }
 
 }
