@@ -17,12 +17,17 @@ public class ProgressForm : Form
 
     public ProgressForm()
     {
-        Text = "DevKit Installer";
-        Width = 600;
-        Height = 420;
+        TopMost = true;
+        BringToFront();
+        Focus();
+
+        MaximizeBox = true;
+        MinimizeBox = true;
+        SizeGripStyle = SizeGripStyle.Show;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MinimumSize = new Size(1000, 350);
+        MaximumSize = new Size(1400, 800);
         StartPosition = FormStartPosition.CenterScreen;
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        MaximizeBox = false;
 
         statusLabel = new Label
         {

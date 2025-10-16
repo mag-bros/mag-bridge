@@ -7,6 +7,10 @@
     {
       "name": "Ensuring Gnu Make...",
       "action": "Scripts\\Ensure-GnuMake.ps1"
+    },
+    {
+      "name": "Ensuring Electron...",
+      "action": "Scripts\\Ensure-Electron.ps1"
     }
   ]
 }
