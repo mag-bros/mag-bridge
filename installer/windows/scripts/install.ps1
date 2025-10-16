@@ -66,30 +66,20 @@ try {
     $accepted = Show-LicenseDialog -OwnerForm $script:InstallerState.Ui.Form
     if (-not $accepted) { return }
 
-    # bring the progress form back
-    Reactivate-ProgressUI
-
-    Advance-Step "Preparing installation..."
-
     # --- Compute steps based on user choices -------------------------------------
     $selectedSteps = @()
     if ($Global:InstallOptions.Chocolatey) { $selectedSteps += 'Chocolatey' }
     if ($Global:InstallOptions.Make) { $selectedSteps += 'GnuMake' }
 
-    # --- Shared Installer State -------------------------------------
-    $script:InstallerState = [PSCustomObject]@{
-        StepsTotal  = [Math]::Max(1, $selectedSteps.Count)
-        StepCurrent = 0
-        Ui          = $null
-    }
-
     # --- Progress UI -------------------------------------------------------------
-    $script:InstallerState.ProgressForm = New-ProgressForm -Title "MagBridge Dependencies Installer" -Max $script:InstallerState.StepsTotal
+    $progressForm = New-ProgressForm -Title "MagBridge Dependencies Installer"
+    
+    # --- Background Worker -------------------------------------------------------
+    $worker = New-Object System.ComponentModel.BackgroundWorker
+    $worker.WorkerReportsProgress = $true
 
-    if ($script:UIAvailable -and $script:InstallerState.ProgressForm.Form) {
-        $script:InstallerState.ProgressForm.Form.Show()
-        [System.Windows.Forms.Application]::DoEvents()
-    }
+    $progressForm.Form.Show() | Out-Null
+    & $progressForm.Update "Starting installation..."
 
     try {
         # --- Step 1: Chocolatey --------------------------------------------------

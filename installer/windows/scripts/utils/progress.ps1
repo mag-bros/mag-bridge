@@ -1,101 +1,62 @@
 ﻿# --- Helper: pump UI messages (no-op in console) -----------------------------
 function Invoke-UiPump { if ($script:UIAvailable) { [System.Windows.Forms.Application]::DoEvents() } }
 
-# --- New-ProgressForm (unchanged API; safer internals) ----------------------
 # 🪟 --- New-ProgressForm -----------------------------------------------------
 # Creates GUI or console fallback progress form with working refresh & updates.
 function New-ProgressForm {
-    param([string]$Title = "Generic Installer", [int]$Max = 4)
-
-    Add-Type -AssemblyName System.Windows.Forms
-    Add-Type -AssemblyName System.Drawing
-
+    param(
+        [string]$Title = "My Installer",
+        [int]   $Max = 100  # maximum value for progress bar
+    )
+    Add-Type -AssemblyName System.Windows.Forms, System.Drawing  # ensure WinForms is loaded
+    # Create form and controls
     $form = New-Object System.Windows.Forms.Form
     $form.Text = $Title
-    $form.Width = 540; $form.Height = 180
-    $form.StartPosition = "CenterScreen"
-    $form.FormBorderStyle = "FixedDialog"
-    $form.MaximizeBox = $false; $form.MinimizeBox = $false
-    $form.TopMost = $true
-    $form.BackColor = [System.Drawing.Color]::FromArgb(245, 245, 245)
-    $form.ShowInTaskbar = $true
+    $form.Width = 500
+    $form.Height = 250
+    $form.StartPosition = 'CenterScreen'
+    $form.FormBorderStyle = 'FixedDialog'
+    $form.MaximizeBox = $false
+    $form.MinimizeBox = $false
+    $form.Topmost = $true  # keep on top of other windows (optional)
+    $form.BackColor = [System.Drawing.Color]::White
 
     $label = New-Object System.Windows.Forms.Label
-    $label.Left = 20; $label.Top = 20
-    $label.Width = 480; $label.Height = 25
-    $label.AutoSize = $false
-    $label.UseMnemonic = $false
-    $label.TextAlign = 'MiddleLeft'
-    $label.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-    $label.ForeColor = [System.Drawing.Color]::FromArgb(30, 30, 30)
-    $label.BackColor = [System.Drawing.Color]::FromArgb(245, 245, 245)
-    $label.Text = "Preparing installer..."
+    $label.AutoSize = $true
+    $label.Location = New-Object System.Drawing.Point(20, 20)
+    $label.Text = "Initializing..."
     $form.Controls.Add($label)
 
-    $bar = New-Object System.Windows.Forms.ProgressBar
-    $bar.Left = 20; $bar.Top = 60
-    $bar.Width = 480; $bar.Height = 25
-    $bar.Style = 'Continuous'
-    $bar.Minimum = 0; $bar.Maximum = $Max; $bar.Value = 0
-    $form.Controls.Add($bar)
+    $progressBar = New-Object System.Windows.Forms.ProgressBar
+    $progressBar.Location = New-Object System.Drawing.Point(20, 50)
+    $progressBar.Width = 340
+    $progressBar.Minimum = 0
+    $progressBar.Maximum = $Max
+    $progressBar.Value = 0
+    $form.Controls.Add($progressBar)
 
-    $btnCancel = New-Object System.Windows.Forms.Button
-    $btnCancel.Text = "Cancel"
-    $btnCancel.Left = 400; $btnCancel.Top = 100
-    $btnCancel.Width = 100; $btnCancel.Height = 30
-    $btnCancel.Add_Click({ $form.Tag = "Cancelled"; $form.Close() })
-    $form.Controls.Add($btnCancel)
-
-    return [PSCustomObject]@{
-        Form   = $form
-        Label  = $label
-        Bar    = $bar
-        Cancel = $btnCancel
-        Update = {
-            param($text)
-            if ($this.Form -and -not $this.Form.IsDisposed) {
-                $this.Label.Text = $text
-                $this.Label.Refresh()
-                $this.Bar.Refresh()
-                [System.Windows.Forms.Application]::DoEvents()
-            }
-        }
-        Close  = {
-            if ($this.Form -and -not $this.Form.IsDisposed) {
-                if ($this.Form.Tag -ne "Cancelled") {
-                    $this.Label.Text = "Installation complete."
-                    $this.Label.Refresh()
-                    Start-Sleep -Milliseconds 200
-                }
-                $this.Form.Close()
-                $this.Form.Dispose()
-                [System.Windows.Forms.Application]::DoEvents()
-            }
+    # Create a PSObject to hold the form and provide methods
+    $progressObj = [PSCustomObject]@{
+        Form  = $form
+        Label = $label
+        Bar   = $progressBar
+    }
+    # Add an Update() method to change the label text (on UI thread)
+    $progressObj | Add-Member -MemberType ScriptMethod -Name Update -Value {
+        param([string]$Text)
+        if ($this.Form -and -not $this.Form.IsDisposed) {
+            $this.Label.Text = $Text
+            $null = [System.Windows.Forms.Application]::DoEvents()  # allow immediate UI update
         }
     }
-}
-
-
-# --- Update-ProgressForm (checks GUI/console; pumps UI) ----------------------
-function Update-ProgressForm($Ui, [int]$Step, [int]$Total, [string]$Msg) {
-    if (-not $Ui) { return }
-
-    if ($Ui.Form) {
-        try {
-            $Ui.Label.Text = $Msg
-            $Ui.Label.Refresh()            # 🟢 force GDI redraw of label region
-            $Ui.Bar.Maximum = [Math]::Max(1, $Total)
-            $Ui.Bar.Value = [Math]::Min([Math]::Max(0, $Step), $Ui.Bar.Maximum)
-            $Ui.Bar.Refresh()
-            $Ui.Form.Refresh()
-            [System.Windows.Forms.Application]::DoEvents()
-        } catch {
-            Write-Warning "Failed to update progress form: $_"
+    # Add a Close() method to close the form
+    $progressObj | Add-Member -MemberType ScriptMethod -Name Close -Value {
+        if ($this.Form -and -not $this.Form.IsDisposed) {
+            # You can add any cleanup logic here if needed
+            # $this.Form.Close()
         }
-    } else {
-        $percent = [math]::Round(($Step / [Math]::Max(1, $Total)) * 100)
-        Write-Host ("[{0,2}/{1}] {2,-30} ({3,3}%)" -f $Step, $Total, $Msg, $percent)
     }
+    return $progressObj
 }
 
 function Close-ProgressForm($Ui) {
@@ -128,60 +89,5 @@ function Close-ProgressForm($Ui) {
         }
     } else {
         Write-Host "Installation completed."
-    }
-}
-
-# Helper to advance progress uniformly
-function Advance-Step {
-    param(
-        [Parameter(Mandatory)][string]$Message,
-        [scriptblock]$Action = $null,   # optional operation to run
-        [switch]$Background,            # run in background runspace
-        [int]$DelayMs = 250             # optional pause to let UI catch up
-    )
-
-    if (-not $script:InstallerState) { return }
-
-    # Increment and log step
-    $script:InstallerState.StepCurrent++
-    Write-LogInfo $Message
-
-    # Update progress UI immediately
-    Update-ProgressForm -Ui $script:InstallerState.Ui `
-        -Step $script:InstallerState.StepCurrent `
-        -Total $script:InstallerState.StepsTotal `
-        -Message $Message
-
-    # 💤 micro-yield — ensure UI repaints before running action
-    [System.Windows.Forms.Application]::DoEvents()
-    Start-Sleep -Milliseconds $DelayMs
-
-    # --- Run provided action -------------------------------------------------
-    if ($Action) {
-        if ($Background) {
-            # 🧵 Run asynchronously in runspace
-            $rs = [runspacefactory]::CreateRunspace()
-            $rs.ApartmentState = 'STA'
-            $rs.ThreadOptions = 'ReuseThread'
-            $rs.Open()
-
-            $ps = [powershell]::Create()
-            $ps.Runspace = $rs
-            $ps.AddScript($Action) | Out-Null
-            $handle = $ps.BeginInvoke()
-
-            while (-not $handle.IsCompleted) {
-                [System.Windows.Forms.Application]::DoEvents()
-                Start-Sleep -Milliseconds 100
-            }
-
-            $ps.EndInvoke($handle)
-            $ps.Dispose()
-            $rs.Close()
-            $rs.Dispose()
-        } else {
-            # ⚙️ Run synchronously (blocking)
-            & $Action
-        }
     }
 }
