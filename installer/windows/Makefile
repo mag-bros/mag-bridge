@@ -34,8 +34,7 @@ POWERSHELL := powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command
 # ------------------------------------------------------------
 # Targets
 # ------------------------------------------------------------
-.PHONY: all install build-install uninstall build-uninstall clean \
-        build-dotnet run-dotnet publish-dotnet info
+.PHONY: all build build-dotnet build-install build-uninstall clean info install publish-dotnet rebuild-dotnet run run-dotnet uninstall
 
 build-install:
 	@$(POWERSHELL) "& { & '$(BUILD_WRAPPER)' -OutDir '$(BUILD_DIR)' -InstallSript '$(INSTALL_SRC)' -Output '$(INSTALL_EXE)' -Title '$(TITLE)' }"
@@ -46,14 +45,15 @@ install:
 build-uninstall:
 	@$(POWERSHELL) "& { & '$(BUILD_WRAPPER)' -OutDir '$(BUILD_DIR)' -InstallSript '$(UNINSTALL_SRC)' -Output '$(UNINSTALL_EXE)' -Title '$(TITLE)' }"
 
-clean:
-	@$(POWERSHELL) "& { if (Test-Path '$(OUT_DIR)') { Remove-Item -Recurse -Force '$(OUT_DIR)'; Write-Host 'Cleaned $(OUT_DIR)' } else { Write-Host 'Nothing to clean.' } }"
-
 # ------------------------------------------------------------
 # 🧩 Development Utilities — .NET Project Management
 # ------------------------------------------------------------
 
-run:
+clean:
 	@powershell -NoProfile -Command "dotnet clean '$(DOTNET_PROJECT)'"
-	@powershell -NoProfile -Command "dotnet build '$(DOTNET_PROJECT)'"
-	@powershell -NoProfile -Command "dotnet run --project '$(DOTNET_PROJECT)'"
+
+build:
+	@powershell -NoProfile -Command "dotnet build --nologo '$(DOTNET_PROJECT)'"
+
+run: build
+	@powershell -NoProfile -Command "dotnet run --no-build --project '$(DOTNET_PROJECT)'"

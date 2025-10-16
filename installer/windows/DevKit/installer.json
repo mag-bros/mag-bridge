@@ -3,6 +3,18 @@
     {
       "name": "Initialize Environment",
       "action": "Scripts\\Ensure-Test.ps1"
+    },
+    {
+      "name": "Initialize Environment",
+      "action": "Scripts\\Ensure-Choco.ps1"
+    },
+    {
+      "name": "Initialize Environment",
+      "action": "Scripts\\Ensure-Make.ps1"
+    },
+    {
+      "name": "Initialize Environment",
+      "action": "Scripts\\Ensure-GitBash.ps1"
     }
   ]
 }
