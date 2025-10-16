@@ -1,6 +1,6 @@
-﻿# 👋 --- Show-GoodbyeForm -----------------------------------------------------
+﻿# 👋 --- Show-GoodbyeDialog -----------------------------------------------------
 # Displays installation summary; optional restart; GUI + console modes.
-function Show-GoodbyeForm {
+function Show-GoodbyeDialog {
     param([object]$Ui = $script:InstallerState.Ui)
 
     $summary = ($report -join "`n")

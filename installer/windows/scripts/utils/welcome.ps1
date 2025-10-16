@@ -2,7 +2,7 @@
 # Displays the MagBridge Project welcome screen with project info, logo, and component selection.
 # Automatically falls back to console mode if no GUI is available.
 
-function Show-WelcomeForm {
+function Show-WelcomeDialog {
     if ($script:UIAvailable) {
         # --- Form setup -----------------------------------------------------
         $form = New-Object System.Windows.Forms.Form
