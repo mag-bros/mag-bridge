@@ -183,8 +183,7 @@ public class ProgressForm : Form
                 controller?.Log("🛑 Process forcibly stopped.");
             }
 
-            // 👇 NEW: close app automatically after 2–3 seconds
-            await Task.Delay(2000); // wait 2 seconds
+            await Task.Delay(2000);
             controller?.Log("💤 Closing installer after cancellation...");
             Invoke(() => Close());
         }
