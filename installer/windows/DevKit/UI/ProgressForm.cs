@@ -188,11 +188,16 @@ public class ProgressForm : Form
         {
             controller.UpdateStatus("❌ Installation cancelled.");
             controller.Log("Operation cancelled by user.");
+
             if (currentProcess != null && !currentProcess.HasExited)
+                currentProcess.Kill(true);
+
+            _ = Task.Run(async () =>
             {
-                currentProcess.Kill();
-                controller.Log("🛑 Process forcibly stopped.");
-            }
+                await Task.Delay(666);
+                if (IsHandleCreated)
+                    BeginInvoke((Action)Close);
+            });
         }
         catch (Exception ex)
         {

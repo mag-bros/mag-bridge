@@ -83,32 +83,63 @@ namespace DevKit.UI
         }
 
         private static string GetLicenseNotice() => @"
-This installer automates the setup of required open-source tools:
-───────────────────────────────────────────────────────────────
-• GNU Make (GNU General Public License v3)
-  → https://www.gnu.org/software/make/
-  Freely redistributable and open-source. Installed via official sources.
+DEVKIT INSTALLER — OPEN-SOURCE LICENSE NOTICE
+──────────────────────────────────────────────────────────────
 
-• Chocolatey Community Edition (Apache 2.0 License)
-  → https://community.chocolatey.org/
-  Only the free community client is installed.
-  No commercial or business versions are included.
-  Use in enterprise settings may require a commercial license.
+PURPOSE
+This installer automates the setup of required developer tools using
+official, publicly available installers and package feeds.
 
-• Electron (MIT License)
-  • npm / Node.js (Artistic License 2.0)
-  → https://nodejs.org/
-  → https://www.electronjs.org/
-  Open-source software distributed under their respective licenses.
-  Some npm packages may impose additional obligations (e.g., source disclosure).
+COMPONENTS INSTALLED (AND LICENSES)
+• GNU Make — GNU General Public License v3 (GPL-3.0)
+  https://www.gnu.org/software/make/
 
-───────────────────────────────────────────────────────────────
-By proceeding, you acknowledge that:
-- Only open-source components are installed.
-- You are responsible for license compliance in your environment.
-- The authors provide this installer without warranty or liability.
+• Chocolatey (Community Edition) — Apache License 2.0
+  https://community.chocolatey.org/
+  Note: Only the free community client is installed. Commercial editions
+  (e.g., Chocolatey for Business) are NOT included.
 
-Press 'Accept' to continue or 'Decline' to exit setup.";
+• Node.js — MIT License
+  https://nodejs.org/
+
+• npm (CLI) — Artistic License 2.0
+  https://github.com/npm/cli
+
+• Electron — MIT License
+  https://www.electronjs.org/
+
+ADDITIONAL DEPENDENCIES
+Tools installed via these package managers (e.g., npm packages) are subject
+to THEIR OWN licenses. Some packages may impose additional obligations
+(e.g., attribution, source disclosure, copyleft). Review license terms for
+any additional software you install.
+
+WHAT THIS INSTALLER DOES (AND DOES NOT DO)
+• Installs the tools listed above from their official sources.
+• Does NOT modify, sublicense, or bundle altered versions of those tools.
+• Does NOT grant you any additional rights beyond the upstream licenses.
+
+YOUR RESPONSIBILITIES
+• Ensure your use complies with the applicable licenses and your
+  organization's policies.
+• For business/enterprise use of Chocolatey, evaluate whether a commercial
+  license or support subscription is appropriate for your environment.
+• Verify and comply with the licenses of any downstream packages you install
+  using these tools (e.g., npm dependencies).
+
+WARRANTY & LIABILITY
+This installer and its authors provide the software “AS IS,” without
+warranty of any kind. To the maximum extent permitted by law, no liability
+is assumed for any direct or indirect damages arising from installation,
+use, or reliance on these tools.
+
+CONSENT
+By clicking “Accept,” you acknowledge that you have read and understood this
+notice, and agree to comply with the licenses of the installed components
+and any additional dependencies you choose to install. Click “Decline” to
+exit without making changes.
+
+Press 'Accept' to continue or 'Decline' to exit.";
 
     }
 }

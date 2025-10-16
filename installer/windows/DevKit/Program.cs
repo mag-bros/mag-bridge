@@ -39,8 +39,8 @@ internal static class Program
 
         // Log after installer closes
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Completed.");
-        Console.WriteLine("Press any key to exit...");
-        Console.ReadKey(true);
+        // Console.WriteLine("Press any key to exit...");
+        // Console.ReadKey(true);
     }
 
     [DllImport("kernel32.dll")]
