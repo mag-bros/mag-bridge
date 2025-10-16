@@ -1,6 +1,6 @@
 ﻿# 🧰 Ensure-GnuMake.ps1
 # Ensures GNU Make is installed; installs via Chocolatey if missing.
-# Emits timestamped, plain text logs for DevKit integration.
+# Emits timestamped, plain text logs for MagBridge integration.
 # No reboot is triggered, and irrelevant Chocolatey chatter is filtered out.
 
 [CmdletBinding()]

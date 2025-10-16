@@ -4,7 +4,7 @@ using System.Linq;
 using System.Management.Automation;
 using System.Threading.Tasks;
 
-namespace DevKit
+namespace MagBridge
 {
     /// <summary>
     /// Hosts a PowerShell runspace inside this .NET process (no external powershell.exe).
@@ -16,7 +16,7 @@ namespace DevKit
 
         public PowerShellHost()
         {
-            string logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "DevKit", "Logs");
+            string logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "MagBridge", "Logs");
             Directory.CreateDirectory(logDir);
             _logPath = Path.Combine(logDir, $"devkit_{DateTime.Now:yyyyMMdd_HHmmss}.log");
         }

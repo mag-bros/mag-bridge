@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Security.Principal;
 
-namespace DevKit
+namespace MagBridge
 {
     public static class Utilities
     {

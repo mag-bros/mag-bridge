@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
-namespace DevKit.Core
+namespace MagBridge.Core
 {
     /// <summary>
     /// Represents the static runtime configuration for the installer.

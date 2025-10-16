@@ -2,9 +2,9 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using DevKit.Core;
+using MagBridge.Core;
 
-namespace DevKit.UI
+namespace MagBridge.UI
 {
   public class LicenseDialog : Form
   {
@@ -26,9 +26,15 @@ namespace DevKit.UI
       MinimumSize = new Size(700, 500);
       Font = new Font("Consolas", 10);
 
-      Icon = File.Exists(settings.GetIconPath())
-          ? new Icon(settings.GetIconPath())
-          : SystemIcons.Information;
+      // Safe default icon — no file dependency
+      try
+      {
+        Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath) ?? SystemIcons.Application;
+      }
+      catch
+      {
+        Icon = SystemIcons.Application;
+      }
 
       // === License text area =========================================
       licenseText = new TextBox

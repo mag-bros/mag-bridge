@@ -1,10 +1,10 @@
 using System;
 using System.Windows.Forms;
 
-namespace DevKit
+namespace MagBridge
 {
     /// <summary>
-    /// Simple DevKit installer window: status label + progress bar + log box.
+    /// Simple MagBridge installer window: status label + progress bar + log box.
     /// UI updates are thread-safe.
     /// </summary>
     public class MainWindow : Form
@@ -15,7 +15,7 @@ namespace DevKit
 
         public MainWindow()
         {
-            Text = "DevKit Installer";
+            Text = "MagBridge Installer";
             Width = 600;
             Height = 300;
             StartPosition = FormStartPosition.CenterScreen;

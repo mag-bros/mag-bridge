@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DevKit.Core;
+using MagBridge.Core;
 
 public class ProgressForm : Form
 {

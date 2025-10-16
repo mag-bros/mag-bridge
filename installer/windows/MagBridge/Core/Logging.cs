@@ -1,6 +1,6 @@
 public static class Log
 {
-    private static readonly string LogDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "DevKit\\Logs");
+    private static readonly string LogDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "MagBridge\\Logs");
 
     static Log() => Directory.CreateDirectory(LogDir);
 

@@ -11,7 +11,7 @@ SHELL           := cmd.exe
 ROOT_DIR        := $(abspath .)
 BUILD_DIR       := $(ROOT_DIR)/build
 SCRIPTS_DIR     := $(ROOT_DIR)/scripts
-DEVKIT_DIR		:= $(ROOT_DIR)/DevKit
+DEVKIT_DIR		:= $(ROOT_DIR)/MagBridge
 UTILS_DIR       := $(SCRIPTS_DIR)/utils
 BUILD_WRAPPER   := $(SCRIPTS_DIR)/build_wrapper.ps1
 
@@ -22,7 +22,7 @@ INSTALL_EXE     := $(BUILD_DIR)/Install.exe
 UNINSTALL_EXE   := $(BUILD_DIR)/Uninstall.exe
 
 TITLE           := MagBridge Dependencies Installer
-DOTNET_PROJECT  := $(DEVKIT_DIR)/DevKit.csproj
+DOTNET_PROJECT  := $(DEVKIT_DIR)/MagBridge.csproj
 CONFIG          := Debug
 
 # ------------------------------------------------------------

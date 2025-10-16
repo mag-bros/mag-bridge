@@ -1,5 +1,5 @@
 {
-  "name": "DevKit Installer (SDK)",
+  "name": "MagBridge Installer (SDK)",
   "version": "1.0.0",
   "description": "Sets up developer tools and dependencies for contributors.",
   "steps": [

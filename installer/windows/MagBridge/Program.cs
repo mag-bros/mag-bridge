@@ -2,8 +2,8 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using DevKit.Core;
-using DevKit.UI;
+using MagBridge.Core;
+using MagBridge.UI;
 
 internal static class Program
 {
@@ -16,7 +16,7 @@ internal static class Program
         Application.SetCompatibleTextRenderingDefault(false);
 
         AllocConsole();
-        Console.WriteLine("=== DevKit Installer ===");
+        Console.WriteLine("=== MagBridge Installer ===");
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Starting...");
 
         // === Load static settings =========================================

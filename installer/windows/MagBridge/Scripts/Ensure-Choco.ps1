@@ -1,6 +1,6 @@
 ﻿# 🍫 Ensure-Choco.ps1
 # Detects or installs Chocolatey (https://chocolatey.org)
-# Emits status messages via Write-Output for DevKit logger.
+# Emits status messages via Write-Output for MagBridge logger.
 
 [CmdletBinding()]
 param()

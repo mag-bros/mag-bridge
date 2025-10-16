@@ -3,7 +3,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Threading;
 
-namespace DevKit.Core
+namespace MagBridge.Core
 {
     public class ProgressController
     {
@@ -21,7 +21,7 @@ namespace DevKit.Core
             _statusLabel = statusLabel;
             _logBox = logBox;
 
-            string logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "DevKit", "Logs");
+            string logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "MagBridge", "Logs");
             Directory.CreateDirectory(logDir);
             _logFile = Path.Combine(logDir, $"devkit_{DateTime.Now:yyyyMMdd_HHmmss}.log");
 
