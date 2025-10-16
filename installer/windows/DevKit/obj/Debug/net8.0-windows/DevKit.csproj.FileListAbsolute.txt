@@ -1,3 +1,9 @@
+C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.csproj.AssemblyReference.cache
+C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.AssemblyInfoInputs.cache
+C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.AssemblyInfo.cs
+C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.csproj.CoreCompileInputs.cache
+C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.sourcelink.json
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\DevKit.ico
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\ref\Microsoft.CSharp.dll
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\ref\Microsoft.VisualBasic.Core.dll
@@ -181,6 +187,7 @@ C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\Modules\PSDiagnostics\PSDiagnostics.psd1
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\Modules\PSDiagnostics\PSDiagnostics.psm1
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\Scripts\Ensure-Choco.ps1
+C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\Scripts\Ensure-GitBash.ps1
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\Scripts\Ensure-Make.ps1
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\Scripts\Ensure-Test.ps1
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\installer.json
@@ -356,16 +363,9 @@ C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Runtime.Caching.dll
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.ServiceProcess.ServiceController.dll
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Speech.dll
-C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.csproj.AssemblyReference.cache
-C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.AssemblyInfoInputs.cache
-C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.AssemblyInfo.cs
-C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.csproj.CoreCompileInputs.cache
-C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.sourcelink.json
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.csproj.Up2Date
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.dll
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\refint\DevKit.dll
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.pdb
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\DevKit.genruntimeconfig.cache
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\obj\Debug\net8.0-windows\ref\DevKit.dll
-C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\Scripts\Ensure-GitBash.ps1

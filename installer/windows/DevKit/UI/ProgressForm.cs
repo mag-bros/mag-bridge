@@ -13,6 +13,7 @@ public class ProgressForm : Form
     private readonly TextBox logBox;
     private readonly Button cancelButton;
     private ProgressController controller;
+    private Process? currentProcess;
 
     public ProgressForm()
     {
@@ -64,7 +65,27 @@ public class ProgressForm : Form
     {
         base.OnShown(e);
         controller = new ProgressController(progressBar, statusLabel, logBox);
-        cancelButton.Click += (_, __) => controller.Cancel();
+
+        cancelButton.Click += (_, __) =>
+        {
+            controller.Cancel();
+            if (currentProcess != null && !currentProcess.HasExited)
+            {
+                try
+                {
+                    cancelButton.Enabled = false;
+                    cancelButton.Text = "Cancelling...";
+                    controller.Log("⚠️ Cancelling current step...");
+                    currentProcess.Kill();
+                    controller.Log("🛑 Process terminated by user.");
+                }
+                catch (Exception ex)
+                {
+                    controller.Log($"[ERR] Failed to terminate process: {ex.Message}");
+                }
+            }
+        };
+
         await RunInstallerAsync();
     }
 
@@ -72,6 +93,8 @@ public class ProgressForm : Form
     {
         try
         {
+            // Capture controller safely for background use
+            var ctl = controller ?? throw new InvalidOperationException("ProgressController not initialized.");
             string baseDir = AppContext.BaseDirectory;
             var manifest = InstallerManifest.Load(baseDir);
             int total = manifest.Steps.Count;
@@ -81,18 +104,18 @@ public class ProgressForm : Form
             {
                 foreach (var step in manifest.Steps)
                 {
-                    if (controller.Token.IsCancellationRequested)
+                    if (ctl.Token.IsCancellationRequested)
                         break;
 
                     string scriptPath = Path.Combine(baseDir, step.Action);
                     if (!File.Exists(scriptPath))
                     {
-                        controller.Log($"⚠️ Missing script for step: {step.Name} ({scriptPath})");
+                        ctl.Log($"⚠️ Missing script for step: {step.Name} ({scriptPath})");
                         continue;
                     }
 
-                    controller.UpdateStatus($"Step {++current}/{total}: {step.Name}");
-                    controller.Log($"🧩 Executing {step.Name}\n  {scriptPath}");
+                    ctl.UpdateStatus($"Step {++current}/{total}: {step.Name}");
+                    ctl.Log($"🧩 Executing {step.Name}\n  {scriptPath}");
 
                     var psi = new ProcessStartInfo("powershell.exe",
                         $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\"")
@@ -103,56 +126,72 @@ public class ProgressForm : Form
                         CreateNoWindow = true
                     };
 
-                    using var proc = Process.Start(psi)!;
-                    proc.OutputDataReceived += (s, e) =>
+                    currentProcess = Process.Start(psi);
+                    if (currentProcess == null)
+                        throw new InvalidOperationException("Failed to start PowerShell process.");
+
+                    currentProcess.OutputDataReceived += (s, e) =>
                     {
                         if (!string.IsNullOrEmpty(e.Data))
-                            controller.Log($"[OUT] {e.Data}");
+                            ctl.Log($"[OUT] {e.Data}");
                     };
-                    proc.ErrorDataReceived += (s, e) =>
+                    currentProcess.ErrorDataReceived += (s, e) =>
                     {
                         if (!string.IsNullOrEmpty(e.Data))
-                            controller.Log($"[ERR] {e.Data}");
+                            ctl.Log($"[ERR] {e.Data}");
                     };
 
-                    proc.BeginOutputReadLine();
-                    proc.BeginErrorReadLine();
-                    await proc.WaitForExitAsync(controller.Token);
+                    currentProcess.BeginOutputReadLine();
+                    currentProcess.BeginErrorReadLine();
 
-                    if (proc.ExitCode != 0)
-                    {
-                        controller.Log($"❌ Step failed: {step.Name}. Exit code {proc.ExitCode}");
+                    await currentProcess.WaitForExitAsync(ctl.Token);
+
+                    // cleanup after each process
+                    currentProcess.CancelOutputRead();
+                    currentProcess.CancelErrorRead();
+                    currentProcess.Dispose();
+                    currentProcess = null;
+
+                    if (ctl.Token.IsCancellationRequested)
                         break;
-                    }
 
                     double progress = (double)current / total * 100.0;
-                    controller.SetProgress(progress);
-                    controller.Log($"✅ Step {current}/{total} complete: {step.Name}");
+                    ctl.SetProgress(progress);
+                    ctl.Log($"✅ Step {current}/{total} complete: {step.Name}");
                 }
             });
 
-            if (controller.Token.IsCancellationRequested)
+            if (ctl.Token.IsCancellationRequested)
             {
-                controller.UpdateStatus("❌ Installation cancelled by user.");
-                controller.Log("User cancelled installation.");
+                ctl.UpdateStatus("❌ Installation cancelled by user.");
+                ctl.Log("User cancelled installation.");
             }
             else
             {
-                controller.UpdateStatus("✅ All steps completed successfully!");
-                controller.Log("Installation completed successfully.");
+                ctl.UpdateStatus("✅ All steps completed successfully!");
+                ctl.Log("Installation completed successfully.");
             }
-
-            // Close();
         }
         catch (OperationCanceledException)
         {
-            controller.UpdateStatus("❌ Installation cancelled.");
-            controller.Log("Operation cancelled by user.");
+            controller?.UpdateStatus("❌ Installation cancelled.");
+            controller?.Log("Operation cancelled by user.");
+
+            if (currentProcess != null && !currentProcess.HasExited)
+            {
+                currentProcess.Kill();
+                controller?.Log("🛑 Process forcibly stopped.");
+            }
+
+            // 👇 NEW: close app automatically after 2–3 seconds
+            await Task.Delay(2000); // wait 2 seconds
+            controller?.Log("💤 Closing installer after cancellation...");
+            Invoke(() => Close());
         }
         catch (Exception ex)
         {
-            controller.UpdateStatus("❌ Installation failed.");
-            controller.Log($"[ERR] {ex}");
+            controller?.UpdateStatus("❌ Installation failed.");
+            controller?.Log($"[ERR] {ex}");
             MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
