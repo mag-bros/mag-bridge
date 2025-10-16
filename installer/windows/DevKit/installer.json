@@ -1,0 +1,8 @@
+{
+  "steps": [
+    {
+      "name": "Initialize Environment",
+      "action": "Scripts\\Ensure-Test.ps1"
+    }
+  ]
+}

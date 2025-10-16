@@ -1,3 +1,4 @@
+C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\DevKit.ico
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\ref\Microsoft.CSharp.dll
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\ref\Microsoft.VisualBasic.Core.dll
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\ref\Microsoft.VisualBasic.dll
@@ -179,7 +180,11 @@ C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\Modules\Microsoft.WSMan.Management\WSMan.format.ps1xml
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\Modules\PSDiagnostics\PSDiagnostics.psd1
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\Modules\PSDiagnostics\PSDiagnostics.psm1
-C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\Scripts\Ensure-Hello.ps1
+C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\Scripts\Ensure-Choco.ps1
+C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\Scripts\Ensure-Git.ps1
+C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\Scripts\Ensure-Make.ps1
+C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\Scripts\Ensure-Test.ps1
+C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\installer.json
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\DevKit.exe
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\DevKit.deps.json
 C:\Users\mir\VSCode Projects\mag-bridge\installer\windows\DevKit\bin\Debug\net8.0-windows\DevKit.runtimeconfig.json

@@ -11,6 +11,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.4.3" />
     <None Include="Scripts\**\*.ps1" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="DevKit.ico" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="installer.json" CopyToOutputDirectory="PreserveNewest" />
 
   </ItemGroup>
 </Project>

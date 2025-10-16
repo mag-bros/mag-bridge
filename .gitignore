@@ -207,3 +207,89 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 installer/tmp/
+
+# ============================================
+# 🔧 C# / .NET Build Artifacts
+# ============================================
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+*.log
+*.tmp
+*.user
+*.suo
+*.userosscache
+*.userprefs
+*.rsuser
+*.vsp
+*.vspscc
+*.vscode/
+*.ncb
+*.cache
+*.aps
+*.pdb
+*.ilk
+*.iobj
+*.ipdb
+*.opendb
+*.dbmdl
+
+# ============================================
+# 🧱 Visual Studio / VSCode Settings
+# ============================================
+.vs/
+.vscode/
+*.CodeAnalysisLog.xml
+*.VisualState.xml
+*.psess
+*.vspx
+*.pidb
+*.svclog
+TestResult*/
+TestResults/
+
+# ============================================
+# 📦 NuGet & .NET Dependencies
+# ============================================
+*.nuget/
+packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.deps.json
+
+# ============================================
+# ⚙️ Runtime / Publish Outputs
+# ============================================
+*.exe
+*.dll
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+*.zip
+*.tar.gz
+publish/
+out/
+
+# ============================================
+# 🧩 System / IDE
+# ============================================
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.bak
+*.old
+*.orig
+
+# ============================================
+# 🧰 Custom Project: DevKit Installer
+# ============================================
+# keep scripts & configs under version control
+!Scripts/**/*.ps1
+!installer.json
+!app.manifest
+!DevKit.ico
