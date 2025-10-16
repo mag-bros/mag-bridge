@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -6,13 +7,37 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <!-- Default build profile -->
+    <Profile Condition="'$(Profile)'==''">sdk</Profile>
   </PropertyGroup>
 
+  <!-- PowerShell SDK -->
   <ItemGroup>
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.4.3" />
-    <None Include="Scripts\**\*.ps1" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="DevKit.ico" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="installer.json" CopyToOutputDirectory="PreserveNewest" />
-
   </ItemGroup>
+
+  <!-- All PowerShell scripts -->
+  <ItemGroup>
+    <None Include="Scripts\**\*.ps1" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Parameterized external resources -->
+  <ItemGroup>
+    <!-- Manifest -->
+    <None Include="..\Configs\$(Profile)-installer.json"
+          Link="Configs\app.json"
+          CopyToOutputDirectory="PreserveNewest" />
+
+    <!-- License -->
+    <None Include="..\Licenses\$(Profile)-license.txt"
+          Link="Licenses\LICENSE.txt"
+          CopyToOutputDirectory="PreserveNewest" />
+
+    <!-- Icon -->
+    <None Include="..\Assets\$(Profile).ico"
+          Link="Assets\icon.ico"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

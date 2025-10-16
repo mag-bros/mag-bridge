@@ -1,0 +1,10 @@
+{
+  "name": "DevKit Uninstaller (SDK)",
+  "version": "1.0.0",
+  "description": "Removes developer tools and cleanup environment components installed previously.",
+  "steps": [
+    { "name": "Removing GNU Make...", "action": "Scripts\\Remove-GnuMake.ps1" },
+    { "name": "Removing Electron...", "action": "Scripts\\Remove-Electron.ps1" },
+    { "name": "Final cleanup...", "action": "Scripts\\Validate-Cleanup.ps1" }
+  ]
+}

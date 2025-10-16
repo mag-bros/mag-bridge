@@ -1,7 +1,8 @@
 using System;
-using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using DevKit.Core;
 using DevKit.UI;
 
 internal static class Program
@@ -9,38 +10,84 @@ internal static class Program
     [STAThread]
     static void Main()
     {
-        // Initialize application and enable modern WinForms settings
+        // === Initialization ===============================================
         ApplicationConfiguration.Initialize();
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
 
-        // Optional: open console if launched from Explorer
         AllocConsole();
         Console.WriteLine("=== DevKit Installer ===");
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Starting...");
 
-        // Show license dialog first
-        using (var licenseDialog = new LicenseDialog())
+        // === Load static settings =========================================
+        Settings settings;
+        try
         {
-            if (licenseDialog.ShowDialog() != DialogResult.OK || !licenseDialog.Accepted)
-            {
-                MessageBox.Show(
-                    "You must accept the license terms to proceed.",
-                    "License Agreement",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information
-                );
-                return;
-            }
+            settings = Settings.Load();
+            Console.WriteLine($"Loaded configuration: {settings.Name} v{settings.Version}");
+            Console.WriteLine($"Description: {settings.Description}");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Failed to load configuration:\n{ex.Message}",
+                "Installer Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
+            return;
         }
 
-        // Run main installer GUI
-        Application.Run(new ProgressForm());
+        // === License agreement ============================================
+        try
+        {
+            using (var licenseDialog = new LicenseDialog(settings))
+            {
+                if (licenseDialog.ShowDialog() != DialogResult.OK || !licenseDialog.Accepted)
+                {
+                    MessageBox.Show(
+                        "You must accept the license terms to proceed.",
+                        "License Agreement",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
+                    return;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"License display error:\n{ex.Message}",
+                "License Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
+            return;
+        }
 
-        // Log after installer closes
+        // === Run installer ================================================
+        try
+        {
+            var installerForm = new ProgressForm
+            {
+                Tag = settings,
+                Text = $"{settings.Name} — v{settings.Version}"
+            };
+            Application.Run(installerForm);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Installer error:\n{ex.Message}",
+                "Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
+        }
+
+        // === Cleanup ======================================================
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Completed.");
-        // Console.WriteLine("Press any key to exit...");
-        // Console.ReadKey(true);
     }
 
     [DllImport("kernel32.dll")]

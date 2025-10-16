@@ -106,27 +106,31 @@ public class ProgressForm : Form
         try
         {
             var ctl = controller ?? throw new InvalidOperationException("ProgressController not initialized.");
-            string baseDir = AppContext.BaseDirectory;
-            var manifest = InstallerManifest.Load(baseDir);
-            int total = manifest.Steps.Count;
+            var settings = Tag as Settings ?? throw new InvalidOperationException("Installer settings not provided.");
+
+            int total = settings.Steps.Count;
             int current = 0;
+
+            ctl.Log($"Loaded configuration: {settings.Name} v{settings.Version}");
+            ctl.Log($"Steps to execute: {total}");
 
             await Task.Run(async () =>
             {
-                foreach (var step in manifest.Steps)
+                foreach (var step in settings.Steps)
                 {
                     if (ctl.Token.IsCancellationRequested)
                         break;
 
-                    string scriptPath = Path.Combine(baseDir, step.Action);
+                    string scriptPath = Path.Combine(AppContext.BaseDirectory, step.Action);
                     if (!File.Exists(scriptPath))
                     {
-                        ctl.Log($"⚠️ Missing script for step: {step.Name} ({scriptPath})");
+                        ctl.Log($"Warning: Missing script for step '{step.Name}' ({scriptPath})");
                         continue;
                     }
 
                     ctl.UpdateStatus($"Step {++current}/{total}: {step.Name}");
-                    ctl.Log($"🧩 Executing {step.Name}\n  {scriptPath}");
+                    ctl.Log($"Executing step: {step.Name}");
+                    ctl.Log($"  Script: {scriptPath}");
 
                     var psi = new ProcessStartInfo("powershell.exe",
                         $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\"")
@@ -137,52 +141,56 @@ public class ProgressForm : Form
                         CreateNoWindow = true
                     };
 
-                    currentProcess = Process.Start(psi);
-                    if (currentProcess == null)
-                        throw new InvalidOperationException("Failed to start PowerShell process.");
-
-                    currentProcess.OutputDataReceived += (s, e) =>
+                    using (currentProcess = Process.Start(psi)
+                           ?? throw new InvalidOperationException("Failed to start PowerShell process."))
                     {
-                        if (!string.IsNullOrEmpty(e.Data))
-                            ctl.Log($"[OUT] {e.Data}");
-                    };
-                    currentProcess.ErrorDataReceived += (s, e) =>
-                    {
-                        if (!string.IsNullOrEmpty(e.Data))
-                            ctl.Log($"[ERR] {e.Data}");
-                    };
+                        currentProcess.OutputDataReceived += (_, e) =>
+                        {
+                            if (!string.IsNullOrWhiteSpace(e.Data))
+                                ctl.Log($"[OUT] {e.Data}");
+                        };
 
-                    currentProcess.BeginOutputReadLine();
-                    currentProcess.BeginErrorReadLine();
+                        currentProcess.ErrorDataReceived += (_, e) =>
+                        {
+                            if (!string.IsNullOrWhiteSpace(e.Data))
+                                ctl.Log($"[ERR] {e.Data}");
+                        };
 
-                    await currentProcess.WaitForExitAsync(ctl.Token);
+                        currentProcess.BeginOutputReadLine();
+                        currentProcess.BeginErrorReadLine();
 
-                    currentProcess.CancelOutputRead();
-                    currentProcess.CancelErrorRead();
-                    currentProcess.Dispose();
-                    currentProcess = null;
+                        await currentProcess.WaitForExitAsync(ctl.Token);
 
-                    if (ctl.Token.IsCancellationRequested)
-                        break;
+                        if (ctl.Token.IsCancellationRequested)
+                        {
+                            ctl.Log("Cancellation requested during step execution.");
+                            break;
+                        }
 
-                    double progress = (double)current / total * 100.0;
-                    ctl.SetProgress(progress);
-                    ctl.Log($"✅ Step {current}/{total} complete: {step.Name}");
+                        if (currentProcess.ExitCode != 0)
+                        {
+                            ctl.Log($"Error: Step '{step.Name}' failed (Exit code {currentProcess.ExitCode}).");
+                            break;
+                        }
+
+                        ctl.Log($"Step {current}/{total} completed successfully.");
+                        double progress = (double)current / total * 100.0;
+                        ctl.SetProgress(progress);
+                    }
                 }
             });
 
             if (ctl.Token.IsCancellationRequested)
             {
-                ctl.UpdateStatus("❌ Installation cancelled by user.");
+                ctl.UpdateStatus("Installation cancelled by user.");
                 ctl.Log("User cancelled installation.");
             }
             else
             {
-                ctl.UpdateStatus("✅ All steps completed successfully!");
+                ctl.UpdateStatus("All steps completed successfully.");
                 ctl.Log("Installation completed successfully.");
             }
 
-            // After installation completes → change Cancel → Quit
             Invoke(() =>
             {
                 cancelButton.Text = "Quit";
@@ -191,11 +199,21 @@ public class ProgressForm : Form
         }
         catch (OperationCanceledException)
         {
-            controller.UpdateStatus("❌ Installation cancelled.");
+            controller.UpdateStatus("Installation cancelled.");
             controller.Log("Operation cancelled by user.");
 
-            if (currentProcess != null && !currentProcess.HasExited)
-                currentProcess.Kill(true);
+            if (currentProcess is { HasExited: false })
+            {
+                try
+                {
+                    currentProcess.Kill(true);
+                    controller.Log("Process forcibly terminated.");
+                }
+                catch (Exception ex)
+                {
+                    controller.Log($"Failed to terminate process: {ex.Message}");
+                }
+            }
 
             _ = Task.Run(async () =>
             {
@@ -206,8 +224,8 @@ public class ProgressForm : Form
         }
         catch (Exception ex)
         {
-            controller.UpdateStatus("❌ Installation failed.");
-            controller.Log($"[ERR] {ex}");
+            controller.UpdateStatus("Installation failed.");
+            controller.Log($"Error: {ex}");
             MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
