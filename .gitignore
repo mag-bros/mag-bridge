@@ -290,10 +290,10 @@ $RECYCLE.BIN/
 *.orig
 
 # ============================================
-# 🧰 Custom Project: DevKit Installer
+# 🧰 Custom Project: MagBridge Installer
 # ============================================
 # keep scripts & configs under version control
 !Scripts/**/*.ps1
 !installer.json
 !app.manifest
-!DevKit.ico
+!MagBridge.ico
