@@ -15,69 +15,102 @@ namespace MagBridge.UI
         public Color ProgressFill { get; init; }
         public Color ProgressBorder { get; init; }
         public Color ButtonOutline { get; init; }
-
-        // === LO-FI (Retro neon purple–pink–blue) ============================
-        public static ThemeSettings LoFi => new ThemeSettings
-        {
-            Background = Color.FromArgb(22, 18, 35),             // Deep indigo-black
-            Surface = Color.FromArgb(35, 28, 58),                // Slightly brighter surface
-            Accent = Color.FromArgb(185, 70, 255),               // Vivid magenta
-            AccentDark = Color.FromArgb(140, 40, 210),           // Muted violet
-            Text = Color.WhiteSmoke,
-            SubtleText = Color.FromArgb(180, 160, 210),
-            Error = Color.FromArgb(250, 80, 130),
-            ProgressBackground = Color.FromArgb(35, 28, 58),
-            ProgressFill = Color.FromArgb(110, 120, 255),        // Cool neon blue
-            ProgressBorder = Color.FromArgb(90, 80, 180),
-            ButtonOutline = Color.FromArgb(140, 40, 210)
-        };
-
-        // === LAVA (Dark, energetic reds/oranges) ============================
+        // === LAVA (Cooler, deeper — almost black with faint red warmth) ============
         public static ThemeSettings Lava => new ThemeSettings
         {
-            Background = Color.FromArgb(30, 10, 8),              // Deep brownish black
-            Surface = Color.FromArgb(45, 18, 12),                // Warm red-brown surface
-            Accent = Color.FromArgb(255, 90, 40),                // Lava orange
-            AccentDark = Color.FromArgb(200, 50, 25),            // Deep ember
+            Background = Color.FromArgb(10, 4, 4),                // Near-black with subtle red tint
+            Surface = Color.FromArgb(28, 10, 8),                  // Faint warm surface
+            Accent = Color.FromArgb(180, 60, 25),                 // Muted dark orange
+            AccentDark = Color.FromArgb(120, 35, 15),             // Deep ember
             Text = Color.WhiteSmoke,
-            SubtleText = Color.FromArgb(200, 170, 150),
-            Error = Color.FromArgb(255, 70, 70),
-            ProgressBackground = Color.FromArgb(45, 18, 12),
-            ProgressFill = Color.FromArgb(255, 120, 60),         // Hot orange-red
-            ProgressBorder = Color.FromArgb(180, 70, 40),
-            ButtonOutline = Color.FromArgb(255, 100, 60)
+            SubtleText = Color.FromArgb(180, 150, 130),
+            Error = Color.FromArgb(230, 70, 70),
+            ProgressBackground = Color.FromArgb(28, 10, 8),
+            ProgressFill = Color.FromArgb(210, 80, 40),           // Dark molten orange
+            ProgressBorder = Color.FromArgb(140, 50, 30),
+            ButtonOutline = Color.FromArgb(160, 45, 30)
         };
 
-        // === MATRIX (Digital green-on-black) ================================
+        // === LO-FI (Deeper purple tone, more moody, better contrast) ===============
+        public static ThemeSettings LoFi => new ThemeSettings
+        {
+            Background = Color.FromArgb(10, 8, 20),               // Much darker indigo-black
+            Surface = Color.FromArgb(22, 18, 35),                 // Subtle lift
+            Accent = Color.FromArgb(160, 50, 235),                // Slightly darker magenta
+            AccentDark = Color.FromArgb(110, 30, 160),            // Hover tone deeper
+            Text = Color.WhiteSmoke,
+            SubtleText = Color.FromArgb(160, 140, 190),
+            Error = Color.FromArgb(250, 80, 130),
+            ProgressBackground = Color.FromArgb(22, 18, 35),
+            ProgressFill = Color.FromArgb(200, 160, 40),          // Warm dark yellow progress
+            ProgressBorder = Color.FromArgb(110, 30, 160),
+            ButtonOutline = Color.FromArgb(90, 25, 130)
+        };
+
+        // === MATRIX (True cinematic green — dark, high-contrast, less neon) ========
         public static ThemeSettings Matrix => new ThemeSettings
         {
-            Background = Color.FromArgb(5, 10, 5),               // Near black
-            Surface = Color.FromArgb(10, 20, 10),                // Dark green-gray
-            Accent = Color.FromArgb(0, 255, 90),                 // Matrix bright green
-            AccentDark = Color.FromArgb(0, 180, 60),             // Dimmer accent
-            Text = Color.FromArgb(190, 255, 190),                // Soft green-white text
-            SubtleText = Color.FromArgb(100, 180, 100),
-            Error = Color.FromArgb(255, 60, 60),
-            ProgressBackground = Color.FromArgb(10, 20, 10),
-            ProgressFill = Color.FromArgb(0, 255, 100),
-            ProgressBorder = Color.FromArgb(0, 180, 70),
-            ButtonOutline = Color.FromArgb(0, 255, 100)
+            Background = Color.FromArgb(3, 5, 3),                 // Nearly black green
+            Surface = Color.FromArgb(8, 14, 8),                   // Slight depth
+            Accent = Color.FromArgb(0, 190, 70),                  // Softer primary green
+            AccentDark = Color.FromArgb(0, 120, 40),              // Hover/pressed
+            Text = Color.FromArgb(180, 255, 180),                 // Softer bright green-white
+            SubtleText = Color.FromArgb(100, 170, 100),
+            Error = Color.FromArgb(255, 80, 80),
+            ProgressBackground = Color.FromArgb(8, 14, 8),
+            ProgressFill = Color.FromArgb(0, 170, 60),            // Muted digital fill
+            ProgressBorder = Color.FromArgb(0, 120, 40),
+            ButtonOutline = Color.FromArgb(0, 150, 55)            // Slightly darker outline
         };
 
-        // === SEA (Deep ocean blue-green with subtle red accent) =============
+        // === SEA (Refined: balanced deep blue-green with crisp contrast) ===========
         public static ThemeSettings Sea => new ThemeSettings
         {
-            Background = Color.FromArgb(12, 28, 42),             // Deep navy
-            Surface = Color.FromArgb(22, 40, 56),                // Slightly lighter card tone
-            Accent = Color.FromArgb(0, 173, 181),                // Teal-green (original)
-            AccentDark = Color.FromArgb(0, 120, 130),
+            Background = Color.FromArgb(10, 24, 36),              // Deep midnight blue
+            Surface = Color.FromArgb(20, 38, 52),                 // Slightly lighter card tone
+            Accent = Color.FromArgb(0, 160, 175),                 // Calm teal
+            AccentDark = Color.FromArgb(0, 115, 125),             // Hover/press tone
             Text = Color.WhiteSmoke,
             SubtleText = Color.FromArgb(160, 190, 200),
-            Error = Color.FromArgb(240, 90, 80),                 // Coral red pop for contrast
-            ProgressBackground = Color.FromArgb(22, 40, 56),
-            ProgressFill = Color.FromArgb(0, 190, 200),
-            ProgressBorder = Color.FromArgb(0, 120, 130),
-            ButtonOutline = Color.FromArgb(240, 90, 80)          // Same red hue as subtle accent
+            Error = Color.FromArgb(230, 90, 85),                  // Muted coral red for alerts
+            ProgressBackground = Color.FromArgb(20, 38, 52),
+            ProgressFill = Color.FromArgb(0, 220, 255),           // Sharp aqua contrast
+            ProgressBorder = Color.FromArgb(0, 135, 150),
+            ButtonOutline = Color.FromArgb(150, 70, 65)
         };
+
+        // === SANDSTORM (Desert dusk — dark yellows, green undertones, bold contrast) ===
+        public static ThemeSettings Sandstorm => new ThemeSettings
+        {
+            Background = Color.FromArgb(18, 18, 10),              // Nearly black with olive hue
+            Surface = Color.FromArgb(30, 28, 12),                 // Dusty dark brown-yellow
+            Accent = Color.FromArgb(140, 100, 25),                // Muted desert gold
+            AccentDark = Color.FromArgb(120, 100, 30),            // Deep olive-gold hover
+            Text = Color.FromArgb(245, 240, 210),                 // Warm parchment white
+            SubtleText = Color.FromArgb(200, 190, 150),
+            Error = Color.FromArgb(255, 110, 70),                 // Sunset orange for warnings
+            ProgressBackground = Color.FromArgb(30, 28, 12),
+            ProgressFill = Color.FromArgb(230, 200, 60),          // Rich golden loader
+            ProgressBorder = Color.FromArgb(150, 120, 40),
+            ButtonOutline = Color.FromArgb(90, 110, 60)
+        };
+
+        // === WHITE (Clean readable light theme — dark blue hover, green progress) ===
+        // === WHITE (Soft neutral light theme with cyan-blue accents) ===============
+        public static ThemeSettings White => new ThemeSettings
+        {
+            Background = Color.FromArgb(245, 247, 250),          // Gentle cool white
+            Surface = Color.FromArgb(255, 255, 255),             // Pure content background
+            Accent = Color.FromArgb(40, 90, 200),                // Cyan-blue hover (balanced)
+            AccentDark = Color.FromArgb(25, 70, 160),            // Pressed blue
+            Text = Color.FromArgb(20, 20, 20),                   // Black readable text
+            SubtleText = Color.FromArgb(90, 90, 90),             // Muted secondary gray
+            Error = Color.FromArgb(210, 60, 50),                 // Standard alert red
+            ProgressBackground = Color.FromArgb(235, 237, 240),
+            ProgressFill = Color.FromArgb(40, 160, 80),          // Medium green progress
+            ProgressBorder = Color.FromArgb(30, 120, 60),
+            ButtonOutline = Color.FromArgb(35, 85, 190)
+        };
+
     }
 }

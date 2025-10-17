@@ -4,7 +4,7 @@ namespace MagBridge.UI
 {
     public static class Theme
     {
-        private static ThemeSettings _current = ThemeSettings.Lava;
+        private static ThemeSettings _current = ThemeSettings.White;
 
         // --- Core Palette ---------------
         public static Color Background => _current.Background;
@@ -14,6 +14,7 @@ namespace MagBridge.UI
         public static Color Text => _current.Text;
         public static Color SubtleText => _current.SubtleText;
         public static Color Error => _current.Error;
+        public static Color ButtonOutline => _current.ButtonOutline;
 
         // --- Progress bar colors --------------------------------------------
         public static Color ProgressBackground => _current.ProgressBackground;
@@ -100,11 +101,17 @@ namespace MagBridge.UI
             var g = e.Graphics;
             var bounds = ClientRectangle;
 
-            Color fill = pressed ? Theme.AccentDark : hovered ? Theme.Accent : Theme.ProgressBackground;
+            Color fill = pressed
+                ? Theme.AccentDark
+                : hovered
+                    ? Theme.Accent
+                    : Theme.ProgressBackground;
+
             using var bg = new SolidBrush(fill);
-            using var border = new Pen(Theme.AccentDark, 1);
+            using var border = new Pen(hovered ? Theme.ButtonOutline : Theme.AccentDark, 1.4f);
             using var textBrush = new SolidBrush(Theme.Text);
 
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             g.FillRectangle(bg, bounds);
             g.DrawRectangle(border, 0, 0, bounds.Width - 1, bounds.Height - 1);
 
@@ -159,7 +166,7 @@ namespace MagBridge.UI
             var bounds = ClientRectangle;
 
             Color bg = Theme.Surface;
-            Color border = focused ? Theme.Accent : Theme.AccentDark;
+            Color border = focused ? Theme.ButtonOutline : Theme.AccentDark;
             Color fg = Theme.Text;
 
             using var bgBrush = new SolidBrush(bg);
