@@ -70,21 +70,6 @@ namespace MagBridge.UI
             g.DrawString(text, PrimaryFont, textBrush, bounds, fmt);
         }
 
-        public static void PaintProgressBar(Graphics g, Rectangle bounds, int value, int max)
-        {
-            double ratio = (double)value / max;
-            int fillWidth = (int)(bounds.Width * ratio);
-
-            using var bg = new SolidBrush(ProgressBackground);
-            using var fill = new SolidBrush(ProgressFill);
-            using var border = new Pen(ProgressBorder, 1);
-
-            g.FillRectangle(bg, bounds);
-            if (fillWidth > 0)
-                g.FillRectangle(fill, new Rectangle(bounds.X, bounds.Y, fillWidth, bounds.Height));
-
-            g.DrawRectangle(border, bounds.X, bounds.Y, bounds.Width - 1, bounds.Height - 1);
-        }
     }
 
     public class ThemedProgressBar : ProgressBar
@@ -97,7 +82,21 @@ namespace MagBridge.UI
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            Theme.PaintProgressBar(e.Graphics, ClientRectangle, Value, Maximum);
+            var g = e.Graphics;
+            var bounds = ClientRectangle;
+
+            double ratio = (double)Value / Maximum;
+            int fillWidth = (int)(bounds.Width * ratio);
+
+            using var bg = new SolidBrush(Theme.ProgressBackground);
+            using var fill = new SolidBrush(Theme.ProgressFill);
+            using var border = new Pen(Theme.ProgressBorder, 1);
+
+            g.FillRectangle(bg, bounds);
+            if (fillWidth > 0)
+                g.FillRectangle(fill, new Rectangle(bounds.X, bounds.Y, fillWidth, bounds.Height));
+
+            g.DrawRectangle(border, bounds.X, bounds.Y, bounds.Width - 1, bounds.Height - 1);
         }
     }
 
