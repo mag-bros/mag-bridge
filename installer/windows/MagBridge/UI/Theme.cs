@@ -4,21 +4,23 @@ namespace MagBridge.UI
 {
     public static class Theme
     {
-        // --- Core Palette  ---------------
-        public static readonly Color Background = Color.FromArgb(18, 32, 47);        // Deep blue-gray
-        public static readonly Color Surface = Color.FromArgb(28, 46, 65);        // Card panels
-        public static readonly Color Accent = Color.FromArgb(0, 173, 181);       // Sea-green cyan
-        public static readonly Color AccentDark = Color.FromArgb(0, 145, 156);
-        public static readonly Color Text = Color.WhiteSmoke;
-        public static readonly Color SubtleText = Color.FromArgb(170, 190, 200);
-        public static readonly Color Error = Color.FromArgb(220, 76, 70);
+        private static ThemeSettings _current = ThemeSettings.Sea;
+
+        // --- Core Palette ---------------
+        public static Color Background => _current.Background;
+        public static Color Surface => _current.Surface;
+        public static Color Accent => _current.Accent;
+        public static Color AccentDark => _current.AccentDark;
+        public static Color Text => _current.Text;
+        public static Color SubtleText => _current.SubtleText;
+        public static Color Error => _current.Error;
 
         // --- Progress bar colors --------------------------------------------
-        public static readonly Color ProgressBackground = Color.FromArgb(28, 46, 65);
-        public static readonly Color ProgressFill = Accent;
-        public static readonly Color ProgressBorder = AccentDark;
+        public static Color ProgressBackground => _current.ProgressBackground;
+        public static Color ProgressFill => _current.ProgressFill;
+        public static Color ProgressBorder => _current.ProgressBorder;
 
-        // --- Fonts ---------------------------------------------------------
+        // --- Fonts -----------------------------------------------------------
         public static readonly Font PrimaryFont = new Font("Segoe UI", 10, FontStyle.Regular);
         public static readonly Font TitleFont = new Font("Segoe UI Semibold", 11.5f);
         public static readonly Font MonoFont = new Font("Consolas", 10);
@@ -30,29 +32,6 @@ namespace MagBridge.UI
             form.BackColor = Background;
             form.ForeColor = Text;
             form.Font = PrimaryFont;
-        }
-
-        public static void PaintTextBox(Graphics g, Rectangle bounds, string text, bool focused, bool multiline = false)
-        {
-            Color bg = Surface;
-            Color border = focused ? Accent : AccentDark;
-            Color fg = Text;
-
-            using var bgBrush = new SolidBrush(bg);
-            using var borderPen = new Pen(border, 1);
-            using var textBrush = new SolidBrush(fg);
-            g.FillRectangle(bgBrush, bounds);
-
-            var textRect = new Rectangle(bounds.X + 6, bounds.Y + 3, bounds.Width - 12, bounds.Height - 6);
-            var fmt = new StringFormat
-            {
-                Alignment = StringAlignment.Near,
-                LineAlignment = multiline ? StringAlignment.Near : StringAlignment.Center,
-                Trimming = StringTrimming.EllipsisCharacter
-            };
-
-            g.DrawString(text, PrimaryFont, textBrush, textRect, fmt);
-            g.DrawRectangle(borderPen, bounds.X, bounds.Y, bounds.Width - 1, bounds.Height - 1);
         }
     }
 
