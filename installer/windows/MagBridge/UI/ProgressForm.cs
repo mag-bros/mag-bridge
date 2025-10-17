@@ -156,7 +156,6 @@ public class ProgressForm : Form
                     if (ctl.Token.IsCancellationRequested)
                         break;
 
-                    var stepLabel = step.Label;
                     var progressLabel = step.ProgressLabel ?? step.Label;
 
                     ctl.UpdateStatus($"Step {++current}/{total}: {progressLabel}");
@@ -166,11 +165,11 @@ public class ProgressForm : Form
                     string scriptPath = Path.Combine(AppContext.BaseDirectory, step.Action);
                     if (!File.Exists(scriptPath))
                     {
-                        ctl.Log($"[WARN] Missing script for '{stepLabel}' — skipped ({scriptPath})");
+                        ctl.Log($"[WARN] Missing script for '{step.PackageKey}' — skipped ({scriptPath})");
                         continue;
                     }
 
-                    ctl.Log($"[OUT] === Running {Path.GetFileName(scriptPath)} ===");
+                    ctl.Log($"[INFO] === Running {Path.GetFileName(scriptPath)} ===");
 
                     string loggingPath = Path.Combine(AppContext.BaseDirectory, "Scripts", "_Logging.ps1");
                     string command = $"-NoProfile -ExecutionPolicy Bypass -Command \"& {{ . '{loggingPath}'; . '{scriptPath}' }}\"";
@@ -184,20 +183,20 @@ public class ProgressForm : Form
                     };
 
                     using var proc = Process.Start(psi)
-                        ?? throw new InvalidOperationException($"Failed to start process for '{stepLabel}'");
+                        ?? throw new InvalidOperationException($"Failed to start process for '{step.PackageKey}'");
 
                     currentProcess = proc;
 
                     proc.OutputDataReceived += (_, e) =>
                     {
                         if (!string.IsNullOrWhiteSpace(e.Data))
-                            ctl.Log($"[OUT] [{stepLabel}] {e.Data}");
+                            ctl.Log($"[INFO] [{step.PackageKey}] {e.Data}");
                     };
 
                     proc.ErrorDataReceived += (_, e) =>
                     {
                         if (!string.IsNullOrWhiteSpace(e.Data))
-                            ctl.Log($"[ERR] [{stepLabel}] {e.Data}");
+                            ctl.Log($"[ERR] [{step.PackageKey}] {e.Data}");
                     };
 
                     proc.BeginOutputReadLine();
@@ -209,7 +208,7 @@ public class ProgressForm : Form
                     }
                     catch (OperationCanceledException)
                     {
-                        ctl.Log($"[INFO] Cancellation requested during '{stepLabel}'");
+                        ctl.Log($"[INFO] Cancellation requested during '{step.PackageKey}'");
                         break;
                     }
 
@@ -217,13 +216,13 @@ public class ProgressForm : Form
 
                     if (exitCode != 0)
                     {
-                        ctl.Log($"[ERR] Step '{stepLabel}' failed with exit code {exitCode}.");
-                        ctl.UpdateStatus($"Step failed: {stepLabel}");
+                        ctl.Log($"[ERR] Step '{step.PackageKey}' failed with exit code {exitCode}.");
+                        ctl.UpdateStatus($"Step failed: {step.PackageKey}");
                         hasError = true;
                         break;
                     }
 
-                    ctl.Log($"[OK] Step completed successfully: {stepLabel}");
+                    ctl.Log($"[OK] Step completed successfully: {step.PackageKey}");
                     ctl.SetProgress((double)current / total * 100.0);
                     currentProcess = null;
                 }

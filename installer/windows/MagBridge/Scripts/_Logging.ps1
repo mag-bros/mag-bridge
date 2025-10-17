@@ -35,11 +35,10 @@ function Write-LogLine {
         [ConsoleColor]$Color = 'Gray'
     )
 
-    $timestamp = (Get-Date -Format 'HH:mm:ss')
     $src = $env:MAGBRIDGE_LOG_SOURCE
     if (-not $src) { $src = 'Generic' }
 
-    $line = "[$timestamp] [$src] $Message"
+    $line = "$Message"
     if ($global:NO_COLOR) {
         Write-Host $line
     } else {
