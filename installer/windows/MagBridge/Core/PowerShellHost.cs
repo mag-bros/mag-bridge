@@ -58,7 +58,7 @@ namespace MagBridge
                 }
 
                 foreach (var line in results.Select(r => r?.ToString()))
-                    Log($"[OUT] {line}");
+                    Log($"{line}");
 
                 Console.WriteLine("PowerShell execution finished successfully.");
             }

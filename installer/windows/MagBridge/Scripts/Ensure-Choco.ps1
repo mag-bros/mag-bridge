@@ -1,11 +1,8 @@
-﻿# 🍫 Ensure-Choco.ps1
+﻿# Ensure-Choco.ps1
 # Detects or installs Chocolatey (https://chocolatey.org)
-# Emits status messages via Write-Output for MagBridge logger.
+# Emits standardized output for MagBridge logger.
 
-[CmdletBinding()]
-param()
-
-Write-Output "🔍 Checking for Chocolatey..."
+Write-Host "=== Checking for Chocolatey ==="
 
 try {
     # --- Detection phase ---------------------------------------------------
@@ -13,23 +10,23 @@ try {
     if ($cmd) {
         $ver = (& choco --version 2>$null).Trim()
         if ($ver) {
-            Write-Output "✅ Chocolatey v$ver detected at $($cmd.Source)"
-            return
+            Write-Host ("Chocolatey v{0} detected at {1}" -f $ver, $cmd.Source)
+            exit 0
         }
     }
 
     # --- Installation phase ------------------------------------------------
-    Write-Output "⚙️ Chocolatey not found — attempting installation..."
+    Write-Warning "Chocolatey not found — attempting installation..."
     $chocoRoot = Join-Path $env:ProgramData "chocolatey"
 
     if (Test-Path $chocoRoot) {
-        Write-Output "🧹 Removing incomplete Chocolatey directory..."
+        Write-Warning "Removing incomplete Chocolatey directory..."
         try {
             Remove-Item -Recurse -Force $chocoRoot -ErrorAction SilentlyContinue | Out-Null
             Start-Sleep -Seconds 1
         }
         catch {
-            Write-Output ("⚠️ Failed to clean {0}: {1}" -f $chocoRoot, $_.Exception.Message)
+            Write-Warning ("Failed to clean {0}: {1}" -f $chocoRoot, $_.Exception.Message)
         }
     }
 
@@ -38,14 +35,14 @@ try {
     $env:ChocolateyUseWindowsCompression = 'false'
 
     $installUrl = 'https://community.chocolatey.org/install.ps1'
-    Write-Output "⬇️ Downloading and executing Chocolatey installer from $installUrl"
+    Write-Host ("Downloading and executing Chocolatey installer from {0}" -f $installUrl)
 
     try {
         $installScript = (New-Object System.Net.WebClient).DownloadString($installUrl)
         Invoke-Expression $installScript
     }
     catch {
-        Write-Output "❌ Chocolatey installation script failed: $($_.Exception.Message)"
+        Write-Error ("Chocolatey installation script failed: {0}" -f $_.Exception.Message)
     }
 
     # --- Verification phase ------------------------------------------------
@@ -53,16 +50,15 @@ try {
     if ($cmd2) {
         $ver2 = (& choco --version 2>$null).Trim()
         if ($ver2) {
-            Write-Output "✅ Chocolatey installed successfully (v$ver2)"
+            Write-Host ("Chocolatey installed successfully (v{0})" -f $ver2)
             exit 0
         }
     }
 
-    Write-Output "❌ Chocolatey installation failed or executable not found on PATH."
+    Write-Error "Chocolatey installation failed or executable not found on PATH."
     exit 1
-
 }
 catch {
-    Write-Output "❌ Ensure-Choco encountered an error: $($_.Exception.Message)"
+    Write-Error ("Ensure-Choco encountered an error: {0}" -f $_.Exception.Message)
     exit 2
 }

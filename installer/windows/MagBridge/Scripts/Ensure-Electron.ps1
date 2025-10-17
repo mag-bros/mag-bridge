@@ -6,13 +6,6 @@ $ElectronPackage = "electron"
 $ElectronVersion = "34.0.1"
 
 # --- Utilities -------------------------------------------------------------
-
-function Log {
-    param([string]$Message)
-    $timestamp = (Get-Date).ToString("HH:mm:ss")
-    Write-Output ("[{0}] {1}" -f $timestamp, $Message)
-}
-
 function Test-Chocolatey {
     try {
         Get-Command choco -ErrorAction Stop | Out-Null
@@ -24,16 +17,14 @@ function Test-Chocolatey {
 function Test-ElectronInstalled {
     try {
         $pkg = choco list --local-only | Where-Object { $_ -match "^$ElectronPackage\s+" }
-        if ($pkg -match $ElectronVersion) { return $true }
-        return $false
+        return ($pkg -match $ElectronVersion)
     }
     catch { return $false }
 }
 
 # --- Main installation logic ----------------------------------------------
-
 function Install-Electron {
-    Log "▶ Starting installation of Electron $ElectronVersion"
+    Write-Output "Starting installation of $ElectronPackage $ElectronVersion"
 
     $args = @(
         "install", $ElectronPackage,
@@ -52,7 +43,7 @@ function Install-Electron {
         $psi.FileName = "choco"
         $psi.Arguments = ($args -join " ")
         $psi.RedirectStandardOutput = $true
-        $psi.RedirectStandardError = $true
+        $psi.RedirectStandardError  = $true
         $psi.UseShellExecute = $false
         $psi.CreateNoWindow = $true
 
@@ -61,75 +52,64 @@ function Install-Electron {
         $stderr = $proc.StandardError.ReadToEnd()
         $proc.WaitForExit()
 
-        # Clean and filter log output for readability
+        # Filter noise
         $filtered = $stdout -split "`r?`n" | Where-Object {
-            $_ -and ($_ -notmatch "reboot") -and ($_ -notmatch "compare") -and ($_ -notmatch "validations")
+            $_ -and ($_ -notmatch "reboot") -and ($_ -notmatch "compare") -and ($_ -notmatch "validation")
         }
+        foreach ($line in $filtered) { Write-Output $line }
 
-        foreach ($line in $filtered) {
-            if ($line -match "already installed") {
-                Log "ℹ $line"
-            }
-            elseif ($line -match "installed successfully") {
-                Log "✅ $line"
-            }
-            elseif ($line -match "failed") {
-                Log "❌ $line"
-            }
-            else {
-                Log "… $line"
-            }
-        }
+        # Expose exit code to caller for messaging
+        $script:ElectronExitCode = $proc.ExitCode
 
         switch ($proc.ExitCode) {
-            0 { Log "✅ Electron $ElectronVersion installed successfully."; return $true }
-            1641 { Log "✅ Electron installed (requires reboot but ignored per policy)."; return $true }
-            3010 { Log "✅ Electron installed (pending reboot suppressed)."; return $true }
+            0    { Write-Output "$ElectronPackage $ElectronVersion installed successfully."; return $true }
+            1641 { Write-Warning "$ElectronPackage installed (reboot required, ignored).";  return $true }
+            3010 { Write-Warning "$ElectronPackage installed (pending reboot suppressed)."; return $true }
             default {
-                Log "❌ Installation failed. Exit code: $($proc.ExitCode)"
-                if ($stderr) { Log "STDERR: $stderr" }
+                if ($stderr) { Write-Output "STDERR: $stderr" }
                 return $false
             }
         }
     }
     catch {
-        Log ("❌ Exception during installation: {0}" -f $_.Exception.Message)
+        $script:ElectronExitCode = -1
+        Write-Output ("Exception during installation: {0}" -f $_.Exception.Message)
         return $false
     }
 }
 
-# --- Entry ----------------------------------------------------------------
-
-Log ("=== Electron Ensure Script (Target: {0} {1}) ===" -f $ElectronPackage, $ElectronVersion)
-Log ("Checking prerequisites for {0} {1}..." -f $ElectronPackage, $ElectronVersion)
+# --- Entry -----------------------------------------------------------------
+Write-Output "=== Electron Ensure Script (Target: $ElectronPackage $ElectronVersion) ==="
+Write-Output "Checking prerequisites for $ElectronPackage..."
 
 if (-not (Test-Chocolatey)) {
-    Log "❌ Chocolatey is not installed or not found in PATH."
+    Write-Error "Chocolatey not installed or not found in PATH."
     exit 1
 }
 
-Log "✅ Chocolatey detected."
+Write-Output "Chocolatey detected."
 
 $isInstalled = Test-ElectronInstalled
 
 if ($isInstalled -and -not $Force) {
-    Log "✅ Electron $ElectronVersion already installed. Skipping."
+    Write-Output "$ElectronPackage $ElectronVersion already installed. Skipping."
     exit 0
 }
 
 if ($isInstalled -and $Force) {
-    Log "🔁 Force reinstallation requested."
+    Write-Warning "Force reinstallation requested for $ElectronPackage."
 }
 
-$start = Get-Date
+$start   = Get-Date
 $success = Install-Electron
 $duration = (Get-Date) - $start
 
 if ($success) {
-    Log ("=== {0} {1} installed successfully in {2:N1}s ===" -f $ElectronPackage, $ElectronVersion, $duration.TotalSeconds)
+    Write-Output ("$ElectronPackage $ElectronVersion installed successfully in {0:N1}s" -f $duration.TotalSeconds)
     exit 0
 }
 else {
-    Log ("=== Script failed after {0:N1}s ===" -f $duration.TotalSeconds)
+    $code = if ($script:ElectronExitCode) { $script:ElectronExitCode } else { 1 }
+    Write-Error ("Script failed after {0:N1}s (Exit code {1})" -f $duration.TotalSeconds, $code)
     exit 1
 }

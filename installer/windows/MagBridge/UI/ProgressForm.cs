@@ -25,7 +25,7 @@ public class ProgressForm : Form
         MinimizeBox = true;
         SizeGripStyle = SizeGripStyle.Show;
         FormBorderStyle = FormBorderStyle.Sizable;
-        MinimumSize = new Size(1000, 350);
+        MinimumSize = new Size(1000, 500);
         MaximumSize = new Size(1400, 800);
         StartPosition = FormStartPosition.CenterScreen;
 
@@ -48,12 +48,13 @@ public class ProgressForm : Form
         };
 
         // Log
-        logBox = new TextBox
+        logBox = new ThemedTextBox
         {
             Dock = DockStyle.Fill,
             Multiline = true,
             ReadOnly = true,
-            ScrollBars = ScrollBars.Vertical
+            ScrollBars = ScrollBars.Vertical,
+            WordWrap = false
         };
 
         // Cancel/Quit
@@ -134,6 +135,8 @@ public class ProgressForm : Form
             ctl.Log($"Loaded configuration: {settings.Name} v{settings.Version}");
             ctl.Log($"Steps to execute: {total}");
 
+            bool hasError = false;
+
             await Task.Run(async () =>
             {
                 foreach (var step in settings.Steps)
@@ -144,13 +147,13 @@ public class ProgressForm : Form
                     string scriptPath = Path.Combine(AppContext.BaseDirectory, step.Action);
                     if (!File.Exists(scriptPath))
                     {
-                        ctl.Log($"Warning: Missing script for step '{step.Name}' ({scriptPath})");
+                        ctl.Log($"[WARN] Missing script for step '{step.Name}' ({scriptPath})");
                         continue;
                     }
 
                     ctl.UpdateStatus($"Step {++current}/{total}: {step.Name}");
-                    ctl.Log($"Executing step: {step.Name}");
-                    ctl.Log($"  Script: {scriptPath}");
+                    ctl.Log($"[INFO] Executing step '{step.Name}'");
+                    ctl.Log($"[INFO] Script: {scriptPath}");
 
                     var psi = new ProcessStartInfo("powershell.exe",
                         $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\"")
@@ -163,19 +166,18 @@ public class ProgressForm : Form
 
                     using (var proc = Process.Start(psi) ?? throw new InvalidOperationException("Failed to start PowerShell process."))
                     {
-                        // publish to field for cancel handler
                         currentProcess = proc;
 
-                        proc.OutputDataReceived += (_, ev) =>
+                        proc.OutputDataReceived += (_, e) =>
                         {
-                            if (!string.IsNullOrWhiteSpace(ev.Data))
-                                ctl.Log($"[OUT] {ev.Data}");
+                            if (!string.IsNullOrWhiteSpace(e.Data))
+                                ctl.Log($"[OUT] {e.Data}");
                         };
 
-                        proc.ErrorDataReceived += (_, ev) =>
+                        proc.ErrorDataReceived += (_, e) =>
                         {
-                            if (!string.IsNullOrWhiteSpace(ev.Data))
-                                ctl.Log($"[ERR] {ev.Data}");
+                            if (!string.IsNullOrWhiteSpace(e.Data))
+                                ctl.Log($"[ERR] {e.Data}");
                         };
 
                         proc.BeginOutputReadLine();
@@ -183,60 +185,49 @@ public class ProgressForm : Form
 
                         try
                         {
-                            // Wait in a race-safe manner; if cancellation happens, token throws
                             await proc.WaitForExitAsync(ctl.Token);
                         }
                         catch (OperationCanceledException)
                         {
-                            // swallow here; outer flow will handle cancelled state
-                        }
-                        catch (InvalidOperationException)
-                        {
-                            // Process may have already exited/disposed; ignore safely
-                            ctl.Log("Process already terminated — skipping wait.");
-                        }
-                        finally
-                        {
-                            // Best-effort cleanup
-                            try { proc.CancelOutputRead(); } catch { /* ignore */ }
-                            try { proc.CancelErrorRead(); } catch { /* ignore */ }
-                            try { proc.Dispose(); } catch { /* ignore */ }
-                            currentProcess = null;
-                        }
-
-                        if (ctl.Token.IsCancellationRequested)
-                        {
-                            ctl.Log("Cancellation requested during step execution.");
+                            ctl.Log("[INFO] Cancellation requested; stopping execution.");
                             break;
                         }
 
-                        // If we reached here normally, verify exit code
-                        // Use a guarded read to avoid InvalidOperationException
-                        int exitCode = 0;
-                        try { exitCode = proc.ExitCode; } catch { /* process gone; treat as success */ }
+                        int exitCode;
+                        try { exitCode = proc.ExitCode; }
+                        catch { exitCode = -1; }
 
                         if (exitCode != 0)
                         {
-                            ctl.Log($"Error: Step '{step.Name}' failed (Exit code {exitCode}).");
+                            ctl.Log($"[ERR] Step '{step.Name}' failed with exit code {exitCode}.");
+                            ctl.UpdateStatus($"Step failed: {step.Name}");
+                            hasError = true;
                             break;
                         }
 
-                        ctl.Log($"Step {current}/{total} completed successfully.");
-                        double progress = (double)current / total * 100.0;
-                        ctl.SetProgress(progress);
+                        ctl.Log($"[INFO] Step {current}/{total} completed successfully.");
+                        ctl.SetProgress((double)current / total * 100.0);
                     }
+
+                    currentProcess = null;
                 }
             });
 
+            // Post-run status logic
             if (ctl.Token.IsCancellationRequested)
             {
                 ctl.UpdateStatus("Installation cancelled by user.");
-                ctl.Log("User cancelled installation.");
+                ctl.Log("[INFO] User cancelled installation.");
+            }
+            else if (hasError)
+            {
+                ctl.UpdateStatus("Installation failed.");
+                ctl.Log("[ERR] One or more steps failed.");
             }
             else
             {
                 ctl.UpdateStatus("All steps completed successfully.");
-                ctl.Log("Installation completed successfully.");
+                ctl.Log("[INFO] Installation completed successfully.");
             }
 
             ConvertCancelToQuit();
@@ -244,7 +235,7 @@ public class ProgressForm : Form
         catch (OperationCanceledException)
         {
             controller.UpdateStatus("Installation cancelled.");
-            controller.Log("Operation cancelled by user.");
+            controller.Log("[INFO] Operation cancelled by user.");
 
             var proc = currentProcess;
             if (proc != null)
@@ -254,12 +245,12 @@ public class ProgressForm : Form
                     if (!proc.HasExited)
                     {
                         proc.Kill(true);
-                        controller.Log("Process forcibly terminated.");
+                        controller.Log("[WARN] Process forcibly terminated.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    controller.Log($"Failed to terminate process: {ex.Message}");
+                    controller.Log($"[ERR] Failed to terminate process: {ex.Message}");
                 }
                 finally
                 {
@@ -278,7 +269,7 @@ public class ProgressForm : Form
         catch (Exception ex)
         {
             controller.UpdateStatus("Installation failed.");
-            controller.Log($"Error: {ex}");
+            controller.Log($"[ERR] {ex.Message}");
             MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }

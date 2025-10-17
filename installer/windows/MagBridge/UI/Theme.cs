@@ -32,9 +32,8 @@ namespace MagBridge.UI
             form.Font = PrimaryFont;
         }
 
-        public static void PaintTextBox(Graphics g, Rectangle bounds, string text, bool focused)
+        public static void PaintTextBox(Graphics g, Rectangle bounds, string text, bool focused, bool multiline = false)
         {
-            // Base colors
             Color bg = Surface;
             Color border = focused ? Accent : AccentDark;
             Color fg = Text;
@@ -42,16 +41,17 @@ namespace MagBridge.UI
             using var bgBrush = new SolidBrush(bg);
             using var borderPen = new Pen(border, 1);
             using var textBrush = new SolidBrush(fg);
-            var fmt = new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center };
-
-            // Draw background
             g.FillRectangle(bgBrush, bounds);
 
-            // Draw text (no editing yet, just visual)
-            var textRect = new Rectangle(bounds.X + 6, bounds.Y + 1, bounds.Width - 12, bounds.Height - 2);
-            g.DrawString(text, PrimaryFont, textBrush, textRect, fmt);
+            var textRect = new Rectangle(bounds.X + 6, bounds.Y + 3, bounds.Width - 12, bounds.Height - 6);
+            var fmt = new StringFormat
+            {
+                Alignment = StringAlignment.Near,
+                LineAlignment = multiline ? StringAlignment.Near : StringAlignment.Center,
+                Trimming = StringTrimming.EllipsisCharacter
+            };
 
-            // Border
+            g.DrawString(text, PrimaryFont, textBrush, textRect, fmt);
             g.DrawRectangle(borderPen, bounds.X, bounds.Y, bounds.Width - 1, bounds.Height - 1);
         }
 
@@ -138,38 +138,38 @@ namespace MagBridge.UI
             Theme.PaintButton(e.Graphics, ClientRectangle, Text, hovered, pressed);
         }
     }
-
     public class ThemedTextBox : TextBox
     {
-        private bool focused;
-
         public ThemedTextBox()
         {
-            SetStyle(ControlStyles.AllPaintingInWmPaint |
-                     ControlStyles.UserPaint |
-                     ControlStyles.OptimizedDoubleBuffer, true);
+            // Native painting is better for multiline/scrollable text.
+            // Drop UserPaint to avoid losing caret and drag selection.
+            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 
-            BorderStyle = BorderStyle.None;
+            BorderStyle = BorderStyle.FixedSingle;
             BackColor = Theme.Surface;
             ForeColor = Theme.Text;
             Font = Theme.PrimaryFont;
         }
 
-        protected override void OnGotFocus(EventArgs e)
-        { focused = true; Invalidate(); base.OnGotFocus(e); }
-
-        protected override void OnLostFocus(EventArgs e)
-        { focused = false; Invalidate(); base.OnLostFocus(e); }
-
-        protected override void OnPaint(PaintEventArgs e)
+        protected override void OnEnter(EventArgs e)
         {
-            Theme.PaintTextBox(e.Graphics, ClientRectangle, Text, focused);
+            base.OnEnter(e);
+            Invalidate();
         }
 
-        protected override void OnTextChanged(EventArgs e)
+        protected override void OnLeave(EventArgs e)
         {
+            base.OnLeave(e);
             Invalidate();
-            base.OnTextChanged(e);
+        }
+
+        protected override void OnCreateControl()
+        {
+            base.OnCreateControl();
+            // Ensure scrollbars look consistent
+            if (Multiline)
+                ScrollBars = ScrollBars.Vertical;
         }
     }
 
