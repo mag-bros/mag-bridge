@@ -41,10 +41,8 @@ This installer will:
         $desc.AutoSize = $false
 
         # --- Checkboxes -----------------------------------------------------
-        $chkChoco = New-Object System.Windows.Forms.CheckBox
-        $chkChoco.Text = "Chocolatey - Windows Package Manager"
-        $chkChoco.Left = 60; $chkChoco.Top = 260; $chkChoco.Width = 400
         $chkChoco.Checked = $true
+
 
         $chkMake = New-Object System.Windows.Forms.CheckBox
         $chkMake.Text = "GNU Make for Windows"

@@ -8,7 +8,9 @@ public sealed class WelcomeDialog : Form
     private readonly Button exitBtn;
 
     public IReadOnlyCollection<string> SelectedPackageKeys =>
-        list.CheckedItems.Cast<PackageItem>().Select(i => i.Key).ToArray();
+        list.CheckedItems.Cast<InstallStep>()
+            .Select(s => string.IsNullOrWhiteSpace(s.PackageKey) ? s.Label : s.PackageKey)
+            .ToArray();
 
     private sealed class PackageItem
     {
@@ -17,6 +19,7 @@ public sealed class WelcomeDialog : Form
         public PackageItem(string key, string display) { Key = key; Display = display; }
         public override string ToString() => Display;
     }
+
     public WelcomeDialog(Settings settings)
     {
         Text = $"Welcome — {settings.RunType}";
@@ -49,7 +52,7 @@ public sealed class WelcomeDialog : Form
         {
             Dock = DockStyle.Bottom,
             Height = 50,
-            Padding = new Padding(12)
+            Padding = new Padding(12),
         };
 
         // Buttons (left side)
@@ -130,37 +133,41 @@ public sealed class WelcomeDialog : Form
             okBtn.Left = exitBtn.Left - okBtn.Width - spacing;
             okBtn.Top = exitBtn.Top;
         };
+        // --- Populate package list ----------------------------------------------------
+        var steps = settings.GetDisplaySteps().ToList();
 
-        // Populate: unique package keys
-        var items = settings.Steps
-            .Select(s => new { Key = string.IsNullOrWhiteSpace(s.PackageKey) ? s.Label : s.PackageKey, Display = s.Label })
-            .GroupBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
-            .Select(g => new PackageItem(g.Key, g.First().Display))
-            .OrderBy(i => i.Display, StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        foreach (var step in steps)
+        {
+            // Pre-check according to JSON or business rule
+            bool prechecked = step.PreChecked;
 
-        foreach (var it in items)
-            list.Items.Add(it, settings.SelectedPackages.Contains(it.Key));
+            // Add directly (InstallStep.ToString() → Label)
+            list.Items.Add(step, prechecked);
+        }
 
-        // Button behavior
+        // --- Button behaviors --------------------------------------------------------
+
+        // Select All
         selectAll.Click += (_, __) =>
         {
             for (int i = 0; i < list.Items.Count; i++)
                 list.SetItemChecked(i, true);
         };
 
+        // Clear All
         clearAll.Click += (_, __) =>
         {
             for (int i = 0; i < list.Items.Count; i++)
                 list.SetItemChecked(i, false);
         };
 
+        // Continue / OK
         okBtn.Click += (_, __) =>
         {
             if (list.CheckedItems.Count == 0)
             {
-                MessageBox.Show("Select at least one item to continue.", "Nothing selected",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Select at least one item to continue.",
+                    "Nothing selected", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -168,6 +175,7 @@ public sealed class WelcomeDialog : Form
             Close();
         };
 
+        // Exit / Cancel
         exitBtn.Click += (_, __) =>
         {
             DialogResult = DialogResult.Cancel;

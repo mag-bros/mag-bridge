@@ -1,5 +1,6 @@
 {
   "name": "MagBridge Installer (SDK)",
+  "runType": "SDK",
   "version": "1.0.0",
   "description": "Sets up developer tools and dependencies for contributors.",
   "steps": [
@@ -7,19 +8,22 @@
       "progressLabel": "Ensuring Chocolatey...",
       "label": "Chocolatey",
       "action": "Scripts\\Ensure-Choco.ps1",
-      "packageKey": "Chocolatey"
+      "packageKey": "Chocolatey",
+      "preChecked": true
     },
     {
       "progressLabel": "Ensuring GNU Make...",
       "label": "GnuMake for Windows (installed via Chocolatey)",
       "action": "Scripts\\Ensure-GnuMake.ps1",
-      "packageKey": "GnuMake"
+      "packageKey": "GnuMake",
+      "preChecked": true
     },
     {
       "progressLabel": "Ensuring Electron...",
       "label": "Electron (installed via Chocolatey)",
       "action": "Scripts\\Ensure-Electron.ps1",
-      "packageKey": "Electron"
+      "packageKey": "Electron",
+      "preChecked": true
     }
   ]
 }
