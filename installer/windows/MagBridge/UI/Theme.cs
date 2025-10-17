@@ -54,22 +54,6 @@ namespace MagBridge.UI
             g.DrawString(text, PrimaryFont, textBrush, textRect, fmt);
             g.DrawRectangle(borderPen, bounds.X, bounds.Y, bounds.Width - 1, bounds.Height - 1);
         }
-
-        public static void PaintButton(Graphics g, Rectangle bounds, string text, bool hovered, bool pressed)
-        {
-            Color fill = pressed ? AccentDark : hovered ? Accent : ProgressBackground;
-            using var bg = new SolidBrush(fill);
-            using var border = new Pen(AccentDark, 1);
-            using var textBrush = new SolidBrush(Text);
-
-            g.FillRectangle(bg, bounds);
-            g.DrawRectangle(border, 0, 0, bounds.Width - 1, bounds.Height - 1);
-
-            // Center text
-            var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-            g.DrawString(text, PrimaryFont, textBrush, bounds, fmt);
-        }
-
     }
 
     public class ThemedProgressBar : ProgressBar
@@ -155,14 +139,14 @@ namespace MagBridge.UI
         }
 
     }
+
     public class ThemedTextBox : TextBox
     {
+        private bool focused;
+
         public ThemedTextBox()
         {
-            // Native painting is better for multiline/scrollable text.
-            // Drop UserPaint to avoid losing caret and drag selection.
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
-
             BorderStyle = BorderStyle.FixedSingle;
             BackColor = Theme.Surface;
             ForeColor = Theme.Text;
@@ -171,22 +155,50 @@ namespace MagBridge.UI
 
         protected override void OnEnter(EventArgs e)
         {
-            base.OnEnter(e);
+            focused = true;
             Invalidate();
+            base.OnEnter(e);
         }
 
         protected override void OnLeave(EventArgs e)
         {
-            base.OnLeave(e);
+            focused = false;
             Invalidate();
+            base.OnLeave(e);
         }
 
         protected override void OnCreateControl()
         {
             base.OnCreateControl();
-            // Ensure scrollbars look consistent
             if (Multiline)
                 ScrollBars = ScrollBars.Vertical;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics;
+            var bounds = ClientRectangle;
+
+            Color bg = Theme.Surface;
+            Color border = focused ? Theme.Accent : Theme.AccentDark;
+            Color fg = Theme.Text;
+
+            using var bgBrush = new SolidBrush(bg);
+            using var borderPen = new Pen(border, 1);
+            using var textBrush = new SolidBrush(fg);
+
+            g.FillRectangle(bgBrush, bounds);
+
+            var textRect = new Rectangle(bounds.X + 6, bounds.Y + 3, bounds.Width - 12, bounds.Height - 6);
+            var fmt = new StringFormat
+            {
+                Alignment = StringAlignment.Near,
+                LineAlignment = Multiline ? StringAlignment.Near : StringAlignment.Center,
+                Trimming = StringTrimming.EllipsisCharacter
+            };
+
+            g.DrawString(Text, Theme.PrimaryFont, textBrush, textRect, fmt);
+            g.DrawRectangle(borderPen, bounds.X, bounds.Y, bounds.Width - 1, bounds.Height - 1);
         }
     }
 
