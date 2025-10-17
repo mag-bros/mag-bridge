@@ -3,8 +3,20 @@
   "version": "1.0.0",
   "description": "Sets up developer tools and dependencies for contributors.",
   "steps": [
-    { "name": "Ensuring Chocolatey...", "action": "Scripts\\Ensure-Choco.ps1" },
-    { "name": "Ensuring GNU Make...", "action": "Scripts\\Ensure-GnuMake.ps1" },
-    { "name": "Ensuring Electron...", "action": "Scripts\\Ensure-Electron.ps1" }
+    {
+      "name": "Ensuring Chocolatey...",
+      "action": "Scripts\\Ensure-Choco.ps1",
+      "packageKey": "Chocolatey"
+    },
+    {
+      "name": "Ensuring GNU Make...",
+      "action": "Scripts\\Ensure-GnuMake.ps1",
+      "packageKey": "GnuMake"
+    },
+    {
+      "name": "Ensuring Electron...",
+      "action": "Scripts\\Ensure-Electron.ps1",
+      "packageKey": "Electron"
+    }
   ]
 }

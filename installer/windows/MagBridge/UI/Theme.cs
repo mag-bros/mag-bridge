@@ -4,7 +4,7 @@ namespace MagBridge.UI
 {
     public static class Theme
     {
-        private static ThemeSettings _current = ThemeSettings.White;
+        private static ThemeSettings _current = ThemeSettings.Sea;
 
         // --- Core Palette ---------------
         public static Color Background => _current.Background;

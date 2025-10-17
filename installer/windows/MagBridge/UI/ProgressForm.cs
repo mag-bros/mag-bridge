@@ -129,17 +129,36 @@ public class ProgressForm : Form
             var ctl = controller ?? throw new InvalidOperationException("ProgressController not initialized.");
             var settings = Tag as Settings ?? throw new InvalidOperationException("Installer settings not provided.");
 
-            int total = settings.Steps.Count;
+            // Filter steps based on user selections
+            var selectedKeys = settings.SelectedPackages ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            List<InstallStep> stepsToRun;
+
+            if (selectedKeys.Count == 0)
+            {
+                // Nothing selected, run all
+                stepsToRun = settings.Steps;
+            }
+            else
+            {
+                // Run only selected packages (match by PackageKey, fallback to Name)
+                stepsToRun = settings.Steps
+                    .Where(s => selectedKeys.Contains(
+                        string.IsNullOrWhiteSpace(s.PackageKey) ? s.Name : s.PackageKey))
+                    .ToList();
+            }
+
+            int total = stepsToRun.Count;
             int current = 0;
 
             ctl.Log($"Loaded configuration: {settings.Name} v{settings.Version}");
+            ctl.Log($"Selected packages: {string.Join(", ", stepsToRun.Select(s => s.Name))}");
             ctl.Log($"Steps to execute: {total}");
 
             bool hasError = false;
 
             await Task.Run(async () =>
             {
-                foreach (var step in settings.Steps)
+                foreach (var step in stepsToRun)
                 {
                     if (ctl.Token.IsCancellationRequested)
                         break;

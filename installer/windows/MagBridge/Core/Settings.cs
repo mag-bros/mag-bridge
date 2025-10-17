@@ -19,9 +19,15 @@ namespace MagBridge.Core
         public string LicenseFile { get; set; } = "Licenses\\LICENSE.txt";
         public List<InstallStep> Steps { get; set; } = new();
 
+        // --- New property -------------------------------------------------
         /// <summary>
-        /// Loads the application settings from the fixed build output path.
+        /// Contains the package keys that the user selected at runtime.
+        /// Populated later by Program.cs (WelcomeDialog).
         /// </summary>
+        public HashSet<string> SelectedPackages { get; set; } =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        // --- Core loader --------------------------------------------------
         public static Settings Load()
         {
             string baseDir = AppContext.BaseDirectory;
@@ -33,12 +39,16 @@ namespace MagBridge.Core
             string json = File.ReadAllText(configPath);
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-            return JsonSerializer.Deserialize<Settings>(json, options) ?? new Settings();
+            var settings = JsonSerializer.Deserialize<Settings>(json, options) ?? new Settings();
+
+            // Ensure SelectedPackages initialized
+            if (settings.SelectedPackages == null)
+                settings.SelectedPackages = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            return settings;
         }
 
-        /// <summary>
-        /// Loads the license text referenced by the current settings.
-        /// </summary>
+        // --- Helpers -----------------------------------------------------
         public string LoadLicenseText()
         {
             string licensePath = Path.Combine(AppContext.BaseDirectory, LicenseFile);
@@ -56,9 +66,6 @@ namespace MagBridge.Core
             }
         }
 
-        /// <summary>
-        /// Returns the resolved icon path (used for UI display or window icon binding).
-        /// </summary>
         public string GetIconPath()
         {
             return Path.Combine(AppContext.BaseDirectory, Icon);
@@ -69,5 +76,6 @@ namespace MagBridge.Core
     {
         public string Name { get; set; } = "";
         public string Action { get; set; } = "";
+        public string? PackageKey { get; set; } // aligns with JSON
     }
 }

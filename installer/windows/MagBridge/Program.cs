@@ -38,6 +38,29 @@ internal static class Program
             return;
         }
 
+        // === Welcome screen ===============================================
+        try
+        {
+            using (var welcome = new WelcomeDialog(settings))
+            {
+                if (welcome.ShowDialog() != DialogResult.OK)
+                    return;
+
+                settings.SelectedPackages = welcome.SelectedPackageKeys
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Error displaying Welcome screen:\n{ex.Message}",
+                "Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
+            return;
+        }
+
         // === License agreement ============================================
         try
         {
