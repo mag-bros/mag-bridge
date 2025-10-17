@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using MagBridge.Core;
+using MagBridge.UI;
 
 public class ProgressForm : Form
 {
@@ -37,12 +38,12 @@ public class ProgressForm : Form
             TextAlign = System.Drawing.ContentAlignment.MiddleCenter
         };
 
-        progressBar = new ProgressBar
+        progressBar = new ThemedProgressBar
         {
-            Dock = DockStyle.Top,
-            Height = 25,
+            Dock = DockStyle.Bottom,
+            Height = 12,
             Style = ProgressBarStyle.Continuous,
-            Value = 0
+            Maximum = 100
         };
 
         logBox = new TextBox
@@ -53,17 +54,17 @@ public class ProgressForm : Form
             ScrollBars = ScrollBars.Vertical
         };
 
-        cancelButton = new Button
+        cancelButton = new ThemedButton
         {
             Text = "Cancel",
-            Dock = DockStyle.Bottom,
-            Height = 35
+            Dock = DockStyle.Bottom
         };
 
         Controls.Add(logBox);
         Controls.Add(progressBar);
         Controls.Add(statusLabel);
         Controls.Add(cancelButton);
+        Theme.ApplyToForm(this);
     }
 
     protected override async void OnShown(EventArgs e)
@@ -96,7 +97,6 @@ public class ProgressForm : Form
                 }
             }
         };
-
 
         await RunInstallerAsync();
     }
