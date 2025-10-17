@@ -129,33 +129,26 @@ public class ProgressForm : Form
             var ctl = controller ?? throw new InvalidOperationException("ProgressController not initialized.");
             var settings = Tag as Settings ?? throw new InvalidOperationException("Installer settings not provided.");
 
-            // Filter steps based on user selections
+            // --- Filter steps ------------------------------------------------
             var selectedKeys = settings.SelectedPackages ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            List<InstallStep> stepsToRun;
-
-            if (selectedKeys.Count == 0)
-            {
-                // Nothing selected, run all
-                stepsToRun = settings.Steps;
-            }
-            else
-            {
-                // Run only selected packages (match by PackageKey, fallback to Name)
-                stepsToRun = settings.Steps
+            var stepsToRun = (selectedKeys.Count == 0)
+                ? settings.Steps
+                : settings.Steps
                     .Where(s => selectedKeys.Contains(
-                        string.IsNullOrWhiteSpace(s.PackageKey) ? s.Name : s.PackageKey))
+                        string.IsNullOrWhiteSpace(s.PackageKey) ? s.Label : s.PackageKey))
                     .ToList();
-            }
 
             int total = stepsToRun.Count;
             int current = 0;
 
             ctl.Log($"Loaded configuration: {settings.Name} v{settings.Version}");
-            ctl.Log($"Selected packages: {string.Join(", ", stepsToRun.Select(s => s.Name))}");
+            ctl.Log($"Selected packages: {string.Join(", ", stepsToRun.Select(s => s.Label))}");
             ctl.Log($"Steps to execute: {total}");
+            ctl.UpdateStatus("Starting installation...");
 
             bool hasError = false;
 
+            // --- Core execution loop ----------------------------------------
             await Task.Run(async () =>
             {
                 foreach (var step in stepsToRun)
@@ -163,16 +156,21 @@ public class ProgressForm : Form
                     if (ctl.Token.IsCancellationRequested)
                         break;
 
+                    var stepLabel = step.Label;
+                    var progressLabel = step.ProgressLabel ?? step.Label;
+
+                    ctl.UpdateStatus($"Step {++current}/{total}: {progressLabel}");
+                    ctl.Log($"[INFO] Executing step '{progressLabel}'");
+
+                    // Resolve script path
                     string scriptPath = Path.Combine(AppContext.BaseDirectory, step.Action);
                     if (!File.Exists(scriptPath))
                     {
-                        ctl.Log($"[WARN] Missing script for step '{step.Name}' ({scriptPath})");
+                        ctl.Log($"[WARN] Missing script for '{stepLabel}' — skipped ({scriptPath})");
                         continue;
                     }
 
-                    ctl.UpdateStatus($"Step {++current}/{total}: {step.Name}");
-                    ctl.Log($"[INFO] Executing step '{step.Name}'");
-                    ctl.Log($"[INFO] Script: {scriptPath}");
+                    ctl.Log($"[OUT] === Running {Path.GetFileName(scriptPath)} ===");
 
                     var psi = new ProcessStartInfo("powershell.exe",
                         $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\"")
@@ -183,56 +181,53 @@ public class ProgressForm : Form
                         CreateNoWindow = true
                     };
 
-                    using (var proc = Process.Start(psi) ?? throw new InvalidOperationException("Failed to start PowerShell process."))
+                    using var proc = Process.Start(psi)
+                        ?? throw new InvalidOperationException($"Failed to start process for '{stepLabel}'");
+
+                    currentProcess = proc;
+
+                    proc.OutputDataReceived += (_, e) =>
                     {
-                        currentProcess = proc;
+                        if (!string.IsNullOrWhiteSpace(e.Data))
+                            ctl.Log($"[OUT] [{stepLabel}] {e.Data}");
+                    };
 
-                        proc.OutputDataReceived += (_, e) =>
-                        {
-                            if (!string.IsNullOrWhiteSpace(e.Data))
-                                ctl.Log($"[OUT] {e.Data}");
-                        };
+                    proc.ErrorDataReceived += (_, e) =>
+                    {
+                        if (!string.IsNullOrWhiteSpace(e.Data))
+                            ctl.Log($"[ERR] [{stepLabel}] {e.Data}");
+                    };
 
-                        proc.ErrorDataReceived += (_, e) =>
-                        {
-                            if (!string.IsNullOrWhiteSpace(e.Data))
-                                ctl.Log($"[ERR] {e.Data}");
-                        };
+                    proc.BeginOutputReadLine();
+                    proc.BeginErrorReadLine();
 
-                        proc.BeginOutputReadLine();
-                        proc.BeginErrorReadLine();
-
-                        try
-                        {
-                            await proc.WaitForExitAsync(ctl.Token);
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            ctl.Log("[INFO] Cancellation requested; stopping execution.");
-                            break;
-                        }
-
-                        int exitCode;
-                        try { exitCode = proc.ExitCode; }
-                        catch { exitCode = -1; }
-
-                        if (exitCode != 0)
-                        {
-                            ctl.Log($"[ERR] Step '{step.Name}' failed with exit code {exitCode}.");
-                            ctl.UpdateStatus($"Step failed: {step.Name}");
-                            hasError = true;
-                            break;
-                        }
-
-                        ctl.Log($"[INFO] Step {current}/{total} completed successfully.");
-                        ctl.SetProgress((double)current / total * 100.0);
+                    try
+                    {
+                        await proc.WaitForExitAsync(ctl.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        ctl.Log($"[INFO] Cancellation requested during '{stepLabel}'");
+                        break;
                     }
 
+                    int exitCode = proc.HasExited ? proc.ExitCode : -1;
+
+                    if (exitCode != 0)
+                    {
+                        ctl.Log($"[ERR] Step '{stepLabel}' failed with exit code {exitCode}.");
+                        ctl.UpdateStatus($"Step failed: {stepLabel}");
+                        hasError = true;
+                        break;
+                    }
+
+                    ctl.Log($"[OK] Step completed successfully: {stepLabel}");
+                    ctl.SetProgress((double)current / total * 100.0);
                     currentProcess = null;
                 }
             });
 
-            // Post-run status logic
+            // --- Post-run summary -------------------------------------------
             if (ctl.Token.IsCancellationRequested)
             {
                 ctl.UpdateStatus("Installation cancelled by user.");
@@ -256,14 +251,13 @@ public class ProgressForm : Form
             controller.UpdateStatus("Installation cancelled.");
             controller.Log("[INFO] Operation cancelled by user.");
 
-            var proc = currentProcess;
-            if (proc != null)
+            if (currentProcess != null)
             {
                 try
                 {
-                    if (!proc.HasExited)
+                    if (!currentProcess.HasExited)
                     {
-                        proc.Kill(true);
+                        currentProcess.Kill(true);
                         controller.Log("[WARN] Process forcibly terminated.");
                     }
                 }
@@ -273,7 +267,7 @@ public class ProgressForm : Form
                 }
                 finally
                 {
-                    try { proc.Dispose(); } catch { }
+                    try { currentProcess.Dispose(); } catch { }
                     currentProcess = null;
                 }
             }

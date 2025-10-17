@@ -21,13 +21,13 @@ namespace MagBridge.Core
 
         // --- New property -------------------------------------------------
         /// <summary>
-        /// Contains the package keys that the user selected at runtime.
-        /// Populated later by Program.cs (WelcomeDialog).
+        /// Loads Static File intro Variables
+        /// CI/CD interface common language
         /// </summary>
         public HashSet<string> SelectedPackages { get; set; } =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // --- Core loader --------------------------------------------------
+        // --- Loads files Directly from System --------------------------------------------------
         public static Settings Load()
         {
             string baseDir = AppContext.BaseDirectory;
@@ -74,7 +74,8 @@ namespace MagBridge.Core
 
     public class InstallStep
     {
-        public string Name { get; set; } = "";
+        public string ProgressLabel { get; set; } = "";
+        public string Label { get; set; } = "";
         public string Action { get; set; } = "";
         public string? PackageKey { get; set; } // aligns with JSON
     }

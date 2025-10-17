@@ -4,17 +4,20 @@
   "description": "Sets up developer tools and dependencies for contributors.",
   "steps": [
     {
-      "name": "Ensuring Chocolatey...",
+      "progressLabel": "Ensuring Chocolatey...",
+      "label": "Chocolatey",
       "action": "Scripts\\Ensure-Choco.ps1",
       "packageKey": "Chocolatey"
     },
     {
-      "name": "Ensuring GNU Make...",
+      "progressLabel": "Ensuring GNU Make...",
+      "label": "GnuMake for Windows (installed via Chocolatey)",
       "action": "Scripts\\Ensure-GnuMake.ps1",
       "packageKey": "GnuMake"
     },
     {
-      "name": "Ensuring Electron...",
+      "progressLabel": "Ensuring Electron...",
+      "label": "Electron (installed via Chocolatey)",
       "action": "Scripts\\Ensure-Electron.ps1",
       "packageKey": "Electron"
     }

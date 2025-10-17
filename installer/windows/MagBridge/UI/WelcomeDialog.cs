@@ -133,7 +133,7 @@ public sealed class WelcomeDialog : Form
 
         // Populate: unique package keys
         var items = settings.Steps
-            .Select(s => new { Key = string.IsNullOrWhiteSpace(s.PackageKey) ? s.Name : s.PackageKey, Display = s.Name })
+            .Select(s => new { Key = string.IsNullOrWhiteSpace(s.PackageKey) ? s.Label : s.PackageKey, Display = s.Label })
             .GroupBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
             .Select(g => new PackageItem(g.Key, g.First().Display))
             .OrderBy(i => i.Display, StringComparer.OrdinalIgnoreCase)
