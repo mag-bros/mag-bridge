@@ -141,7 +141,7 @@ public class ProgressForm : Form
             int total = stepsToRun.Count;
             int current = 0;
 
-            ctl.Log($"Loaded configuration: {settings.Name} v{settings.Version}");
+            ctl.Log($"Loaded configuration: {settings.RunType} v{settings.Version}");
             ctl.Log($"Selected packages: {string.Join(", ", stepsToRun.Select(s => s.Label))}");
             ctl.Log($"Steps to execute: {total}");
             ctl.UpdateStatus("Starting installation...");
@@ -172,8 +172,10 @@ public class ProgressForm : Form
 
                     ctl.Log($"[OUT] === Running {Path.GetFileName(scriptPath)} ===");
 
-                    var psi = new ProcessStartInfo("powershell.exe",
-                        $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\"")
+                    string loggingPath = Path.Combine(AppContext.BaseDirectory, "Scripts", "_Logging.ps1");
+                    string command = $"-NoProfile -ExecutionPolicy Bypass -Command \"& {{ . '{loggingPath}'; . '{scriptPath}' }}\"";
+
+                    var psi = new ProcessStartInfo("powershell.exe", command)
                     {
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,

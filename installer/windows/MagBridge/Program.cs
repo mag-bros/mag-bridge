@@ -1,7 +1,4 @@
-using System;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using MagBridge.Core;
 using MagBridge.UI;
 
@@ -24,7 +21,7 @@ internal static class Program
         try
         {
             settings = Settings.Load();
-            Console.WriteLine($"Loaded configuration: {settings.Name} v{settings.Version}");
+            Console.WriteLine($"Loaded configuration: {settings.RunType} v{settings.Version}");
             Console.WriteLine($"Description: {settings.Description}");
         }
         catch (Exception ex)
@@ -95,7 +92,7 @@ internal static class Program
             var installerForm = new ProgressForm
             {
                 Tag = settings,
-                Text = $"{settings.Name} — v{settings.Version}"
+                Text = $"{settings.RunType} — v{settings.Version}"
             };
             Application.Run(installerForm);
         }

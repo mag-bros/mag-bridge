@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 
 namespace MagBridge.Core
@@ -12,9 +9,9 @@ namespace MagBridge.Core
     /// </summary>
     public class Settings
     {
-        public string Name { get; set; } = "Unnamed Installer";
+        public string RunType { get; set; } = "SDK";
         public string Version { get; set; } = "1.0.0";
-        public string Description { get; set; } = "";
+        public string Description { get; set; } = "Sotware Development Kit for Mgbridge";
         public string Icon { get; set; } = "Assets\\icon.ico";
         public string LicenseFile { get; set; } = "Licenses\\LICENSE.txt";
         public List<InstallStep> Steps { get; set; } = new();

@@ -4,7 +4,7 @@ namespace MagBridge.UI
 {
     public static class Theme
     {
-        private static ThemeSettings _current = ThemeSettings.LoFi;
+        private static ThemeSettings _current = ThemeSettings.Sea;
 
         // --- Core Palette ---------------
         public static Color Background => _current.Background;
@@ -43,7 +43,6 @@ namespace MagBridge.UI
             SetStyle(ControlStyles.UserPaint, true);
             BackColor = Theme.ProgressBackground;
         }
-
         protected override void OnPaint(PaintEventArgs e)
         {
             var g = e.Graphics;

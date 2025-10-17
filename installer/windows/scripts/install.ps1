@@ -1,11 +1,4 @@
-﻿if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') {
-    Write-Host "Re-launching in STA..."
-    $self = $PSCommandPath
-    Start-Process powershell.exe -Verb RunAs -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-File', "`"$self`"")
-    exit 0
-}
-
-# --- Determine script root ---------------------------------------------------
+﻿# --- Determine script root ---------------------------------------------------
 try {
     if ($MyInvocation.MyCommand.Path) {
         $candidate = Split-Path -Parent $MyInvocation.MyCommand.Path

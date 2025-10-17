@@ -20,7 +20,7 @@ namespace MagBridge.UI
       this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
 
       // === Window setup ==============================================
-      Text = $"{settings.Name} — License Agreement";
+      Text = $"{settings.RunType} — License Agreement";
       StartPosition = FormStartPosition.CenterScreen;
       Size = new Size(800, 600);
       MinimumSize = new Size(700, 500);

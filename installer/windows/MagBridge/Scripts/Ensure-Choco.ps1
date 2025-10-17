@@ -1,64 +1,62 @@
-﻿# Ensure-Choco.ps1
-# Detects or installs Chocolatey (https://chocolatey.org)
-# Emits standardized output for MagBridge logger.
+﻿# ====================================================================
+# Ensure-Choco.ps1 — ensure Chocolatey is installed and operational
+# ====================================================================
 
-Write-Host "=== Checking for Chocolatey ==="
+$ErrorActionPreference = 'Stop'
 
 try {
-    # --- Detection phase ---------------------------------------------------
-    $cmd = Get-Command choco.exe -ErrorAction SilentlyContinue
-    if ($cmd) {
-        $ver = (& choco --version 2>$null).Trim()
-        if ($ver) {
-            Write-Host ("Chocolatey v{0} detected at {1}" -f $ver, $cmd.Source)
-            exit 0
-        }
-    }
+    Log-Info  "Checking for existing installation..."
+    $chocoCmd = Get-Command choco -ErrorAction SilentlyContinue
 
-    # --- Installation phase ------------------------------------------------
-    Write-Warning "Chocolatey not found — attempting installation..."
-    $chocoRoot = Join-Path $env:ProgramData "chocolatey"
+    if (-not $chocoCmd) {
+        Log-Warn "Chocolatey not found. Attempting installation."
 
-    if (Test-Path $chocoRoot) {
-        Write-Warning "Removing incomplete Chocolatey directory..."
         try {
-            Remove-Item -Recurse -Force $chocoRoot -ErrorAction SilentlyContinue | Out-Null
-            Start-Sleep -Seconds 1
+            Set-ExecutionPolicy Bypass -Scope Process -Force
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+            $installScript = 'https://community.chocolatey.org/install.ps1'
+            Log-Info "Downloading installer from $installScript"
+            iex ((New-Object System.Net.WebClient).DownloadString($installScript))
+
+            $chocoCmd = Get-Command choco -ErrorAction SilentlyContinue
+            if (-not $chocoCmd) {
+                Log-Error "Installation reported success but choco.exe not found on PATH."
+                exit 1
+            }
+
+            Log-Info "Installation completed successfully."
         }
         catch {
-            Write-Warning ("Failed to clean {0}: {1}" -f $chocoRoot, $_.Exception.Message)
+            Log-Error "Installation failed: $($_.Exception.Message)"
+            exit 1
         }
     }
-
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $env:ChocolateyInstall = $chocoRoot
-    $env:ChocolateyUseWindowsCompression = 'false'
-
-    $installUrl = 'https://community.chocolatey.org/install.ps1'
-    Write-Host ("Downloading and executing Chocolatey installer from {0}" -f $installUrl)
+    else {
+        Log-Info "Existing installation detected at $($chocoCmd.Source)"
+    }
 
     try {
-        $installScript = (New-Object System.Net.WebClient).DownloadString($installUrl)
-        Invoke-Expression $installScript
+        $version = choco --version 2>$null
+        if ([string]::IsNullOrWhiteSpace($version)) {
+            Log-Error "choco.exe returned no version information."
+            exit 1
+        }
+
+        Log-Info "Operational. Version $version"
     }
     catch {
-        Write-Error ("Chocolatey installation script failed: {0}" -f $_.Exception.Message)
+        Log-Error "Executable check failed: $($_.Exception.Message)"
+        exit 1
     }
 
-    # --- Verification phase ------------------------------------------------
-    $cmd2 = Get-Command choco.exe -ErrorAction SilentlyContinue
-    if ($cmd2) {
-        $ver2 = (& choco --version 2>$null).Trim()
-        if ($ver2) {
-            Write-Host ("Chocolatey installed successfully (v{0})" -f $ver2)
-            exit 0
-        }
-    }
-
-    Write-Error "Chocolatey installation failed or executable not found on PATH."
-    exit 1
+    Log-Info "Validation successful. Proceeding to next step."
+    exit 0
 }
 catch {
-    Write-Error ("Ensure-Choco encountered an error: {0}" -f $_.Exception.Message)
-    exit 2
+    Log-Error "Unexpected error: $($_.Exception.Message)"
+    exit 1
+}
+finally {
+    $ErrorActionPreference = 'Continue'
 }
