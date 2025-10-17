@@ -95,27 +95,27 @@ namespace MagBridge.UI
         protected override void OnMouseUp(MouseEventArgs e)
         { pressed = false; Invalidate(); base.OnMouseUp(e); }
 
-        // protected override void OnPaint(PaintEventArgs e)
-        // {
-        //     var g = e.Graphics;
-        //     var bounds = ClientRectangle;
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics;
+            var bounds = ClientRectangle;
 
-        //     Color fill = pressed ? Theme.AccentDark : hovered ? Theme.Accent : Theme.ProgressBackground;
-        //     using var bg = new SolidBrush(fill);
-        //     using var border = new Pen(Theme.AccentDark, 1);
-        //     using var textBrush = new SolidBrush(Theme.Text);
+            Color fill = pressed ? Theme.AccentDark : hovered ? Theme.Accent : Theme.ProgressBackground;
+            using var bg = new SolidBrush(fill);
+            using var border = new Pen(Theme.AccentDark, 1);
+            using var textBrush = new SolidBrush(Theme.Text);
 
-        //     g.FillRectangle(bg, bounds);
-        //     g.DrawRectangle(border, 0, 0, bounds.Width - 1, bounds.Height - 1);
+            g.FillRectangle(bg, bounds);
+            g.DrawRectangle(border, 0, 0, bounds.Width - 1, bounds.Height - 1);
 
-        //     var fmt = new StringFormat
-        //     {
-        //         Alignment = StringAlignment.Center,
-        //         LineAlignment = StringAlignment.Center
-        //     };
+            var fmt = new StringFormat
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            };
 
-        //     g.DrawString(Text, Theme.PrimaryFont, textBrush, bounds, fmt);
-        // }
+            g.DrawString(Text, Theme.PrimaryFont, textBrush, bounds, fmt);
+        }
 
     }
 
