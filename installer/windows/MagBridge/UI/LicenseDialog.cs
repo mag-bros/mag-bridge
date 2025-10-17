@@ -43,21 +43,22 @@ namespace MagBridge.UI
         ReadOnly = true,
         ScrollBars = ScrollBars.Vertical,
         Dock = DockStyle.Fill,
-        Font = new Font("Consolas", 10),
-        BackColor = Color.White,
+        Font = Theme.MonoFont,
+        BackColor = Theme.Surface,
+        ForeColor = Theme.Text,
         BorderStyle = BorderStyle.FixedSingle,
         Text = settings.LoadLicenseText(),
         TabStop = false
       };
 
+
       // === Buttons ===================================================
-      acceptButton = new Button
+      acceptButton = new ThemedButton
       {
         Text = "Accept",
         DialogResult = DialogResult.OK,
         Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
-        Width = 120,
-        Height = 35
+        Margin = new Padding(8)
       };
       acceptButton.Click += (_, __) =>
       {
@@ -65,13 +66,12 @@ namespace MagBridge.UI
         Close();
       };
 
-      declineButton = new Button
+      declineButton = new ThemedButton
       {
         Text = "Decline",
         DialogResult = DialogResult.Cancel,
         Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
-        Width = 120,
-        Height = 35
+        Margin = new Padding(8)
       };
       declineButton.Click += (_, __) =>
       {
@@ -83,7 +83,9 @@ namespace MagBridge.UI
       var buttonPanel = new Panel
       {
         Dock = DockStyle.Bottom,
-        Height = 50
+        Height = Theme.ButtonBarHeight,
+        Padding = new Padding(0, 8, 16, 8),
+        BackColor = Theme.Surface
       };
       buttonPanel.Controls.Add(acceptButton);
       buttonPanel.Controls.Add(declineButton);
@@ -97,11 +99,15 @@ namespace MagBridge.UI
       };
 
       // === Control order =============================================
+      buttonPanel.Controls.Add(declineButton);
+      buttonPanel.Controls.Add(acceptButton);
+      acceptButton.Left = buttonPanel.Width - acceptButton.Width * 2 - 24;
+      declineButton.Left = buttonPanel.Width - declineButton.Width - 12;
+      acceptButton.Top = declineButton.Top = (buttonPanel.Height - acceptButton.Height) / 2;
+
+      // --- Add to form ---------------------------------------------------------
       Controls.Add(licenseText);
       Controls.Add(buttonPanel);
-
-      AcceptButton = acceptButton;
-      CancelButton = declineButton;
 
       // === UX polish =================================================
       Shown += (_, __) =>

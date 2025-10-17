@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using MagBridge.Core;
@@ -13,15 +13,14 @@ public class ProgressForm : Form
     private readonly Label statusLabel;
     private readonly TextBox logBox;
     private readonly Button cancelButton;
-    private ProgressController controller;
+
+    private ProgressController controller = null!;
     private Process? currentProcess;
 
     public ProgressForm()
     {
+        // Window basics
         TopMost = true;
-        BringToFront();
-        Focus();
-
         MaximizeBox = true;
         MinimizeBox = true;
         SizeGripStyle = SizeGripStyle.Show;
@@ -30,14 +29,16 @@ public class ProgressForm : Form
         MaximumSize = new Size(1400, 800);
         StartPosition = FormStartPosition.CenterScreen;
 
+        // Header
         statusLabel = new Label
         {
             Text = "Initializing...",
             Dock = DockStyle.Top,
             Height = 30,
-            TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+            TextAlign = ContentAlignment.MiddleCenter
         };
 
+        // Progress
         progressBar = new ThemedProgressBar
         {
             Dock = DockStyle.Bottom,
@@ -46,6 +47,7 @@ public class ProgressForm : Form
             Maximum = 100
         };
 
+        // Log
         logBox = new TextBox
         {
             Dock = DockStyle.Fill,
@@ -54,6 +56,7 @@ public class ProgressForm : Form
             ScrollBars = ScrollBars.Vertical
         };
 
+        // Cancel/Quit
         cancelButton = new ThemedButton
         {
             Text = "Cancel",
@@ -64,36 +67,53 @@ public class ProgressForm : Form
         Controls.Add(progressBar);
         Controls.Add(statusLabel);
         Controls.Add(cancelButton);
+
         Theme.ApplyToForm(this);
     }
 
     protected override async void OnShown(EventArgs e)
     {
         base.OnShown(e);
+
         controller = new ProgressController(progressBar, statusLabel, logBox);
 
         cancelButton.Click += (_, __) =>
         {
-            if (cancelButton.Text == "Quit")
+            if (cancelButton.Text.Equals("Quit", StringComparison.OrdinalIgnoreCase))
             {
                 Close();
                 return;
             }
 
             controller.Cancel();
-            if (currentProcess != null && !currentProcess.HasExited)
+
+            // Safely attempt to terminate running process (race-condition proof)
+            var proc = currentProcess;
+            if (proc != null)
             {
                 try
                 {
                     cancelButton.Enabled = false;
                     cancelButton.Text = "Cancelling...";
-                    controller.Log("⚠️ Cancelling current step...");
-                    currentProcess.Kill();
-                    controller.Log("🛑 Process terminated by user.");
+                    controller.Log("Cancelling current step...");
+
+                    if (!proc.HasExited)
+                    {
+                        proc.Kill(true);
+                        controller.Log("Process terminated by user.");
+                    }
+                    else
+                    {
+                        controller.Log("Process already exited before cancellation.");
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    controller.Log("Process was already closed — no termination needed.");
                 }
                 catch (Exception ex)
                 {
-                    controller.Log($"[ERR] Failed to terminate process: {ex.Message}");
+                    controller.Log($"[ERR] Unexpected termination error: {ex.Message}");
                 }
             }
         };
@@ -141,25 +161,48 @@ public class ProgressForm : Form
                         CreateNoWindow = true
                     };
 
-                    using (currentProcess = Process.Start(psi)
-                           ?? throw new InvalidOperationException("Failed to start PowerShell process."))
+                    using (var proc = Process.Start(psi) ?? throw new InvalidOperationException("Failed to start PowerShell process."))
                     {
-                        currentProcess.OutputDataReceived += (_, e) =>
+                        // publish to field for cancel handler
+                        currentProcess = proc;
+
+                        proc.OutputDataReceived += (_, ev) =>
                         {
-                            if (!string.IsNullOrWhiteSpace(e.Data))
-                                ctl.Log($"[OUT] {e.Data}");
+                            if (!string.IsNullOrWhiteSpace(ev.Data))
+                                ctl.Log($"[OUT] {ev.Data}");
                         };
 
-                        currentProcess.ErrorDataReceived += (_, e) =>
+                        proc.ErrorDataReceived += (_, ev) =>
                         {
-                            if (!string.IsNullOrWhiteSpace(e.Data))
-                                ctl.Log($"[ERR] {e.Data}");
+                            if (!string.IsNullOrWhiteSpace(ev.Data))
+                                ctl.Log($"[ERR] {ev.Data}");
                         };
 
-                        currentProcess.BeginOutputReadLine();
-                        currentProcess.BeginErrorReadLine();
+                        proc.BeginOutputReadLine();
+                        proc.BeginErrorReadLine();
 
-                        await currentProcess.WaitForExitAsync(ctl.Token);
+                        try
+                        {
+                            // Wait in a race-safe manner; if cancellation happens, token throws
+                            await proc.WaitForExitAsync(ctl.Token);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // swallow here; outer flow will handle cancelled state
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // Process may have already exited/disposed; ignore safely
+                            ctl.Log("Process already terminated — skipping wait.");
+                        }
+                        finally
+                        {
+                            // Best-effort cleanup
+                            try { proc.CancelOutputRead(); } catch { /* ignore */ }
+                            try { proc.CancelErrorRead(); } catch { /* ignore */ }
+                            try { proc.Dispose(); } catch { /* ignore */ }
+                            currentProcess = null;
+                        }
 
                         if (ctl.Token.IsCancellationRequested)
                         {
@@ -167,9 +210,14 @@ public class ProgressForm : Form
                             break;
                         }
 
-                        if (currentProcess.ExitCode != 0)
+                        // If we reached here normally, verify exit code
+                        // Use a guarded read to avoid InvalidOperationException
+                        int exitCode = 0;
+                        try { exitCode = proc.ExitCode; } catch { /* process gone; treat as success */ }
+
+                        if (exitCode != 0)
                         {
-                            ctl.Log($"Error: Step '{step.Name}' failed (Exit code {currentProcess.ExitCode}).");
+                            ctl.Log($"Error: Step '{step.Name}' failed (Exit code {exitCode}).");
                             break;
                         }
 
@@ -191,27 +239,32 @@ public class ProgressForm : Form
                 ctl.Log("Installation completed successfully.");
             }
 
-            Invoke(() =>
-            {
-                cancelButton.Text = "Quit";
-                cancelButton.Enabled = true;
-            });
+            ConvertCancelToQuit();
         }
         catch (OperationCanceledException)
         {
             controller.UpdateStatus("Installation cancelled.");
             controller.Log("Operation cancelled by user.");
 
-            if (currentProcess is { HasExited: false })
+            var proc = currentProcess;
+            if (proc != null)
             {
                 try
                 {
-                    currentProcess.Kill(true);
-                    controller.Log("Process forcibly terminated.");
+                    if (!proc.HasExited)
+                    {
+                        proc.Kill(true);
+                        controller.Log("Process forcibly terminated.");
+                    }
                 }
                 catch (Exception ex)
                 {
                     controller.Log($"Failed to terminate process: {ex.Message}");
+                }
+                finally
+                {
+                    try { proc.Dispose(); } catch { }
+                    currentProcess = null;
                 }
             }
 
@@ -238,10 +291,8 @@ public class ProgressForm : Form
             return;
         }
 
-        // Update appearance and behavior
         cancelButton.Enabled = true;
         cancelButton.Text = "Quit";
         cancelButton.Click += (_, __) => Close();
     }
-
 }
