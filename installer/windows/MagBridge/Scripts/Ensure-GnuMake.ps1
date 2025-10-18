@@ -1,26 +1,8 @@
 ﻿# ====================================================================
 # Ensure-GnuMake.ps1 — ensure GNU Make is installed and operational
-# Dependencies: _Logging.ps1  (dot-sourced)
 # ====================================================================
 
 $ErrorActionPreference = 'Stop'
-
-# --- Logging initialization ------------------------------------------
-# try {
-#     $logPath = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "_Logging.ps1"
-#     if (Test-Path $logPath) {
-#         . $logPath
-#         Log "[VER] Loaded logging module from $logPath"
-#     }
-#     else {
-#         Write-Warning "_Logging.ps1 not found at $logPath — continuing without structured logging."
-#         function Log($m) { Write-Host $m }
-#     }
-# }
-# catch {
-#     Write-Warning "Failed to initialize logging: $($_.Exception.Message)"
-#     function Log($m) { Write-Host $m }
-# }
 
 # --- Main logic ------------------------------------------------------
 $env:MAGBRIDGE_LOG_SOURCE = 'GnuMake'

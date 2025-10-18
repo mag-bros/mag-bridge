@@ -1,5 +1,4 @@
 ﻿# ====================================================================
-# _Logging.ps1 — minimal cross-version logger (Windows 7 compatible)
 # Emits plain text with semantic [TAG] prefixes for C# to colorize.
 # ====================================================================
 

@@ -13,7 +13,7 @@ namespace MagBridge.Core
 
         public async Task<int> RunScriptAsync(string scriptPath)
         {
-            string loggingPath = Path.Combine(AppContext.BaseDirectory, "Scripts", "_Logging.ps1");
+            string loggingPath = Path.Combine(AppContext.BaseDirectory, "Scripts", "_HostLogging.ps1");
             string command = $"-NoProfile -ExecutionPolicy Bypass -Command \"& {{ . '{loggingPath}'; . '{scriptPath}' }}\"";
 
             var psi = new ProcessStartInfo("powershell.exe", command)
@@ -32,7 +32,7 @@ namespace MagBridge.Core
                 using var reader = proc.StandardOutput;
                 string? line;
                 while ((line = await reader.ReadLineAsync()) != null)
-                    _logger.Write(line);
+                    LogWriter.Global.Write(line);
             });
 
             var errTask = Task.Run(async () =>
@@ -40,7 +40,7 @@ namespace MagBridge.Core
                 using var reader = proc.StandardError;
                 string? line;
                 while ((line = await reader.ReadLineAsync()) != null)
-                    _logger.Write("[ERR] " + line);
+                    LogWriter.Global.Write("[ERR] " + line);
             });
 
             await Task.WhenAll(outTask, errTask);

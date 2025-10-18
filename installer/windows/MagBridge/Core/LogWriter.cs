@@ -2,39 +2,40 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace MagBridge.Core
 {
-    /// <summary>
-    /// Handles all logging output: console, file, and RichTextBox UI (colored).
-    /// Each instance writes to its own log file and can be safely shared between threads.
-    /// </summary>
     public class LogWriter
     {
-        private readonly RichTextBox? _uiBox;
-        private readonly string _logFilePath;
+        private RichTextBox? _targetBox;          // no longer readonly — can be swapped
+        private readonly string _logFile;
         private readonly object _lock = new();
 
-        public string LogFilePath => _logFilePath;
+        // ==========================================================
+        // 🔹 Global instance (like $global:Logger in PowerShell)
+        // ==========================================================
+        private static readonly Lazy<LogWriter> _global = new(() => new LogWriter());
+        public static LogWriter Global => _global.Value;
 
-        public LogWriter(RichTextBox? uiBox = null)
+        // ==========================================================
+        // Constructors
+        // ==========================================================
+        public LogWriter(RichTextBox? targetBox = null)
         {
-            _uiBox = uiBox;
+            _targetBox = targetBox;
 
-            string dir = Path.Combine(
+            string logDir = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "MagBridge", "Logs");
 
-            Directory.CreateDirectory(dir);
-            _logFilePath = Path.Combine(dir, $"devkit_{DateTime.Now:yyyyMMdd_HHmmss}.log");
-
-            Write("[INFO] LogWriter initialized.");
-            Write($"[VER] Log file: {_logFilePath}");
+            Directory.CreateDirectory(logDir);
+            _logFile = Path.Combine(logDir, $"devkit_{DateTime.Now:yyyyMMdd_HHmmss}.log");
         }
 
-        /// <summary>
-        /// Writes a line to console, file, and optionally to a RichTextBox.
-        /// </summary>
+        // ==========================================================
+        // Core logging logic
+        // ==========================================================
         public void Write(string message)
         {
             string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
@@ -42,38 +43,71 @@ namespace MagBridge.Core
             // Console
             Console.WriteLine(line);
 
-            // File (thread-safe)
+            // File
             lock (_lock)
-            {
-                File.AppendAllText(_logFilePath, line + Environment.NewLine);
-            }
+                File.AppendAllText(_logFile, line + Environment.NewLine);
 
-            // UI
-            if (_uiBox is { IsHandleCreated: true })
+            // UI output (optional)
+            if (_targetBox is { IsHandleCreated: true } && !_targetBox.IsDisposed)
             {
-                _uiBox.BeginInvoke((Action)(() =>
+                try
                 {
-                    var color = DetermineColor(message);
-                    int start = _uiBox.TextLength;
-
-                    _uiBox.SelectionStart = start;
-                    _uiBox.SelectionLength = 0;
-                    _uiBox.SelectionColor = color;
-                    _uiBox.AppendText(line + Environment.NewLine);
-                    _uiBox.SelectionColor = _uiBox.ForeColor;
-                    _uiBox.ScrollToCaret();
-                }));
+                    _targetBox.BeginInvoke((Action)(() =>
+                    {
+                        Color color = DetermineColor(message);
+                        _targetBox.SelectionStart = _targetBox.TextLength;
+                        _targetBox.SelectionColor = color;
+                        _targetBox.AppendText(line + Environment.NewLine);
+                        _targetBox.SelectionColor = _targetBox.ForeColor;
+                        _targetBox.ScrollToCaret();
+                    }));
+                }
+                catch (ObjectDisposedException)
+                {
+                    _targetBox = null; // detach if control is gone
+                }
             }
         }
 
         private static Color DetermineColor(string message)
         {
-            if (message.Contains("[ERR]", StringComparison.OrdinalIgnoreCase)) return Color.FromArgb(220, 76, 70);
-            if (message.Contains("[WARN]", StringComparison.OrdinalIgnoreCase)) return Color.Goldenrod;
-            if (message.Contains("[OK]", StringComparison.OrdinalIgnoreCase)) return Color.LightGreen;
-            if (message.Contains("[INFO]", StringComparison.OrdinalIgnoreCase)) return Color.LightSkyBlue;
-            if (message.Contains("[VER]", StringComparison.OrdinalIgnoreCase)) return Color.FromArgb(150, 150, 150);
-            return Color.LightGray;
+            if (message.Contains("[ERR]", StringComparison.OrdinalIgnoreCase))
+                return Color.FromArgb(220, 76, 70); // red
+            if (message.Contains("[WARN]", StringComparison.OrdinalIgnoreCase))
+                return Color.Goldenrod; // yellow
+            if (message.Contains("[OK]", StringComparison.OrdinalIgnoreCase))
+                return Color.LightGreen;
+            if (message.Contains("[VER]", StringComparison.OrdinalIgnoreCase))
+                return Color.Gray;
+            if (message.Contains("[INFO]", StringComparison.OrdinalIgnoreCase))
+                return Color.LightSkyBlue;
+            return Color.WhiteSmoke;
+        }
+
+        // ==========================================================
+        // Dynamic UI sink binding
+        // ==========================================================
+        public void Attach(RichTextBox? target)
+        {
+            _targetBox = target;
+
+            if (_targetBox == null)
+            {
+                Console.WriteLine("[WARN] Detached UI log sink (no active RichTextBox).");
+                return;
+            }
+
+            if (!_targetBox.IsHandleCreated)
+            {
+                _targetBox.HandleCreated += (_, __) =>
+                {
+                    Write("[INFO] LogWriter attached to UI logBox (delayed bind).");
+                };
+            }
+            else
+            {
+                Write("[INFO] LogWriter attached to UI logBox.");
+            }
         }
     }
 }

@@ -7,24 +7,21 @@ namespace MagBridge.Core
     {
         private readonly ProgressBar _progressBar;
         private readonly Label _statusLabel;
-        private readonly LogWriter _logger;
         private readonly CancellationTokenSource _cts = new();
 
         public CancellationToken Token => _cts.Token;
-        public LogWriter Logger => _logger;
 
-        public ProgressController(ProgressBar progressBar, Label statusLabel, RichTextBox? logBox = null)
+        public ProgressController(ProgressBar progressBar, Label statusLabel, RichTextBox? logBox, LogWriter logger)
         {
-            _progressBar = progressBar;
-            _statusLabel = statusLabel;
-            _logger = new LogWriter(logBox);
+            _progressBar = progressBar ?? throw new ArgumentNullException(nameof(progressBar));
+            _statusLabel = statusLabel ?? throw new ArgumentNullException(nameof(statusLabel));
 
-            _logger.Write("[INFO] ProgressController initialized.");
+            LogWriter.Global.Write("[INFO] ProgressController initialized.");
         }
 
         public void UpdateStatus(string status)
         {
-            _logger.Write($"[INFO] {status}");
+            LogWriter.Global.Write($"[INFO] {status}");
             if (_statusLabel.IsHandleCreated)
                 _statusLabel.Invoke(() => _statusLabel.Text = status);
         }
