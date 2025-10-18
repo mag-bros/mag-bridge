@@ -1,27 +1,28 @@
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Windows.Forms;
-
 namespace MagBridge.Core
 {
+    public enum LogLevel
+    {
+        Verbose = 0,
+        Info = 2,
+        Ok = 3,
+        Warning = 5,
+        Success = 6,
+        Error = 10
+    }
+
     public class LogWriter
     {
+        private LogLevel _currentLogLevel = LogLevel.Verbose;
+
         private readonly object _lock = new();
         private readonly List<string> _buffer = new();   // 🧩 early logs stored here
         private readonly string _logFile;
         private RichTextBox? _targetBox;
-
-        // ==========================================================
+        private readonly List<string> _logHistory = new();
         // 🔹 Global singleton (like $global:Logger)
-        // ==========================================================
         private static readonly Lazy<LogWriter> _global = new(() => new LogWriter());
         public static LogWriter Global => _global.Value;
 
-        // ==========================================================
-        // Constructors
-        // ==========================================================
         public LogWriter(RichTextBox? targetBox = null)
         {
             _targetBox = targetBox;
@@ -57,7 +58,7 @@ namespace MagBridge.Core
                 }
             }
 
-            AppendToUi(line);
+            AppendToLogBox(line);
         }
 
         // ==========================================================
@@ -71,7 +72,7 @@ namespace MagBridge.Core
                     return;
 
                 foreach (var msg in _buffer)
-                    AppendToUi(msg);
+                    AppendToLogBox(msg);
 
                 _buffer.Clear();
             }
@@ -80,7 +81,7 @@ namespace MagBridge.Core
         // ==========================================================
         // Append message to RichTextBox (thread-safe)
         // ==========================================================
-        private void AppendToUi(string message)
+        private void AppendToLogBox(string message)
         {
             if (_targetBox == null)
                 return;
@@ -89,10 +90,24 @@ namespace MagBridge.Core
             {
                 if (_targetBox.InvokeRequired)
                 {
-                    _targetBox.BeginInvoke((Action)(() => AppendToUi(message)));
+                    _targetBox.BeginInvoke((Action)(() => AppendToLogBox(message)));
                     return;
                 }
 
+                // 🧩 Always store log in full history (unfiltered)
+                _logHistory.Add(message);
+                const int MaxEntries = 25000; // prevent memory bloat
+                if (_logHistory.Count > MaxEntries)
+                    _logHistory.RemoveAt(0);
+
+                // 🧮 Determine message log level
+                LogLevel messageLevel = DetermineLogLevel(message);
+
+                // 🚫 Filter only what gets printed to the visible box
+                if ((int)messageLevel < (int)_currentLogLevel)
+                    return;
+
+                // --- Visual display logic ---
                 Color color = DetermineColor(message);
                 _targetBox.SelectionStart = _targetBox.TextLength;
                 _targetBox.SelectionColor = color;
@@ -106,9 +121,6 @@ namespace MagBridge.Core
             }
         }
 
-        // ==========================================================
-        // Color highlighting
-        // ==========================================================
         private static Color DetermineColor(string message)
         {
             if (message.Contains("[ERR]", StringComparison.OrdinalIgnoreCase))
@@ -124,6 +136,22 @@ namespace MagBridge.Core
             if (message.Contains("[SUCCESS]", StringComparison.OrdinalIgnoreCase))
                 return Color.Green;
             return Color.WhiteSmoke;
+        }
+
+        private static LogLevel DetermineLogLevel(string message)
+        {
+            if (message.Contains("[ERR]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Error;
+            if (message.Contains("[WARN]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Warning;
+            if (message.Contains("[OK]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Ok;
+            if (message.Contains("[SUCCESS]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Success;
+            if (message.Contains("[INFO]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Info;
+            if (message.Contains("[VER]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Verbose;
+            return LogLevel.Verbose; // default fallback
+        }
+
+        public void SetLogLevel(LogLevel level)
+        {
+            _currentLogLevel = level;
         }
 
         // ==========================================================
