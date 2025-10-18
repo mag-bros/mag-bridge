@@ -29,6 +29,10 @@ namespace MagBridge.Core
         [JsonPropertyName("runType")]
         public string RunType { get; set; } = "Default";
 
+        [JsonPropertyName("loggingLevel")]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public LogLevel LoggingLevel { get; set; } = LogLevel.Info;
+
         // This maps "tasks" array in JSON → Tasks list in C#
         [JsonPropertyName("tasks")]
         public List<TaskParams> Tasks { get; set; } = new();
@@ -39,7 +43,6 @@ namespace MagBridge.Core
 
         public static Settings Load()
         {
-            LogWriter.Global.Write($"[VER] Loading Settings");
             var path = Path.Combine(AppContext.BaseDirectory, "Configs", "app-config.json");
             if (!File.Exists(path))
                 throw new FileNotFoundException($"Configuration file not found: {path}");

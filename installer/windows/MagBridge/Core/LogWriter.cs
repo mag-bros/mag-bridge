@@ -1,3 +1,6 @@
+using System.ComponentModel.Composition.Hosting;
+using Microsoft.VisualBasic.Logging;
+
 namespace MagBridge.Core
 {
     public enum LogLevel
@@ -6,33 +9,71 @@ namespace MagBridge.Core
         Info = 2,
         Ok = 3,
         Warning = 5,
-        Success = 6,
-        Error = 10
+        Error = 10,
+        Success = 99
     }
 
     public class LogWriter
     {
-        private LogLevel _currentLogLevel = LogLevel.Verbose;
+        private static LogWriter? _instance;
+        private static readonly object _sync = new();
+        private Settings? _settings;
 
-        private readonly object _lock = new();
-        private readonly List<string> _buffer = new();   // 🧩 early logs stored here
-        private readonly string _logFile;
-        private RichTextBox? _targetBox;
-        private readonly List<string> _logHistory = new();
-        // 🔹 Global singleton (like $global:Logger)
-        private static readonly Lazy<LogWriter> _global = new(() => new LogWriter());
-        public static LogWriter Global => _global.Value;
-
-        public LogWriter(RichTextBox? targetBox = null)
+        public static LogWriter Global
         {
+            get
+            {
+                lock (_sync)
+                {
+                    // Auto-bootstrap logger for pre-init use
+                    return _instance ??= new LogWriter(settings: null);
+                }
+            }
+        }
+
+        public static void Init(Settings settings, RichTextBox? targetBox = null)
+        {
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
+
+            lock (_sync)
+            {
+                // If Global already created a bootstrap logger, just reconfigure it
+                if (_instance == null)
+                    _instance = new LogWriter(settings, targetBox);
+                else
+                {
+                    _instance.SetSettings(settings);
+                    _instance.SetTargetLogBox(targetBox);
+                    _instance.SetLogLevel(settings.LoggingLevel);
+                }
+
+                _instance.Write($"[INFO] Logging system activated — runtime configuration loaded (Level: {settings.LoggingLevel}).");
+            }
+        }
+
+        // ==================================================
+        // Instance part
+        // ==================================================
+        private readonly object _lock = new();
+        private readonly List<string> _buffer = new();
+        private readonly string _logFile;
+        private readonly List<string> _logHistory = new();
+        private RichTextBox? _targetBox;
+        private LogLevel _currentLogLevel = LogLevel.Info;
+        private LogWriter(Settings? settings = null, RichTextBox? targetBox = null)
+        {
+            _settings = settings;
             _targetBox = targetBox;
 
             string logDir = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "MagBridge", "Logs");
-
             Directory.CreateDirectory(logDir);
-            _logFile = Path.Combine(logDir, $"devkit_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+            var logFile = Path.Combine(logDir, $"devkit_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+
+            _logFile = logFile;
+            Write($"[INFO] Log File Location: {logFile}");
         }
 
         // ==========================================================
@@ -94,18 +135,18 @@ namespace MagBridge.Core
                     return;
                 }
 
-                // 🧩 Always store log in full history (unfiltered)
+                // 🧩 Always store full verbose logs in full history (unfiltered)
                 _logHistory.Add(message);
                 const int MaxEntries = 25000; // prevent memory bloat
                 if (_logHistory.Count > MaxEntries)
                     _logHistory.RemoveAt(0);
 
                 // 🧮 Determine message log level
-                LogLevel messageLevel = DetermineLogLevel(message);
+                LogLevel msgLevel = DetermineLogLevel(message);
 
                 // 🚫 Filter only what gets printed to the visible box
-                if ((int)messageLevel < (int)_currentLogLevel)
-                    return;
+                bool filterLogLevel = (int)msgLevel < (int)_currentLogLevel;
+                if (filterLogLevel) return;
 
                 // --- Visual display logic ---
                 Color color = DetermineColor(message);
@@ -147,6 +188,16 @@ namespace MagBridge.Core
             if (message.Contains("[INFO]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Info;
             if (message.Contains("[VER]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Verbose;
             return LogLevel.Verbose; // default fallback
+        }
+
+        public void SetSettings(Settings settings)
+        {
+            _settings = settings;
+        }
+
+        private void SetTargetLogBox(RichTextBox? targetBox)
+        {
+            _targetBox = targetBox;
         }
 
         public void SetLogLevel(LogLevel level)
