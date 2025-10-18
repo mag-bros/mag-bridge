@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 using MagBridge.Core;
 using MagBridge.UI;
 
@@ -10,7 +11,6 @@ public class ProgressForm : Form
     private readonly Button cancelButton;
     private readonly Settings settings;
 
-    private Process? currentProcess;
     private ProgressController controller;
 
     // ----------------------------------------------------------
@@ -105,39 +105,10 @@ public class ProgressForm : Form
         }
 
         controller.Cancel();
-
-        var proc = currentProcess;
-        if (proc == null)
-            return;
-
-        try
-        {
-            cancelButton.Enabled = false;
-            cancelButton.Text = "Cancelling...";
-            LogWriter.Global.Write("[INFO] Cancelling current task...");
-
-            if (!proc.HasExited)
-            {
-                proc.Kill(true);
-                LogWriter.Global.Write("[WARN] Process terminated by user.");
-            }
-            else
-            {
-                LogWriter.Global.Write("[INFO] Process already exited before cancellation.");
-            }
-        }
-        catch (InvalidOperationException)
-        {
-            LogWriter.Global.Write("[INFO] Process was already closed — no termination needed.");
-        }
-        catch (Exception ex)
-        {
-            LogWriter.Global.Write($"[ERR] Unexpected termination error: {ex.Message}");
-        }
     }
 
     // ----------------------------------------------------------
-    // Main installer loop
+    // Main Progress Form loop
     // ----------------------------------------------------------
     private async Task RunInAsyncLoop(Settings settings)
     {
@@ -178,7 +149,6 @@ public class ProgressForm : Form
 
                     LogWriter.Global.Write($"[INFO] === Running {Path.GetFileName(task.Script)} ===");
                     int exitCode = await ps_executor.RunScriptAsync(task, ctl.Token);
-                    currentProcess = null;
 
                     if (exitCode != 0)
                     {
@@ -207,18 +177,21 @@ public class ProgressForm : Form
             else
             {
                 ctl.UpdateStatus("All tasks completed successfully.");
-                LogWriter.Global.Write(@"[SUCCESS] 
+                LogWriter.Global.Write("[SUCCESS] All tasks completed successfully. ");
+                LogWriter.Global.Write(@"[INFO] What's next?
+
  - You may need to restart your terminal or computer 
      for environment changes (e.g. PATH) to take effect.
  - Verify the tool by running it manually in a new shell.
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🎯  All tasks completed successfully
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ");
-                LogWriter.Global.Write("[OK] You better now close this window and use your new tools!");
+                LogWriter.Global.Write("[OK] You better now close this window and get to work! c:");
             }
 
-            ConvertCancelToQuit();
+            ChangeButtonText(cancelButton, "Quit", () => Close());
         }
         catch (Exception ex)
         {
@@ -228,19 +201,74 @@ public class ProgressForm : Form
         }
     }
 
-    // ----------------------------------------------------------
-    // Convert Cancel button to Quit
-    // ----------------------------------------------------------
-    private void ConvertCancelToQuit()
+    /// <param name="button">The button control to update.</param>
+    /// <param name="newText">The new text to display on the button.</param>
+    /// <param name="onClick">Action to execute on button click; null keeps current behavior.</param>
+    /// <param name="clearExistingHandlers">If true, removes existing Click handlers before assigning the new one.</param>
+    private void ChangeButtonText(Button button, string newText, Action? onClick = null, bool clearExistingHandlers = false)
     {
-        if (cancelButton.InvokeRequired)
+        if (button.InvokeRequired)
         {
-            cancelButton.Invoke((Action)ConvertCancelToQuit);
+            button.Invoke((Action)(() => ChangeButtonText(button, newText, onClick, clearExistingHandlers)));
             return;
         }
 
-        cancelButton.Enabled = true;
-        cancelButton.Text = "Quit";
-        cancelButton.Click += (_, __) => Close();
+        button.Enabled = true;
+        button.Text = newText;
+
+        if (clearExistingHandlers)
+        {
+            // Use reflection to clear all existing Click event handlers
+            var eventField = typeof(Control).GetField("EventClick", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            var eventKey = eventField?.GetValue(button);
+            var eventsProp = typeof(Component).GetProperty("Events", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            var eventList = eventsProp?.GetValue(button, null) as EventHandlerList;
+            eventList?.RemoveHandler(eventKey!, eventList[eventKey!]);
+        }
+
+        if (onClick != null)
+            button.Click += (_, __) => onClick();
+    }
+
+    /// <summary>
+    /// Controls progress bar and status label, and delegates all logging to LogWriter.
+    /// </summary>
+    protected class ProgressController
+    {
+        private readonly ProgressBar _progressBar;
+        private readonly Label _statusLabel;
+        private readonly CancellationTokenSource _cts = new();
+
+        public CancellationToken Token => _cts.Token;
+
+        public ProgressController(ProgressBar progressBar, Label statusLabel, RichTextBox? logBox, LogWriter logger)
+        {
+            _progressBar = progressBar ?? throw new ArgumentNullException(nameof(progressBar));
+            _statusLabel = statusLabel ?? throw new ArgumentNullException(nameof(statusLabel));
+
+            LogWriter.Global.Write("[VER] ProgressController initialized.");
+        }
+
+        public void UpdateStatus(string status)
+        {
+            LogWriter.Global.Write($"[VER] {status}");
+            if (_statusLabel.IsHandleCreated)
+                _statusLabel.Invoke(() => _statusLabel.Text = status);
+        }
+
+        public void SetProgress(double percent)
+        {
+            LogWriter.Global.Write($"[VER] Updating progress: {(int)Math.Round(percent)}%");
+            if (_progressBar.IsHandleCreated)
+            {
+                _progressBar.Invoke(() =>
+                {
+                    _progressBar.Style = ProgressBarStyle.Continuous;
+                    _progressBar.Value = Math.Clamp((int)percent, 0, 100);
+                });
+            }
+        }
+
+        public void Cancel() => _cts.Cancel();
     }
 }
