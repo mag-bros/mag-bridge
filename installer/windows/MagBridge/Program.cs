@@ -21,7 +21,7 @@ internal static class Program
         try
         {
             settings = Settings.Load();
-            Console.WriteLine($"Loaded configuration: {settings.RunType} v{settings.Version}");
+            Console.WriteLine($"Loaded configuration, RunType: {settings.RunType} - v{settings.Version}");
             Console.WriteLine($"Description: {settings.Description}");
         }
         catch (Exception ex)
@@ -89,17 +89,13 @@ internal static class Program
         // === Run Tasks ================================================
         try
         {
-            var progressForm = new ProgressForm
-            {
-                Tag = settings,
-                Text = $"{settings.RunType} — v{settings.Version}"
-            };
+            var progressForm = new ProgressForm(settings) { };
             Application.Run(progressForm);
         }
         catch (Exception ex)
         {
             MessageBox.Show(
-                $"Installer error:\n{ex.Message}",
+                $"Program error:\n{ex.Message}",
                 "Error",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error

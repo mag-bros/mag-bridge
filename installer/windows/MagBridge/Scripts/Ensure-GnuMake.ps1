@@ -1,5 +1,6 @@
 ﻿# ====================================================================
 # Ensure-GnuMake.ps1 — ensure GNU Make is installed and operational
+# _Helpers.ps1 must be sourced upstream (providing Invoke-Choco, Compare-Version, etc.)
 # ====================================================================
 
 param(

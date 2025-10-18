@@ -1,35 +1,34 @@
 ﻿# ====================================================================
-# Ensure-Choco.ps1 — ensures a package (e.g., Chocolatey) is installed and operational
-# Helpers.ps1 must be sourced upstream (providing Invoke-Choco, Compare-Version, etc.)
+# Ensure-Choco.ps1 — ensure Chocolatey is installed and operational
+# _Helpers.ps1 must be sourced upstream (providing Invoke-Choco, Compare-Version, etc.)
 # ====================================================================
 
 param(
-    [string]$PackageKey,                # e.g. "chocolatey"
+    [string]$PackageKey = "chocolatey",
     [string]$PreferredVersion = "2.5.1",
     [string]$MinimumRequiredVersion = ""
 )
 
 $ErrorActionPreference = 'Stop'
+$PackageName = 'choco'
 
 try {
     Write-Host "[INFO] Checking for package: $PackageKey..."
-    $cmd = Get-Command $PackageKey -ErrorAction SilentlyContinue
+    $cmd = Get-Command $PackageName -ErrorAction SilentlyContinue
 
-    # ---------------------------------------------------------------
-    # 🧩 1. Installation missing → bootstrap (special case: Chocolatey)
-    # ---------------------------------------------------------------
-    if (-not $cmd -and $PackageKey -eq 'choco') {
+    # 1️⃣ If not found at all, bootstrap Chocolatey itself
+    if (-not $cmd) {
         Write-Host "[WARN] $PackageKey not found. Starting installation bootstrap..."
 
         $installScript = Join-Path $env:TEMP "install_${PackageKey}.ps1"
         try {
             Invoke-WebRequest -Uri "https://community.chocolatey.org/install.ps1" `
-                              -OutFile $installScript -UseBasicParsing
+                -OutFile $installScript -UseBasicParsing
             Write-Host "[VER] Downloaded installer script to $installScript"
 
             Set-ExecutionPolicy Bypass -Scope Process -Force
             & powershell -NoProfile -ExecutionPolicy Bypass -File $installScript |
-                ForEach-Object { Write-Host "[INFO] $_" }
+            ForEach-Object { Write-Host "[INFO] $_" }
 
             Remove-Item $installScript -Force -ErrorAction SilentlyContinue
         }
@@ -46,20 +45,9 @@ try {
 
         Write-Host "[OK] $PackageKey installed successfully at $($cmd.Source)"
     }
-    elseif (-not $cmd) {
-        Write-Host "[WARN] Command '$PackageKey' not found in PATH — checking Chocolatey..."
-    }
-    else {
-        Write-Host "[OK] Found command '$PackageKey' at $($cmd.Source)"
-    }
 
-    # ---------------------------------------------------------------
-    # 🧩 2. Detect installed version
-    # ---------------------------------------------------------------
-    $userVersion = (& choco list --local-only --limit-output | `
-        Where-Object { $_ -match "^$PackageKey\s" } | `
-        ForEach-Object { ($_ -split '\s+')[1] }) 2>$null
-
+    # 2️⃣ Detect installed version via Chocolatey list
+    $userVersion = Get-ChocoVersion $PackageKey
     if ($userVersion) {
         Write-Host "[VER] Detected installed version: $userVersion"
     }
@@ -67,29 +55,29 @@ try {
         Write-Host "[INFO] No installed version detected for $PackageKey."
     }
 
-    # ---------------------------------------------------------------
-    # 🧩 3. Version checks
-    # ---------------------------------------------------------------
+    # 3️⃣ Version logic
     if ($userVersion -and $MinimumRequiredVersion -and (Compare-Version $userVersion $MinimumRequiredVersion) -lt 0) {
         Write-Host "[ERR] Installed version $userVersion is older than minimum required $MinimumRequiredVersion."
-        Write-Host "[ERR] User approval required before upgrade. Exiting with code 10."
+        Write-Host "[ERR] Manual user approval required before upgrade. Exiting with code 10."
         exit 10
     }
 
-    if ($userVersion -and (Compare-Version $userVersion $PreferredVersion) -ge 0) {
-        Write-Host "[OK] Installed version $userVersion meets or exceeds preferred $PreferredVersion."
+    if ($userVersion -and $MinimumRequiredVersion -and (Compare-Version $userVersion $MinimumRequiredVersion) -ge 0) {
+        Write-Host "[OK] Installed version $userVersion meets minimum required $MinimumRequiredVersion."
         exit 0
     }
 
-    # ---------------------------------------------------------------
-    # 🧩 4. Installation or upgrade attempts
-    # ---------------------------------------------------------------
-    $attempts = @(
-        @{ Ver = $PreferredVersion; Force = $false },
-        @{ Ver = $PreferredVersion; Force = $true },
-        @{ Ver = $MinimumRequiredVersion; Force = $false },
-        @{ Ver = $MinimumRequiredVersion; Force = $true }
-    )
+    # 4️⃣ Installation attempts (fresh install or upgrade)
+    $attempts = @()
+
+    if (-not $userVersion) {
+        $attempts += @{ Ver = $PreferredVersion; Force = $false }
+        $attempts += @{ Ver = $PreferredVersion; Force = $true }
+    }
+    else {
+        $attempts += @{ Ver = $MinimumRequiredVersion; Force = $false }
+        $attempts += @{ Ver = $MinimumRequiredVersion; Force = $true }
+    }
 
     foreach ($a in $attempts) {
         $ver = $a.Ver
@@ -111,12 +99,10 @@ try {
         }
     }
 
-    # ---------------------------------------------------------------
-    # 🧩 5. Verification
-    # ---------------------------------------------------------------
-    $finalVersion = (& choco list --local-only --limit-output | `
-        Where-Object { $_ -match "^$PackageKey\s" } | `
-        ForEach-Object { ($_ -split '\s+')[1] }) 2>$null
+    # 5️⃣ Verification
+    Write-Host "[INFO] Verifying $PackageKey installation..."
+    Start-Sleep -Seconds 2
+    $finalVersion = Get-ChocoVersion $PackageKey
 
     if ($finalVersion) {
         Write-Host "[OK] Verified $PackageKey installation — version $finalVersion"
@@ -128,7 +114,7 @@ try {
     }
 }
 catch {
-    Write-Host "[ERR] Failed to install ${PackageKey}: $($_.Exception.Message)"
+    Write-Host "[ERR] Unexpected error in Ensure-Choco.ps1: $($_.Exception.Message)"
     exit 9
 }
 finally {

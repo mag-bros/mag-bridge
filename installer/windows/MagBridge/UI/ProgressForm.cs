@@ -8,6 +8,7 @@ public class ProgressForm : Form
     private readonly Label statusLabel;
     private readonly ThemedLogBox logBox;
     private readonly Button cancelButton;
+    private readonly Settings settings;
 
     private Process? currentProcess;
     private ProgressController controller;
@@ -15,9 +16,11 @@ public class ProgressForm : Form
     // ----------------------------------------------------------
     // Constructor
     // ----------------------------------------------------------
-    public ProgressForm()
+    public ProgressForm(Settings settings)
     {
+        this.settings = settings;
         // Window basics
+        Text = $"{settings.RunType} — v{settings.Version}";
         TopMost = true;
         MaximizeBox = true;
         MinimizeBox = true;
@@ -86,7 +89,7 @@ public class ProgressForm : Form
         LogWriter.Global.Attach(logBox);
         LogWriter.Global.Write("[VER] LogWriter attached post-handle creation.");
 
-        await RunInstallerAsync();
+        await RunInstallerAsync(settings);
     }
 
     // ----------------------------------------------------------
@@ -135,12 +138,11 @@ public class ProgressForm : Form
     // ----------------------------------------------------------
     // Main installer loop
     // ----------------------------------------------------------
-    private async Task RunInstallerAsync()
+    private async Task RunInstallerAsync(Settings settings)
     {
         try
         {
             var ctl = controller ?? throw new InvalidOperationException("ProgressController not initialized.");
-            var settings = Tag as Settings ?? throw new InvalidOperationException("Installer settings not provided.");
 
             var selectedKeys = settings.SelectedPackages ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var tasks = (selectedKeys.Count == 0)
@@ -152,7 +154,7 @@ public class ProgressForm : Form
             int total = tasks.Count;
             int current = 0;
 
-            LogWriter.Global.Write($"[VER] Loaded configuration: {settings.RunType} v{settings.Version}");
+            LogWriter.Global.Write($"[VER] Loaded configuration: {settings.RunType} - v{settings.Version}");
             LogWriter.Global.Write($"[INFO] User Selected packages: {string.Join(", ", tasks.Select(s => s.PackageKey))}");
             LogWriter.Global.Write($"[VER] Tasks to execute: {total}");
             ctl.UpdateStatus("Starting installation...");

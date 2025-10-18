@@ -22,7 +22,7 @@ public sealed class WelcomeDialog : Form
 
     public WelcomeDialog(Settings settings)
     {
-        Text = $"Welcome — {settings.RunType}";
+        Text = $"Welcome — {settings.Name} - {settings.Version}";
         StartPosition = FormStartPosition.CenterParent;
         MinimumSize = new Size(620, 420); // slightly wider for all buttons
         MaximizeBox = false;
