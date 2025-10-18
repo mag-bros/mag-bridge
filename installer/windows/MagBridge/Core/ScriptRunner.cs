@@ -26,14 +26,13 @@ namespace MagBridge.Core
                 _logger.Write($"[ERR] Script not found: {scriptPath}");
                 return -1;
             }
-
-            string loggingPath = Path.Combine(AppContext.BaseDirectory, "Scripts", "_HostLogging.ps1");
+            // string loggingPath = Path.Combine(AppContext.BaseDirectory, "Scripts", "_HostLogging.ps1");
 
             // --- Correct PowerShell command construction ---
             // Note: "exit $LASTEXITCODE" ensures inner script exit code bubbles up
-            string escapedLog = loggingPath.Replace("'", "''");
-            string escapedScript = scriptPath.Replace("'", "''");
-            string command = $"-NoProfile -ExecutionPolicy Bypass -Command \"& {{ . '{escapedLog}'; . '{escapedScript}'; exit $LASTEXITCODE }}\"";
+            // string escapedLog = loggingPath.Replace("'", "''");
+            string sanitizedScript = scriptPath.Replace("'", "''");
+            string command = $"-NoProfile -ExecutionPolicy Bypass -Command \"& {{ . '{sanitizedScript}'; exit $LASTEXITCODE }}\"";
 
             var psi = new ProcessStartInfo("powershell.exe", command)
             {
