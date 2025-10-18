@@ -16,23 +16,22 @@ namespace MagBridge.Core
         }
 
         /// <summary>
-        /// Runs a PowerShell script with logging support.
+        /// Runs a PowerShell script asynchronously.
         /// Returns the true process exit code.
         /// </summary>
-        public async Task<int> RunScriptAsync(string scriptPath, string? sourceTag = null, CancellationToken token = default)
+        public async Task<int> RunScriptAsync(TaskConfig task, CancellationToken token = default)
         {
-            if (!File.Exists(scriptPath))
+            if (!File.Exists(task.Script))
             {
-                _logger.Write($"[ERR] Script not found: {scriptPath}");
+                _logger.Write($"[ERR] Script not found: {task.Script}");
                 return -1;
             }
-            // string loggingPath = Path.Combine(AppContext.BaseDirectory, "Scripts", "_HostLogging.ps1");
-
-            // --- Correct PowerShell command construction ---
-            // Note: "exit $LASTEXITCODE" ensures inner script exit code bubbles up
+            // Sourcing additional scripts instruction
+            // string loggingPath = Path.Combine(AppContext.Base    Directory, "Scripts", "_HostLogging.ps1");
             // string escapedLog = loggingPath.Replace("'", "''");
-            string sanitizedScript = scriptPath.Replace("'", "''");
-            string command = $"-NoProfile -ExecutionPolicy Bypass -Command \"& {{ . '{sanitizedScript}'; exit $LASTEXITCODE }}\"";
+
+            string sanitizedScript = task.Script.Replace("'", "''");
+            string command = $"-NoProfile -ExecutionPolicy Bypass -Command \"& {{ . '{sanitizedScript}' -PreferredVersion '{task.PreferredVersion}'; exit $LASTEXITCODE }}\"";
 
             var psi = new ProcessStartInfo("powershell.exe", command)
             {
@@ -53,7 +52,7 @@ namespace MagBridge.Core
                 while ((line = await reader.ReadLineAsync()) != null)
                 {
                     if (token.IsCancellationRequested) break;
-                    _logger.Write($"[OUT] [{sourceTag ?? Path.GetFileNameWithoutExtension(scriptPath)}] {line}");
+                    _logger.Write($"[OUT] [{task.PackageKey ?? Path.GetFileNameWithoutExtension(task.Script)}] {line}");
                 }
             }, token);
 
@@ -64,7 +63,7 @@ namespace MagBridge.Core
                 while ((line = await reader.ReadLineAsync()) != null)
                 {
                     if (token.IsCancellationRequested) break;
-                    _logger.Write($"[ERR] [{sourceTag ?? Path.GetFileNameWithoutExtension(scriptPath)}] {line}");
+                    _logger.Write($"[ERR] [{task.PackageKey ?? Path.GetFileNameWithoutExtension(task.Script)}] {line}");
                 }
             }, token);
 
@@ -82,7 +81,7 @@ namespace MagBridge.Core
                     if (!proc.HasExited)
                     {
                         proc.Kill(true);
-                        _logger.Write($"[WARN] Script process forcibly terminated ({Path.GetFileName(scriptPath)}).");
+                        _logger.Write($"[WARN] Script process forcibly terminated ({Path.GetFileName(task.Script)}).");
                     }
                 }
                 catch (Exception ex)
@@ -93,7 +92,7 @@ namespace MagBridge.Core
             }
 
             int exitCode = proc.ExitCode;
-            _logger.Write($"[VER] Script '{Path.GetFileName(scriptPath)}' exited with code {exitCode}");
+            _logger.Write($"[VER] Script '{Path.GetFileName(task.Script)}' exited with code {exitCode}");
             return exitCode;
         }
     }

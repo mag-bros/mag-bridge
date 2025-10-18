@@ -1,30 +1,39 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+
+
 
 namespace MagBridge.Core
 {
     /// <summary>
     /// Represents installer configuration loaded from app.json.
     /// </summary>
+
     public class Settings
     {
+        [JsonPropertyName("name")]
         public string Name { get; set; } = "Unnamed Installer";
+
+        [JsonPropertyName("version")]
         public string Version { get; set; } = "1.0.0";
+
+        [JsonPropertyName("description")]
         public string Description { get; set; } = "";
+
+        [JsonPropertyName("icon")]
         public string Icon { get; set; } = "Assets\\icon.ico";
+
+        [JsonPropertyName("licenseFile")]
         public string LicenseFile { get; set; } = "Licenses\\LICENSE.txt";
 
-        /// <summary>
-        /// Defines the installation mode or preset (e.g. "SDK", "Runtime", "Full").
-        /// Optional; defaults to "Default".
-        /// </summary>
+        [JsonPropertyName("runType")]
         public string RunType { get; set; } = "Default";
 
-        public List<InstallStep> Steps { get; set; } = new();
+        // This maps "tasks" array in JSON → Tasks list in C#
+        [JsonPropertyName("tasks")]
+        public List<TaskConfig> Tasks { get; set; } = new();
 
+        [JsonIgnore]
         public HashSet<string> SelectedPackages { get; set; } =
             new(StringComparer.OrdinalIgnoreCase);
 
@@ -35,13 +44,38 @@ namespace MagBridge.Core
                 throw new FileNotFoundException($"Configuration file not found: {path}");
 
             var json = File.ReadAllText(path);
+
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
                 ReadCommentHandling = JsonCommentHandling.Skip,
                 AllowTrailingCommas = true
             };
-            return JsonSerializer.Deserialize<Settings>(json, options) ?? new Settings();
+
+            var settings = JsonSerializer.Deserialize<Settings>(json, options)
+                            ?? new Settings();
+
+            // --- Resolve and validate script paths ----------------------
+            foreach (var task in settings.Tasks)
+            {
+                if (string.IsNullOrWhiteSpace(task.Script))
+                {
+                    LogWriter.Global.Write($"[WARN] Task '{task.Label}' has no Script defined.");
+                    continue;
+                }
+                LogWriter.Global.Write($"[WARN] Task '{task.PreferredVersion}' version prefreeed.");
+
+                // Convert relative → absolute
+                if (!Path.IsPathRooted(task.Script))
+                    task.Script = Path.Combine(AppContext.BaseDirectory, task.Script);
+
+                if (!File.Exists(task.Script))
+                    LogWriter.Global.Write($"[WARN] Missing script for '{task.PackageKey ?? task.Label}' — expected at: {task.Script}");
+                else
+                    LogWriter.Global.Write($"[VER] Registered script for '{task.PackageKey ?? task.Label}': {task.Script}");
+            }
+
+            return settings;
         }
 
         public string LoadLicenseText()
@@ -54,47 +88,43 @@ namespace MagBridge.Core
 
         public string GetIconPath() => Path.Combine(AppContext.BaseDirectory, Icon);
 
-        public IEnumerable<InstallStep> GetDisplaySteps()
+        public IEnumerable<TaskConfig> GetDisplayTasks()
         {
-            return Steps
+            return Tasks
                 .GroupBy(s => s.Key, StringComparer.OrdinalIgnoreCase)
                 .Select(g => g.First())
                 .OrderBy(s => s.Label, StringComparer.OrdinalIgnoreCase);
         }
 
-        /// <summary>
-        /// Returns a readable summary string for logs or diagnostics.
-        /// </summary>
-        public override string ToString()
-            => $"{Name} v{Version} ({RunType})";
+        public override string ToString() => $"{Name} v{Version} ({RunType})";
     }
 
-    /// <summary>
-    /// Represents a single installer step as defined in app.json.
-    /// Also used directly as UI item (e.g., in CheckedListBox).
-    /// </summary>
-    public class InstallStep
+    public class TaskConfig
     {
+        [JsonPropertyName("progressLabel")]
         public string ProgressLabel { get; set; } = "";
+
+        [JsonPropertyName("label")]
         public string Label { get; set; } = "";
-        public string Action { get; set; } = "";
+
+        [JsonPropertyName("script")]
+        public string Script { get; set; } = "";
+
+        [JsonPropertyName("packageKey")]
         public string? PackageKey { get; set; }
+
+        [JsonPropertyName("preChecked")]
         public bool PreChecked { get; set; } = true;
 
-        /// <summary>
-        /// Unique key identifying this step, based on PackageKey or Label.
-        /// </summary>
+        [JsonPropertyName("preferredVersion")]
+        public string PreferredVersion { get; set; } = "";
+
+        [JsonIgnore]
         public string Key => string.IsNullOrWhiteSpace(PackageKey) ? Label : PackageKey;
 
-        /// <summary>
-        /// Display text for UI list controls.
-        /// </summary>
         public override string ToString() => Label;
 
-        /// <summary>
-        /// Whether this item should be shown as checked by default.
-        /// </summary>
+        [JsonIgnore]
         public bool IsCheckedByDefault => PreChecked;
     }
 }
-

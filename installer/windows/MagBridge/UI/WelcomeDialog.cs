@@ -8,7 +8,7 @@ public sealed class WelcomeDialog : Form
     private readonly Button exitBtn;
 
     public IReadOnlyCollection<string> SelectedPackageKeys =>
-        list.CheckedItems.Cast<InstallStep>()
+        list.CheckedItems.Cast<TaskConfig>()
             .Select(s => string.IsNullOrWhiteSpace(s.PackageKey) ? s.Label : s.PackageKey)
             .ToArray();
 
@@ -134,15 +134,15 @@ public sealed class WelcomeDialog : Form
             okBtn.Top = exitBtn.Top;
         };
         // --- Populate package list ----------------------------------------------------
-        var steps = settings.GetDisplaySteps().ToList();
+        var tasks = settings.GetDisplayTasks().ToList();
 
-        foreach (var step in steps)
+        foreach (var task in tasks)
         {
             // Pre-check according to JSON or business rule
-            bool prechecked = step.PreChecked;
+            bool prechecked = task.PreChecked;
 
-            // Add directly (InstallStep.ToString() → Label)
-            list.Items.Add(step, prechecked);
+            // Add directly (TaskConfig.ToString() → Label)
+            list.Items.Add(task, prechecked);
         }
 
         // --- Button behaviors --------------------------------------------------------

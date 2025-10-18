@@ -2,14 +2,14 @@
 # Ensure-Electron.ps1 — ensure Electron is installed and operational
 # ====================================================================
 
-param([switch]$Force)
+param(
+    [string]$PreferredVersion = "latest"
+)
 
 $ErrorActionPreference = 'Stop'
-$env:MAGBRIDGE_LOG_SOURCE = 'Electron'
 
 $PackageName  = 'electron'
 $DisplayName  = 'Electron'
-$RequiredVersion = '34.0.1'
 
 # --- Import Chocolatey bootstrap (and Invoke-Choco) -------------------
 . "$PSScriptRoot\Ensure-Choco.ps1"
@@ -19,11 +19,9 @@ function Get-InstalledElectronVersion {
     $libPath = Join-Path $env:ProgramData 'chocolatey\lib'
     if (-not (Test-Path $libPath)) { return $null }
 
-    # Look for folder matching 'electron*'
     $pkgDir = Get-ChildItem -Path $libPath -Directory -Filter "$PackageName*" -ErrorAction SilentlyContinue | Select-Object -First 1
     if (-not $pkgDir) { return $null }
 
-    # Look for .nuspec file and read <version> tag
     $nuspec = Get-ChildItem -Path $pkgDir.FullName -Recurse -Filter "$PackageName.nuspec" -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($nuspec) {
         $xml = [xml](Get-Content $nuspec.FullName)
@@ -62,20 +60,18 @@ try {
         Write-Host "[VER] Detected existing ${DisplayName} version $installedVer"
     }
 
-    if ($installedVer -eq $RequiredVersion -and -not $Force) {
-        Write-Host "[OK] ${DisplayName} $RequiredVersion already installed. Skipping."
+    if ($installedVer -eq $PreferredVersion) {
+        Write-Host "[OK] ${DisplayName} $PreferredVersion already installed. Skipping."
         exit 0
-    }
-    elseif ($Force -and $installedVer) {
-        Write-Host "[WARN] Force reinstall requested for ${DisplayName}."
-    }
-    elseif (-not $installedVer) {
+    } elseif (-not $installedVer) {
         Write-Host "[INFO] ${DisplayName} not found or outdated — installation required."
+    } else {
+        Write-Host "[WARN] Existing ${DisplayName} version differs — reinstalling."
     }
 
     # --- First install attempt (quiet) ---------------------------------
-    Write-Host "[INFO] Beginning installation of ${DisplayName} $RequiredVersion..."
-    $result = Invoke-Choco @('install', $PackageName, '--version', $RequiredVersion, '-y', '--use-enhanced-exit-codes')
+    Write-Host "[INFO] Beginning installation of ${DisplayName} $PreferredVersion..."
+    $result = Invoke-Choco @('install', $PackageName, '--version', $PreferredVersion, '-y', '--use-enhanced-exit-codes')
 
     if ($result.ExitCode -eq 0 -or $result.ExitCode -eq 3010) {
         Write-Host "[OK] ${DisplayName} installed successfully."
@@ -85,7 +81,7 @@ try {
         Clean-PackageState -Pkg $PackageName
         Start-Sleep -Seconds 2
 
-        $retry = Invoke-Choco @('install', $PackageName, '--version', $RequiredVersion, '-y', '-dv', '--force', '--use-enhanced-exit-codes')
+        $retry = Invoke-Choco @('install', $PackageName, '--version', $PreferredVersion, '-y', '-dv', '--force', '--use-enhanced-exit-codes')
         if ($retry.ExitCode -eq 0 -or $retry.ExitCode -eq 3010) {
             Write-Host "[OK] Reinstall succeeded after cleanup."
         } else {
@@ -100,15 +96,15 @@ try {
     Start-Sleep -Seconds 2
 
     $verifiedVer = Get-InstalledElectronVersion
-    $installDir  = Join-Path $env:ProgramData "chocolatey\lib\$PackageName.$RequiredVersion\tools"
+    $installDir  = Join-Path $env:ProgramData "chocolatey\lib\$PackageName.$PreferredVersion\tools"
 
-    if ($verifiedVer -eq $RequiredVersion -or (Test-Path $installDir)) {
-        Write-Host "[OK] Verified installation of ${DisplayName} $RequiredVersion"
+    if ($verifiedVer -eq $PreferredVersion -or (Test-Path $installDir)) {
+        Write-Host "[OK] Verified installation of ${DisplayName} $PreferredVersion"
         Write-Host "[OK] ${DisplayName} is ready."
         exit 0
     } else {
         Write-Host "[WARN] Verification failed — version mismatch or path missing."
-        Write-Host ("[VER] Expected: {0}  |  Found: {1}" -f $RequiredVersion, (if ($verifiedVer) { $verifiedVer } else { 'none' }))
+        Write-Host ("[VER] Expected: {0}  |  Found: {1}" -f $PreferredVersion, (if ($verifiedVer) { $verifiedVer } else { 'none' }))
         exit 2
     }
 }

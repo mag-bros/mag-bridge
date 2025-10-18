@@ -110,7 +110,7 @@ public class ProgressForm : Form
         {
             cancelButton.Enabled = false;
             cancelButton.Text = "Cancelling...";
-            LogWriter.Global.Write("[INFO] Cancelling current step...");
+            LogWriter.Global.Write("[INFO] Cancelling current task...");
 
             if (!proc.HasExited)
             {
@@ -143,18 +143,18 @@ public class ProgressForm : Form
             var settings = Tag as Settings ?? throw new InvalidOperationException("Installer settings not provided.");
 
             var selectedKeys = settings.SelectedPackages ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var stepsToRun = (selectedKeys.Count == 0)
-                ? settings.Steps
-                : settings.Steps
+            var tasks = (selectedKeys.Count == 0)
+                ? settings.Tasks
+                : settings.Tasks
                     .Where(s => selectedKeys.Contains(string.IsNullOrWhiteSpace(s.PackageKey) ? s.Label : s.PackageKey))
                     .ToList();
 
-            int total = stepsToRun.Count;
+            int total = tasks.Count;
             int current = 0;
 
             LogWriter.Global.Write($"[VER] Loaded configuration: {settings.RunType} v{settings.Version}");
-            LogWriter.Global.Write($"[INFO] Selected packages: {string.Join(", ", stepsToRun.Select(s => s.Label))}");
-            LogWriter.Global.Write($"[INFO] Steps to execute: {total}");
+            LogWriter.Global.Write($"[INFO] Selected packages: {string.Join(", ", tasks.Select(s => s.Label))}");
+            LogWriter.Global.Write($"[INFO] Tasks to execute: {total}");
             ctl.UpdateStatus("Starting installation...");
 
             bool hasError = false;
@@ -163,36 +163,29 @@ public class ProgressForm : Form
             {
                 var runner = new ScriptRunner(LogWriter.Global);
 
-                foreach (var step in stepsToRun)
+                foreach (var task in tasks)
                 {
                     if (ctl.Token.IsCancellationRequested)
                         break;
 
-                    var progressLabel = step.ProgressLabel ?? step.Label;
+                    var progressLabel = task.ProgressLabel ?? task.Label;
 
                     ctl.UpdateStatus($"Step {++current}/{total}: {progressLabel}");
-                    LogWriter.Global.Write($"[INFO] Executing step '{progressLabel}'");
+                    LogWriter.Global.Write($"[INFO] Executing task '{progressLabel}'");
 
-                    string scriptPath = Path.Combine(AppContext.BaseDirectory, step.Action);
-                    if (!File.Exists(scriptPath))
-                    {
-                        LogWriter.Global.Write($"[WARN] Missing script for '{step.PackageKey}' — skipped ({scriptPath})");
-                        continue;
-                    }
-
-                    LogWriter.Global.Write($"[OUT] === Running {Path.GetFileName(scriptPath)} ===");
-                    int exitCode = await runner.RunScriptAsync(scriptPath, step.PackageKey, ctl.Token);
+                    LogWriter.Global.Write($"[OUT] === Running {Path.GetFileName(task.Script)} ===");
+                    int exitCode = await runner.RunScriptAsync(task, ctl.Token);
                     currentProcess = null;
 
                     if (exitCode != 0)
                     {
-                        LogWriter.Global.Write($"[ERR] Step '{step.PackageKey}' failed with exit code {exitCode}.");
-                        ctl.UpdateStatus($"Step failed: {step.PackageKey}");
+                        LogWriter.Global.Write($"[ERR] Step '{task.PackageKey}' failed with exit code {exitCode}.");
+                        ctl.UpdateStatus($"Step failed: {task.PackageKey}");
                         hasError = true;
                         break;
                     }
 
-                    LogWriter.Global.Write($"[OK] Step completed successfully: {step.PackageKey}");
+                    LogWriter.Global.Write($"[OK] Step completed successfully: {task.PackageKey}");
                     ctl.SetProgress((double)current / total * 100.0);
                 }
             });
@@ -206,11 +199,11 @@ public class ProgressForm : Form
             else if (hasError)
             {
                 ctl.UpdateStatus("Installation failed.");
-                LogWriter.Global.Write("[ERR] One or more steps failed.");
+                LogWriter.Global.Write("[ERR] One or more tasks failed.");
             }
             else
             {
-                ctl.UpdateStatus("All steps completed successfully.");
+                ctl.UpdateStatus("All tasks completed successfully.");
                 LogWriter.Global.Write("[OK] Installation completed successfully.");
             }
 
