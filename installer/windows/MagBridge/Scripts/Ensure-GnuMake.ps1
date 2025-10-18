@@ -7,7 +7,7 @@ param(
     [string]$MinimumRequiredVersion = "4.3.0"
 )
 
-$taskConfig = [ScriptTemplate]::new(
+$template = [ScriptTemplate]::new(
     $PackageKey,                 # [string] $pkgKey
     "make",                      # [string] $pkgName
     $PreferredVersion,           # [string] $prefVer
@@ -17,11 +17,11 @@ $taskConfig = [ScriptTemplate]::new(
     "choco"                      # [string] $cmd
 )
 
-$taskConfig.BootstrapAction = {
+$template.BootstrapAction = {
     Write-Host "[VER] No manual bootstrap required for {PackageKey} (handled by Chocolatey)."
 }
 
-$taskConfig.VerifyAction = {
+$template.VerifyAction = {
     Write-Host "[INFO] Verifying {PackageKey} executable availability..."
     $makeCmd = Get-Command make -ErrorAction SilentlyContinue
     if ($makeCmd) {
@@ -34,4 +34,4 @@ $taskConfig.VerifyAction = {
 }
 
 # Go Make!
-Invoke-Ensure -Config $taskConfig
+Invoke-Ensure -Template $template

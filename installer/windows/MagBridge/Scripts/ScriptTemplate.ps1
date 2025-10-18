@@ -71,72 +71,72 @@ class ScriptTemplate {
 # ====================================================================
 
 function Invoke-Ensure {
-    param([ScriptTemplate]$Config)
+    param([ScriptTemplate]$Template)
 
     $ErrorActionPreference = 'Stop'
-    $pkg = $Config.PackageKey
-    $verPref = $Config.PreferredVersion
-    $verMin = $Config.MinimumRequiredVersion
+    $pkg = $Template.PackageKey
+    $verPref = $Template.PreferredVersion
+    $verMin = $Template.MinimumRequiredVersion
 
-    $Config.Ver("Checking system for existing {$pkg}...")
-    $userVersion = Get-ChocoVersion $Config.PackageName -Silent
+    $Template.Ver("Checking system for existing {$pkg}...")
+    $userVersion = Get-ChocoVersion $Template.PackageName -Silent
 
     if ($userVersion) {
-        $Config.Ver("Detected {$pkg} version {$userVersion}")
+        $Template.Ver("Detected {$pkg} version {$userVersion}")
     }
     else {
-        $Config.Info("{$pkg} not detected on this system.")
+        $Template.Info("{$pkg} not detected on this system.")
     }
 
     # Minimum check
     if ($userVersion -and $verMin -and (Compare-Version $userVersion $verMin) -lt 0) {
-        $Config.Err("Installed version {$userVersion} is older than minimum required {$verMin}.")
-        $Config.Info("Manual approval required before upgrading {$pkg}.")
+        $Template.Err("Installed version {$userVersion} is older than minimum required {$verMin}.")
+        $Template.Info("Manual approval required before upgrading {$pkg}.")
         exit 10
     }
 
     if ($userVersion -and $verMin -and (Compare-Version $userVersion $verMin) -ge 0) {
         if ($verMin -eq '0.0.0') {
-            $Config.Info("Installed version {$userVersion}; minimum requirement not specified or not important.")
+            $Template.Info("Installed version {$userVersion}; minimum requirement not specified or not important.")
         }
         else {
-            $Config.Ok("Installed version {$userVersion} meets minimum requirement ({$verMin}).")
+            $Template.Ok("Installed version {$userVersion} meets minimum requirement ({$verMin}).")
         }
         exit 0
     }
 
     # --- install attempt loop ---
-    $attempts = @()
+    $scenarios = @()
     if (-not $userVersion) {
-        $attempts += @{ Ver = $verPref; Force = $false }
-        $attempts += @{ Ver = $verPref; Force = $true }
+        $scenarios += @{ Ver = $verPref; Force = $false }
+        $scenarios += @{ Ver = $verPref; Force = $true }
     }
     elseif ($verMin) {
-        $attempts += @{ Ver = $verMin; Force = $false }
-        $attempts += @{ Ver = $verMin; Force = $true }
+        $scenarios += @{ Ver = $verMin; Force = $false }
+        $scenarios += @{ Ver = $verMin; Force = $true }
     }
 
-    foreach ($a in $attempts) {
-        $v = $a.Ver
+    foreach ($scenario in $scenarios) {
+        $v = $scenario.Ver
         if (-not $v) { continue }
-        $Config.Ver("Ensuring package state for {$pkg} (v{$v}, Force={$($a.Force)})...")
-        $args = @('install', $Config.PackageName, '--version', $v, '-y', '--use-enhanced-exit-codes')
-        if ($a.Force) { $args += '--force' }
+        $Template.Ver("Ensuring package state for {$pkg} (v{$v}, Force={$($scenario.Force)})...")
+        $params = @('install', $Template.PackageName, '--version', $v, '-y', '--use-enhanced-exit-codes')
+        if ($scenario.Force) { $params += '--force' }
 
-        $res = Invoke-Choco $args
+        $res = Invoke-Choco $params
         if ($res.ExitCode -eq 0 -or $res.ExitCode -eq 3010) {
-            $Config.Ok("{$pkg} v{$v} installed successfully.")
+            $Template.Ok("{$pkg} v{$v} installed successfully.")
             break
         }
         else {
-            $Config.Warn("Installation of {$pkg} v{$v} failed (exit {$($res.ExitCode)}).")
-            if ($res.StdErr) { $Config.Ver("STDERR: {$($res.StdErr.Trim())}") }
+            $Template.Warn("Installation of {$pkg} v{$v} failed (exit {$($res.ExitCode)}).")
+            if ($res.StdErr) { $Template.Ver("STDERR: {$($res.StdErr.Trim())}") }
         }
     }
 
     # Verification phase
-    $Config.RunVerify()
-    $Config.Ok("{$pkg} process completed.")
+    $Template.RunVerify()
+    $Template.Ok("{$pkg} process completed.")
 
     # Forward the last non-zero exit code so the caller detects failure
     if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {

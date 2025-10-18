@@ -26,7 +26,8 @@ public class ProgressForm : Form
         MinimizeBox = true;
         SizeGripStyle = SizeGripStyle.Show;
         FormBorderStyle = FormBorderStyle.Sizable;
-        MinimumSize = new Size(1200, 700);
+        Size = new Size(1200, 900);
+        MinimumSize = new Size(700, 200);
         MaximumSize = new Size(2000, 1200);
         StartPosition = FormStartPosition.CenterScreen;
 

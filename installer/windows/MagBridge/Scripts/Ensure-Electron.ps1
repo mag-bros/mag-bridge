@@ -9,7 +9,7 @@ param(
 )
 
 # Configure template
-$taskConfig = [ScriptTemplate]::new(
+$template = [ScriptTemplate]::new(
     $PackageKey,                 # [string] $pkgKey
     "electron",                  # [string] $pkgName
     $PreferredVersion,           # [string] $prefVer
@@ -20,22 +20,34 @@ $taskConfig = [ScriptTemplate]::new(
 )
 
 # Bootstrap phase (none required for Chocolatey packages)
-$taskConfig.BootstrapAction = {
+$template.BootstrapAction = {
     Write-Host "[VER] No manual bootstrap required for $($this.PackageKey) (handled by Chocolatey)."
 }
 
 # Verify phase — ensure executable or package presence
-$taskConfig.VerifyAction = {
-    Write-Host "[INFO] Verifying $($this.PackageKey) executable availability..."
-    $exe = Get-Command electron -ErrorAction SilentlyContinue
-    if ($exe) {
-        Write-Host "[OK] Electron found at $($exe.Source)"
-    }
-    else {
-        Write-Host "[ERR] Electron not found in PATH after installation."
+$template.VerifyAction = {
+    Write-Host "[VER] Verifying $($this.PackageKey) installation..."
+    Start-Sleep -Seconds 2
+    $finalVer = Get-ChocoVersion $this.PackageName -Silent
+
+    if (-not $finalVer) {
+        Write-Host "[ERR] Verification failed — $($this.PackageKey) not found via Chocolatey."
         exit 3
     }
+
+    if ((Compare-Version $finalVer $this.PreferredVersion) -ge 0) {
+        Write-Host "[OK] $($this.PackageKey) verified — version $finalVer (meets preferred $($this.PreferredVersion))."
+        exit 0
+    }
+
+    if ($this.MinimumRequiredVersion -and (Compare-Version $finalVer $this.MinimumRequiredVersion) -ge 0) {
+        Write-Host "[OK] $($this.PackageKey) meets minimum requirement ($finalVer ≥ $($this.MinimumRequiredVersion))."
+        exit 0
+    }
+
+    Write-Host "[ERR] Installation completed but version $finalVer is below requirement ($($this.PreferredVersion))."
+    exit 2
 }
 
 # Go Electron!
-Invoke-Ensure -Config $taskConfig
+Invoke-Ensure -Template $template
