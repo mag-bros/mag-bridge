@@ -17,8 +17,9 @@ try {
 
     $userVersion = Get-ChocoVersion $PackageName -Silent
     if ($userVersion) {
-        Write-Host "[VER] Found $PackageKey version $userVersion"
-    } else {
+        Write-Host "[VER] Found existing $PackageKey version $userVersion"
+    }
+    else {
         Write-Host "[INFO] $PackageKey not detected."
     }
 
@@ -32,19 +33,25 @@ try {
         }
     }
 
-    # 2️⃣ Already meets preferred version
-    if ($userVersion -and (Compare-Version $userVersion $PreferredVersion) -ge 0) {
-        Write-Host "[OK] Installed version $userVersion meets preferred $PreferredVersion. Skipping installation."
+    # 2️⃣ Already meets minimum required version
+    if ($userVersion -and $MinimumRequiredVersion -and (Compare-Version $userVersion $MinimumRequiredVersion) -ge 0) {
+        Write-Host "[OK] Installed version $userVersion meets minimum requirement ($MinimumRequiredVersion). Skipping installation."
         exit 0
     }
 
     # 3️⃣ Install or upgrade attempts
-    $attempts = @(
-        @{ Ver = $PreferredVersion; Force = $false },
-        @{ Ver = $PreferredVersion; Force = $true },
-        @{ Ver = $MinimumRequiredVersion; Force = $false },
-        @{ Ver = $MinimumRequiredVersion; Force = $true }
-    )
+    $attempts = @()
+
+    if (-not $userVersion) {
+        # Fresh install — use preferred version
+        $attempts += @{ Ver = $PreferredVersion; Force = $false }
+        $attempts += @{ Ver = $PreferredVersion; Force = $true }
+    }
+    else {
+        # Too old or missing minimum — use minimum required
+        $attempts += @{ Ver = $MinimumRequiredVersion; Force = $false }
+        $attempts += @{ Ver = $MinimumRequiredVersion; Force = $true }
+    }
 
     foreach ($a in $attempts) {
         $ver = $a.Ver
@@ -58,14 +65,15 @@ try {
         if ($res.ExitCode -eq 0 -or $res.ExitCode -eq 3010) {
             Write-Host "[OK] $PackageKey $ver installed successfully."
             break
-        } else {
+        }
+        else {
             Write-Host "[WARN] Installation of $PackageKey $ver failed with code $($res.ExitCode)."
             if ($res.StdErr) { Write-Host "[ERR] STDERR: $($res.StdErr.Trim())" }
         }
     }
 
     # 4️⃣ Verification
-    Write-Host "[INFO] Verifying $PackageKey installation..."
+    Write-Host "[INFO] Verifying $PackageKey..."
     Start-Sleep -Seconds 2
     $finalVer = Get-ChocoVersion $PackageName -Silent
 
@@ -74,10 +82,8 @@ try {
         exit 3
     }
 
-    Write-Host "[VER] Installed version detected: $finalVer"
-
     if ((Compare-Version $finalVer $PreferredVersion) -ge 0) {
-        Write-Host "[OK] $PackageKey installation verified — version $finalVer"
+        Write-Host "[OK] $PackageKey - OK — version $finalVer"
         exit 0
     }
 

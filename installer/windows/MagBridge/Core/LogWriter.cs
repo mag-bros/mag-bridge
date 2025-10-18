@@ -141,13 +141,13 @@ namespace MagBridge.Core
             {
                 _targetBox.HandleCreated += (_, __) =>
                 {
-                    Write("[INFO] LogWriter attached to UI logBox (delayed bind).");
+                    Write("[VER] LogWriter attached to UI logBox (delayed bind).");
                     FlushBuffer();
                 };
             }
             else
             {
-                Write("[INFO] LogWriter attached to UI logBox.");
+                Write("[VER] LogWriter attached to UI logBox.");
                 FlushBuffer();
             }
         }

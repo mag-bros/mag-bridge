@@ -16,7 +16,7 @@ namespace MagBridge.Core
             _progressBar = progressBar ?? throw new ArgumentNullException(nameof(progressBar));
             _statusLabel = statusLabel ?? throw new ArgumentNullException(nameof(statusLabel));
 
-            LogWriter.Global.Write("[INFO] ProgressController initialized.");
+            LogWriter.Global.Write("[VER] ProgressController initialized.");
         }
 
         public void UpdateStatus(string status)

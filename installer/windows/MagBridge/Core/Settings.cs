@@ -39,7 +39,7 @@ namespace MagBridge.Core
 
         public static Settings Load()
         {
-            LogWriter.Global.Write($"[INFO] Loading Settings");
+            LogWriter.Global.Write($"[VER] Loading Settings");
             var path = Path.Combine(AppContext.BaseDirectory, "Configs", "app.json");
             if (!File.Exists(path))
                 throw new FileNotFoundException($"Configuration file not found: {path}");

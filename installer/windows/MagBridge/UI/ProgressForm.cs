@@ -84,7 +84,7 @@ public class ProgressForm : Form
             await Task.Run(() => logBox.CreateControl());
 
         LogWriter.Global.Attach(logBox);
-        LogWriter.Global.Write("[INFO] LogWriter attached post-handle creation.");
+        LogWriter.Global.Write("[VER] LogWriter attached post-handle creation.");
 
         await RunInstallerAsync();
     }
@@ -153,8 +153,8 @@ public class ProgressForm : Form
             int current = 0;
 
             LogWriter.Global.Write($"[VER] Loaded configuration: {settings.RunType} v{settings.Version}");
-            LogWriter.Global.Write($"[INFO] Selected packages: {string.Join(", ", tasks.Select(s => s.Label))}");
-            LogWriter.Global.Write($"[INFO] Tasks to execute: {total}");
+            LogWriter.Global.Write($"[INFO] User Selected packages: {string.Join(", ", tasks.Select(s => s.PackageKey))}");
+            LogWriter.Global.Write($"[VER] Tasks to execute: {total}");
             ctl.UpdateStatus("Starting installation...");
 
             bool hasError = false;
@@ -171,9 +171,9 @@ public class ProgressForm : Form
                     var progressLabel = task.ProgressLabel ?? task.Label;
 
                     ctl.UpdateStatus($"Step {++current}/{total}: {progressLabel}");
-                    LogWriter.Global.Write($"[INFO] Executing task '{progressLabel}'");
+                    LogWriter.Global.Write($"[VER] Executing task '{progressLabel}'");
 
-                    LogWriter.Global.Write($"[OUT] === Running {Path.GetFileName(task.Script)} ===");
+                    LogWriter.Global.Write($"[INFO] === Running {Path.GetFileName(task.Script)} ===");
                     int exitCode = await runner.RunScriptAsync(task, ctl.Token);
                     currentProcess = null;
 
@@ -185,7 +185,7 @@ public class ProgressForm : Form
                         break;
                     }
 
-                    LogWriter.Global.Write($"[OK] Step completed successfully: {task.PackageKey}");
+                    LogWriter.Global.Write($"[VER] Step completed successfully: {task.PackageKey}");
                     ctl.SetProgress((double)current / total * 100.0);
                 }
             });
