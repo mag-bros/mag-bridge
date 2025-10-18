@@ -13,7 +13,7 @@ MAKEFLAGS += --no-print-directory --silent
 # ------------------------------------------
 #    	⚙️ Variables & Folder Tree
 # ------------------------------------------
-export ROOT_DIR 	:= $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+ROOT_DIR 			:= $(patsubst %/,%,$(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
 export TMP_DIR		:= ${ROOT_DIR}/installer/tmp
 export COUNTER_FILE := ${TMP_DIR}/msg_count.state
 export MENU_FILE	:= ${TMP_DIR}/menu_params.state
@@ -49,15 +49,15 @@ help:
 	@echo ""
 	@echo "Mag-Bridge Development Commands:"
 	@echo "--------------------------------"
-	@echo "make install      – Create venv, install requirements"
-	@echo "make dev          – Install dev tools (pytest, ruff, mypy)"
-	@echo "make test         – Run pytest with full traceback and color"
-	@echo "make lint         – Run Ruff linter"
-	@echo "make format       – Format code using Ruff"
-	@echo "make typecheck    – Run mypy type checks"
-	@echo "make build        – Build package wheel and sdist"
-	@echo "make clean        – Remove build artifacts"
-	@echo "make reset        – Delete venv and rebuild everything"
+	@echo "make install      - Create venv, install requirements"
+	@echo "make dev          - Install dev tools (pytest, ruff, mypy)"
+	@echo "make test         - Run pytest with full traceback and color"
+	@echo "make lint         - Run Ruff linter"
+	@echo "make format       - Format code using Ruff"
+	@echo "make typecheck    - Run mypy type checks"
+	@echo "make build        - Build package wheel and sdist"
+	@echo "make clean        - Remove build artifacts"
+	@echo "make reset        - Delete venv and rebuild everything"
 	@echo ""
 
 # ------------------------------------------
@@ -172,7 +172,7 @@ reset:
 remove-venv:
 	@$(IMPORT_UTILS)
 	log "🧹 Removing <color=grey>.venv</>"
-	@rm -fr $(VENV)
+	@rm -fr "$(VENV)"
 	log --verbose "$(VERBOSE_CHAR) <color=forest>OK</>"
 
 # ------------------------------------------

@@ -2,33 +2,6 @@
 SPINNER_CMD="print_fill --char '.' --amount 999 --sleep 0.1 --rainbow"
 PIP=$(shell command -v pip3 2>/dev/null || command -v pip || command -v py)
 
-# function run_with_spinner() {
-# 	if [ -t 1 ] && [ -w /dev/tty ]; then
-# 		# open FD 3 to the terminal
-# 		exec 3>/dev/tty
-# 		# start spinner in background, writing to FD3
-# 		eval "$SPINNER_CMD" >&3 &
-# 		PF=$!
-# 	fi
-
-# 	# run the main command in foreground
-# 	"$@"
-# 	ST=$?
-
-# 	# stop spinner cleanly
-# 	if [ -n "${PF-}" ]; then
-# 		sleep 0.25
-# 		kill "$PF" 2>/dev/null || true
-# 		wait "$PF" 2>/dev/null || true
-# 		# clear spinner remnants from terminal
-# 		printf '\r\033[K' >&3
-# 		# close FD3
-# 		exec 3>&-
-# 	fi
-
-# 	return $ST
-# }
-
 function run_with_spinner() {
 	local PF ST
 
