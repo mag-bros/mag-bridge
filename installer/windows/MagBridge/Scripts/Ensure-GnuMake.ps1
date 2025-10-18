@@ -2,107 +2,96 @@
 # Ensure-GnuMake.ps1 — ensure GNU Make is installed and operational
 # ====================================================================
 
+param(
+    [string]$PreferredVersion = "4.4.1",
+    [string]$PackageKey = "GnuMake",
+    [string]$MinimumRequiredVersion = ""
+)
+
 $ErrorActionPreference = 'Stop'
+$PackageName = 'make'
 
-$PackageName  = 'make'
-$DisplayName  = 'GNU Make'
-
-# --- Import Chocolatey bootstrap (and Invoke-Choco) -------------------
-. "$PSScriptRoot\Ensure-Choco.ps1"
-
-# --- Helper -------------------------------------------------------------
-function Resolve-MakePath {
-    $cmd = Get-Command make.exe -ErrorAction SilentlyContinue
-    if ($cmd) { return $cmd.Source }
-
-    $libPath = Join-Path $env:ProgramData 'chocolatey\lib'
-    if (Test-Path $libPath) {
-        $cand = Get-ChildItem -Path $libPath -Recurse -Filter make.exe -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($cand) { return $cand.FullName }
-    }
-    return $null
-}
-
-function Clean-PackageState {
-    param([string]$Pkg)
-    Write-Host "[INFO] Cleaning residual files for $Pkg..."
-    try { & choco uninstall $Pkg -y --force | Out-Null }
-    catch { Write-Host "[WARN] Uninstall command failed or package missing." }
-
-    try {
-        Remove-Item -Recurse -Force "$env:ProgramData\chocolatey\lib\$Pkg" -ErrorAction SilentlyContinue
-        Remove-Item -Recurse -Force "$env:ProgramData\chocolatey\.chocolatey\$Pkg*" -ErrorAction SilentlyContinue
-    } catch {
-        Write-Host "[WARN] Cleanup error: $($_.Exception.Message)"
-    }
-}
-
-# --- Main ---------------------------------------------------------------
+# --- MAIN ------------------------------------------------------------
 try {
-    Write-Host "[INFO] Checking for Chocolatey..."
-    $choco = Get-Command choco -ErrorAction SilentlyContinue
-    if (-not $choco) {
-        Write-Host "[ERR] Chocolatey not found even after Ensure-Choco."
-        exit 1
-    }
-    Write-Host "[OK] Chocolatey found at $($choco.Source)"
+    Write-Host "[INFO] Checking for existing $PackageKey..."
 
-    # --- Detect existing make.exe --------------------------------------
-    $makePath = Resolve-MakePath
-    if ($makePath) {
-        try {
-            $ver = & "$makePath" --version 2>$null
-            if ($LASTEXITCODE -eq 0 -and $ver) {
-                Write-Host "[OK] Detected ${DisplayName}: $($ver.Split('`n')[0])"
-                exit 0
-            }
-        } catch {
-            Write-Host "[WARN] Detected ${DisplayName} but version check failed — reinstalling."
+    $userVersion = Get-ChocoVersion $PackageName -Silent
+    if ($userVersion) {
+        Write-Host "[VER] Found $PackageKey version $userVersion"
+    } else {
+        Write-Host "[INFO] $PackageKey not detected."
+    }
+
+    # 1️⃣ Too old version?
+    if ($userVersion -and $MinimumRequiredVersion) {
+        $cmp = Compare-Version $userVersion $MinimumRequiredVersion
+        if ($cmp -lt 0) {
+            Write-Host "[ERR] Installed version $userVersion is older than minimum required $MinimumRequiredVersion."
+            Write-Host "[ERR] Manual user approval required before upgrading. Exiting with code 10."
+            exit 10
         }
-    } else {
-        Write-Host "[INFO] ${DisplayName} not found — starting installation."
     }
 
-    # --- First install attempt ----------------------------------------
-    $result = Invoke-Choco @('install', $PackageName, '-y')
-    if ($result.ExitCode -eq 0 -or $result.ExitCode -eq 3010) {
-        Write-Host "[OK] ${DisplayName} installed successfully."
-    } else {
-        Write-Host "[WARN] First install failed (exit $($result.ExitCode)). Attempting full cleanup and reinstall."
+    # 2️⃣ Already meets preferred version
+    if ($userVersion -and (Compare-Version $userVersion $PreferredVersion) -ge 0) {
+        Write-Host "[OK] Installed version $userVersion meets preferred $PreferredVersion. Skipping installation."
+        exit 0
+    }
 
-        Clean-PackageState -Pkg $PackageName
-        Start-Sleep -Seconds 2
+    # 3️⃣ Install or upgrade attempts
+    $attempts = @(
+        @{ Ver = $PreferredVersion; Force = $false },
+        @{ Ver = $PreferredVersion; Force = $true },
+        @{ Ver = $MinimumRequiredVersion; Force = $false },
+        @{ Ver = $MinimumRequiredVersion; Force = $true }
+    )
 
-        $retry = Invoke-Choco @('install', $PackageName, '-y', '-dv', '--force', '--use-enhanced-exit-codes')
-        if ($retry.ExitCode -eq 0 -or $retry.ExitCode -eq 3010) {
-            Write-Host "[OK] Reinstall succeeded after cleanup."
+    foreach ($a in $attempts) {
+        $ver = $a.Ver
+        if (-not $ver) { continue }
+
+        Write-Host "[INFO] Attempting install of $PackageKey $ver (Force=$($a.Force))..."
+        $args = @('install', $PackageName, '--version', $ver, '-y', '--use-enhanced-exit-codes')
+        if ($a.Force) { $args += '--force' }
+
+        $res = Invoke-Choco $args
+        if ($res.ExitCode -eq 0 -or $res.ExitCode -eq 3010) {
+            Write-Host "[OK] $PackageKey $ver installed successfully."
+            break
         } else {
-            Write-Host "[ERR] Reinstall failed again (exit $($retry.ExitCode))."
-            if ($retry.StdErr) { Write-Host "[ERR] STDERR: $($retry.StdErr.Trim())" }
-            exit 3
+            Write-Host "[WARN] Installation of $PackageKey $ver failed with code $($res.ExitCode)."
+            if ($res.StdErr) { Write-Host "[ERR] STDERR: $($res.StdErr.Trim())" }
         }
     }
 
-    # --- Verification -------------------------------------------------
-    $resolved = Resolve-MakePath
-    if ($resolved) {
-        $verOut = & "$resolved" --version 2>$null
-        if ($LASTEXITCODE -eq 0 -and $verOut) {
-            Write-Host "[OK] Verified installation: $($verOut.Split('`n')[0])"
-            Write-Host "[OK] ${DisplayName} is ready."
-            exit 0
-        } else {
-            Write-Host "[WARN] Version check failed post-install."
-            exit 2
-        }
-    } else {
-        Write-Host "[WARN] make.exe not located after install (PATH not refreshed)."
-        exit 2
+    # 4️⃣ Verification
+    Write-Host "[INFO] Verifying $PackageKey installation..."
+    Start-Sleep -Seconds 2
+    $finalVer = Get-ChocoVersion $PackageName -Silent
+
+    if (-not $finalVer) {
+        Write-Host "[ERR] Verification failed — $PackageKey not found after installation."
+        exit 3
     }
+
+    Write-Host "[VER] Installed version detected: $finalVer"
+
+    if ((Compare-Version $finalVer $PreferredVersion) -ge 0) {
+        Write-Host "[OK] $PackageKey installation verified — version $finalVer"
+        exit 0
+    }
+
+    if ($MinimumRequiredVersion -and (Compare-Version $finalVer $MinimumRequiredVersion) -ge 0) {
+        Write-Host "[OK] $PackageKey meets minimum requirement ($finalVer ≥ $MinimumRequiredVersion)"
+        exit 0
+    }
+
+    Write-Host "[ERR] Installation completed but version $finalVer is below requirement."
+    exit 2
 }
 catch {
     Write-Host "[ERR] Unexpected error: $($_.Exception.Message)"
-    exit 3
+    exit 9
 }
 finally {
     $ErrorActionPreference = 'Continue'
