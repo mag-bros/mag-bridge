@@ -22,10 +22,10 @@ $template.BootstrapAction = {
 }
 
 $template.VerifyAction = {
-    Write-Host "[INFO] Verifying {PackageKey} executable availability..."
+    Write-Host "[INFO] Verifying $($this.PackageKey) executable availability..."
     $makeCmd = Get-Command make -ErrorAction SilentlyContinue
     if ($makeCmd) {
-        Write-Host "[OK] GNU Make found at {$makeCmd.Source}"
+        Write-Host "[OK] GNU Make found at $($makeCmd.Source)"
     }
     else {
         Write-Host "[ERR] GNU Make not found in PATH after installation."

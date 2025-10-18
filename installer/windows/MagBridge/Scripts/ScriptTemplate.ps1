@@ -1,7 +1,11 @@
 ﻿# ====================================================================
 # ScriptTemplate.ps1 — Shared base class and helper functions
-# for all "Ensure-*" installation scripts.
-# Provides standardized logging, configuration, and task flow.
+#   - Provides standardized logging, configuration, and task flow.
+# All Ensure-* scripts share the same life cycle:
+# 1. check 
+# 2. install
+# 3. verify
+# 4. done
 # ====================================================================
 
 class ScriptTemplate {
@@ -11,7 +15,7 @@ class ScriptTemplate {
     [string]$MinimumRequiredVersion
     [string]$InstallPath
     [string]$InstallSource
-    [string]$InstallerCommand
+    [string]$Command
     [ScriptBlock]$BootstrapAction
     [ScriptBlock]$VerifyAction
     [ScriptBlock]$PostInstallAction
@@ -31,7 +35,7 @@ class ScriptTemplate {
         $this.MinimumRequiredVersion = if ($minVer) { $minVer } else { "0.0.0" }
         $this.InstallPath = if ($path) { $path } else { "C:\ProgramData\DefaultPath" }
         $this.InstallSource = if ($src) { $src } else { "https://example.org" }
-        $this.InstallerCommand = if ($cmd) { $cmd } else { "choco" }
+        $this.Command = if ($cmd) { $cmd } else { "choco" }
     }
 
     [void] Log([string]$Level, [string]$Message) {

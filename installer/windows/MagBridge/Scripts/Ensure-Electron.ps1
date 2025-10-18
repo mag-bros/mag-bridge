@@ -8,7 +8,6 @@ param(
     [string]$MinimumRequiredVersion = ""
 )
 
-# Configure template
 $template = [ScriptTemplate]::new(
     $PackageKey,                 # [string] $pkgKey
     "electron",                  # [string] $pkgName
@@ -19,12 +18,10 @@ $template = [ScriptTemplate]::new(
     "choco"                      # [string] $cmd
 )
 
-# Bootstrap phase (none required for Chocolatey packages)
 $template.BootstrapAction = {
     Write-Host "[VER] No manual bootstrap required for $($this.PackageKey) (handled by Chocolatey)."
 }
 
-# Verify phase — ensure executable or package presence
 $template.VerifyAction = {
     Write-Host "[VER] Verifying $($this.PackageKey) installation..."
     Start-Sleep -Seconds 2
