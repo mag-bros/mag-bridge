@@ -59,42 +59,42 @@ internal static class Program
         }
 
         // === License agreement ============================================
-        try
-        {
-            using (var licenseDialog = new LicenseDialog(settings))
-            {
-                if (licenseDialog.ShowDialog() != DialogResult.OK || !licenseDialog.Accepted)
-                {
-                    MessageBox.Show(
-                        "You must accept the license terms to proceed.",
-                        "License Agreement",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
-                    return;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(
-                $"License display error:\n{ex.Message}",
-                "License Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            );
-            return;
-        }
+        // try
+        // {
+        //     using (var licenseDialog = new LicenseDialog(settings))
+        //     {
+        //         if (licenseDialog.ShowDialog() != DialogResult.OK || !licenseDialog.Accepted)
+        //         {
+        //             MessageBox.Show(
+        //                 "You must accept the license terms to proceed.",
+        //                 "License Agreement",
+        //                 MessageBoxButtons.OK,
+        //                 MessageBoxIcon.Information
+        //             );
+        //             return;
+        //         }
+        //     }
+        // }
+        // catch (Exception ex)
+        // {
+        //     MessageBox.Show(
+        //         $"License display error:\n{ex.Message}",
+        //         "License Error",
+        //         MessageBoxButtons.OK,
+        //         MessageBoxIcon.Error
+        //     );
+        //     return;
+        // }
 
-        // === Run installer ================================================
+        // === Run Tasks ================================================
         try
         {
-            var installerForm = new ProgressForm
+            var progressForm = new ProgressForm
             {
                 Tag = settings,
                 Text = $"{settings.RunType} — v{settings.Version}"
             };
-            Application.Run(installerForm);
+            Application.Run(progressForm);
         }
         catch (Exception ex)
         {

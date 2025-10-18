@@ -39,6 +39,7 @@ namespace MagBridge.Core
 
         public static Settings Load()
         {
+            LogWriter.Global.Write($"[INFO] Loading Settings");
             var path = Path.Combine(AppContext.BaseDirectory, "Configs", "app.json");
             if (!File.Exists(path))
                 throw new FileNotFoundException($"Configuration file not found: {path}");
@@ -52,25 +53,23 @@ namespace MagBridge.Core
                 AllowTrailingCommas = true
             };
 
-            var settings = JsonSerializer.Deserialize<Settings>(json, options)
-                            ?? new Settings();
+            var settings = JsonSerializer.Deserialize<Settings>(json, options) ?? new Settings();
 
             // --- Resolve and validate script paths ----------------------
             foreach (var task in settings.Tasks)
             {
                 if (string.IsNullOrWhiteSpace(task.Script))
                 {
-                    LogWriter.Global.Write($"[WARN] Task '{task.Label}' has no Script defined.");
+                    LogWriter.Global.Write($"[ERR] Task '{task.Label}' has no Script defined.");
                     continue;
                 }
-                LogWriter.Global.Write($"[WARN] Task '{task.PreferredVersion}' version prefreeed.");
 
                 // Convert relative → absolute
                 if (!Path.IsPathRooted(task.Script))
                     task.Script = Path.Combine(AppContext.BaseDirectory, task.Script);
 
                 if (!File.Exists(task.Script))
-                    LogWriter.Global.Write($"[WARN] Missing script for '{task.PackageKey ?? task.Label}' — expected at: {task.Script}");
+                    LogWriter.Global.Write($"[ERR] Missing script for '{task.PackageKey ?? task.Label}' — expected at: {task.Script}");
                 else
                     LogWriter.Global.Write($"[VER] Registered script for '{task.PackageKey ?? task.Label}': {task.Script}");
             }
@@ -118,6 +117,9 @@ namespace MagBridge.Core
 
         [JsonPropertyName("preferredVersion")]
         public string PreferredVersion { get; set; } = "";
+
+        [JsonPropertyName("minimalRequiredVersion")]
+        public string MinimalRequiredVersion { get; set; } = "";
 
         [JsonIgnore]
         public string Key => string.IsNullOrWhiteSpace(PackageKey) ? Label : PackageKey;

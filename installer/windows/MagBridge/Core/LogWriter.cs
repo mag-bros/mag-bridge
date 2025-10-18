@@ -1,19 +1,20 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using System.Threading;
 
 namespace MagBridge.Core
 {
     public class LogWriter
     {
-        private RichTextBox? _targetBox;          // no longer readonly — can be swapped
-        private readonly string _logFile;
         private readonly object _lock = new();
+        private readonly List<string> _buffer = new();   // 🧩 early logs stored here
+        private readonly string _logFile;
+        private RichTextBox? _targetBox;
 
         // ==========================================================
-        // 🔹 Global instance (like $global:Logger in PowerShell)
+        // 🔹 Global singleton (like $global:Logger)
         // ==========================================================
         private static readonly Lazy<LogWriter> _global = new(() => new LogWriter());
         public static LogWriter Global => _global.Value;
@@ -45,36 +46,75 @@ namespace MagBridge.Core
 
             // File
             lock (_lock)
+            {
                 File.AppendAllText(_logFile, line + Environment.NewLine);
 
-            // UI output (optional)
-            if (_targetBox is { IsHandleCreated: true } && !_targetBox.IsDisposed)
+                // UI not yet attached → buffer it
+                if (_targetBox == null || !_targetBox.IsHandleCreated || _targetBox.IsDisposed)
+                {
+                    _buffer.Add(line);
+                    return;
+                }
+            }
+
+            AppendToUi(line);
+        }
+
+        // ==========================================================
+        // Flush buffered logs to UI
+        // ==========================================================
+        private void FlushBuffer()
+        {
+            lock (_lock)
             {
-                try
-                {
-                    _targetBox.BeginInvoke((Action)(() =>
-                    {
-                        Color color = DetermineColor(message);
-                        _targetBox.SelectionStart = _targetBox.TextLength;
-                        _targetBox.SelectionColor = color;
-                        _targetBox.AppendText(line + Environment.NewLine);
-                        _targetBox.SelectionColor = _targetBox.ForeColor;
-                        _targetBox.ScrollToCaret();
-                    }));
-                }
-                catch (ObjectDisposedException)
-                {
-                    _targetBox = null; // detach if control is gone
-                }
+                if (_targetBox == null || _buffer.Count == 0)
+                    return;
+
+                foreach (var msg in _buffer)
+                    AppendToUi(msg);
+
+                _buffer.Clear();
             }
         }
 
+        // ==========================================================
+        // Append message to RichTextBox (thread-safe)
+        // ==========================================================
+        private void AppendToUi(string message)
+        {
+            if (_targetBox == null)
+                return;
+
+            try
+            {
+                if (_targetBox.InvokeRequired)
+                {
+                    _targetBox.BeginInvoke((Action)(() => AppendToUi(message)));
+                    return;
+                }
+
+                Color color = DetermineColor(message);
+                _targetBox.SelectionStart = _targetBox.TextLength;
+                _targetBox.SelectionColor = color;
+                _targetBox.AppendText(message + Environment.NewLine);
+                _targetBox.SelectionColor = _targetBox.ForeColor;
+                _targetBox.ScrollToCaret();
+            }
+            catch (ObjectDisposedException)
+            {
+                _targetBox = null;
+            }
+        }
+
+        // ==========================================================
+        // Color highlighting
+        // ==========================================================
         private static Color DetermineColor(string message)
         {
             if (message.Contains("[ERR]", StringComparison.OrdinalIgnoreCase))
                 return Color.FromArgb(220, 76, 70); // red
             if (message.Contains("[WARN]", StringComparison.OrdinalIgnoreCase))
-                return Color.Goldenrod; // yellow
+                return Color.Goldenrod;
             if (message.Contains("[OK]", StringComparison.OrdinalIgnoreCase))
                 return Color.LightGreen;
             if (message.Contains("[VER]", StringComparison.OrdinalIgnoreCase))
@@ -85,7 +125,7 @@ namespace MagBridge.Core
         }
 
         // ==========================================================
-        // Dynamic UI sink binding
+        // Attach RichTextBox sink (with buffer flush)
         // ==========================================================
         public void Attach(RichTextBox? target)
         {
@@ -102,11 +142,13 @@ namespace MagBridge.Core
                 _targetBox.HandleCreated += (_, __) =>
                 {
                     Write("[INFO] LogWriter attached to UI logBox (delayed bind).");
+                    FlushBuffer();
                 };
             }
             else
             {
                 Write("[INFO] LogWriter attached to UI logBox.");
+                FlushBuffer();
             }
         }
     }
