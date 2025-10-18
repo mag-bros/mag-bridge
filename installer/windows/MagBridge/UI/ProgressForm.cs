@@ -61,13 +61,12 @@ public class ProgressForm : Form
             Text = "Cancel",
             Dock = DockStyle.Bottom
         };
+        cancelButton.Click += CancelButton_Click;
 
         Controls.Add(logBox);
         Controls.Add(statusLabel);
         Controls.Add(progressBar);
         Controls.Add(cancelButton);
-        // foreach (Control c in Controls)
-        //     Console.WriteLine($"[DBG] Control: {c.Name ?? c.GetType().Name}, Dock={c.Dock}, Visible={c.Visible}, Bounds={c.Bounds}");
 
         Theme.ApplyToForm(this);
         controller = new ProgressController(progressBar, statusLabel, logBox, LogWriter.Global);
@@ -242,7 +241,7 @@ public class ProgressForm : Form
             if (ctl.Token.IsCancellationRequested)
             {
                 ctl.UpdateStatus("Installation cancelled by user.");
-                LogWriter.Global.Write("[INFO] User cancelled installation.");
+                LogWriter.Global.Write("[WARN] User cancelled installation.");
             }
             else if (hasError)
             {
