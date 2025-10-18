@@ -207,7 +207,15 @@ public class ProgressForm : Form
             else
             {
                 ctl.UpdateStatus("All tasks completed successfully.");
-                LogWriter.Global.Write("[SUCCESS] Installation completed successfully. You can now close this window.");
+                LogWriter.Global.Write(@"[SUCCESS] 
+ - You may need to restart your terminal or computer 
+     for environment changes (e.g. PATH) to take effect.
+ - Verify the tool by running it manually in a new shell.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯  All tasks completed successfully
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+");
+                LogWriter.Global.Write("[OK] You better now close this window and use your new tools!");
             }
 
             ConvertCancelToQuit();

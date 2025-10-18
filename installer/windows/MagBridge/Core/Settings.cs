@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 namespace MagBridge.Core
 {
     /// <summary>
-    /// Represents installer configuration loaded from app.json.
+    /// Represents installer configuration loaded from app-config.json.
     /// </summary>
 
     public class Settings
@@ -40,7 +40,7 @@ namespace MagBridge.Core
         public static Settings Load()
         {
             LogWriter.Global.Write($"[VER] Loading Settings");
-            var path = Path.Combine(AppContext.BaseDirectory, "Configs", "app.json");
+            var path = Path.Combine(AppContext.BaseDirectory, "Configs", "app-config.json");
             if (!File.Exists(path))
                 throw new FileNotFoundException($"Configuration file not found: {path}");
 

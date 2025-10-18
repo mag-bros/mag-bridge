@@ -80,7 +80,7 @@ namespace MagBridge.Core
                 using var reader = proc.StandardOutput;
                 string? line;
                 while ((line = await reader.ReadLineAsync()) != null && !token.IsCancellationRequested)
-                    _logger.Write($"[OUT] [{task.PackageKey ?? Path.GetFileNameWithoutExtension(task.Script)}] {line}");
+                    _logger.Write($"[{task.PackageKey ?? Path.GetFileNameWithoutExtension(task.Script)}] {line}");
             }, token);
 
             var errTask = Task.Run(async () =>
