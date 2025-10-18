@@ -61,19 +61,37 @@ namespace MagBridge.Core
         private readonly List<string> _logHistory = new();
         private RichTextBox? _targetBox;
         private LogLevel _currentLogLevel = LogLevel.Info;
+
+        // ==========================================================
+        // LogWriter Constructor
+        // ==========================================================
         private LogWriter(Settings? settings = null, RichTextBox? targetBox = null)
         {
             _settings = settings;
             _targetBox = targetBox;
+            _currentLogLevel = settings?.LoggingLevel ?? LogLevel.Info;
 
-            string logDir = Path.Combine(
+            // Determine log directory (fallback to Temp if needed)
+            var logDir = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "MagBridge", "Logs");
-            Directory.CreateDirectory(logDir);
-            var logFile = Path.Combine(logDir, $"devkit_{DateTime.Now:yyyyMMdd_HHmmss}.log");
 
-            _logFile = logFile;
-            Write($"[INFO] Log File Location: {logFile}");
+            if (!Directory.Exists(logDir))
+            {
+                try { Directory.CreateDirectory(logDir); }
+                catch
+                {
+                    logDir = Path.Combine(Path.GetTempPath(), "MagBridge", "Logs");
+                    Directory.CreateDirectory(logDir);
+                    Write("[WARN] Using temporary log directory (CommonAppData unavailable).");
+                }
+            }
+
+            _logFile = Path.Combine(logDir, $"devkit_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+
+            // Header
+            Write($"[VER] LogWriter {(settings is null ? "bootstrap" : "configured")} instance created.");
+            Write($"[INFO] Log file: {_logFile} (Level: {_currentLogLevel})");
         }
 
         // ==========================================================
