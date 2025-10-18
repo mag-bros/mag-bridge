@@ -3,114 +3,95 @@
 # ====================================================================
 
 param(
-    [string]$PreferredVersion = "latest"
+    [string]$PreferredVersion = "34.0.1",
+    [string]$PackageKey = "Electron",
+    [string]$MinimumRequiredVersion = ""
 )
 
 $ErrorActionPreference = 'Stop'
+$PackageName = 'electron'
 
-$PackageName  = 'electron'
-$DisplayName  = 'Electron'
-
-# --- Import Chocolatey bootstrap (and Invoke-Choco) -------------------
-. "$PSScriptRoot\Ensure-Choco.ps1"
-
-# --- Helper ------------------------------------------------------------
-function Get-InstalledElectronVersion {
-    $libPath = Join-Path $env:ProgramData 'chocolatey\lib'
-    if (-not (Test-Path $libPath)) { return $null }
-
-    $pkgDir = Get-ChildItem -Path $libPath -Directory -Filter "$PackageName*" -ErrorAction SilentlyContinue | Select-Object -First 1
-    if (-not $pkgDir) { return $null }
-
-    $nuspec = Get-ChildItem -Path $pkgDir.FullName -Recurse -Filter "$PackageName.nuspec" -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($nuspec) {
-        $xml = [xml](Get-Content $nuspec.FullName)
-        return $xml.package.metadata.version
-    }
-    return $null
-}
-
-function Clean-PackageState {
-    param([string]$Pkg)
-    Write-Host "[INFO] Cleaning residual files for $Pkg..."
-    try { & choco uninstall $Pkg -y --force | Out-Null }
-    catch { Write-Host "[WARN] Uninstall command failed or package missing." }
-
-    try {
-        Remove-Item -Recurse -Force "$env:ProgramData\chocolatey\lib\$Pkg*" -ErrorAction SilentlyContinue
-        Remove-Item -Recurse -Force "$env:ProgramData\chocolatey\.chocolatey\$Pkg*" -ErrorAction SilentlyContinue
-    } catch {
-        Write-Host "[WARN] Cleanup error: $($_.Exception.Message)"
-    }
-}
-
-# --- Main ---------------------------------------------------------------
+# --- MAIN -----------------------------------------------------------
 try {
-    Write-Host "[INFO] Checking for Chocolatey..."
-    $choco = Get-Command choco -ErrorAction SilentlyContinue
-    if (-not $choco) {
-        Write-Host "[ERR] Chocolatey not found even after Ensure-Choco."
-        exit 1
-    }
-    Write-Host "[OK] Chocolatey found at $($choco.Source)"
+    Write-Host "[INFO] Checking for existing $PackageKey..."
 
-    # --- Detect existing Electron --------------------------------------
-    $installedVer = Get-InstalledElectronVersion
-    if ($installedVer) {
-        Write-Host "[VER] Detected existing ${DisplayName} version $installedVer"
-    }
-
-    if ($installedVer -eq $PreferredVersion) {
-        Write-Host "[OK] ${DisplayName} $PreferredVersion already installed. Skipping."
-        exit 0
-    } elseif (-not $installedVer) {
-        Write-Host "[INFO] ${DisplayName} not found or outdated — installation required."
+    $userVersion = Get-ChocoVersion $PackageName -Silent
+    if ($userVersion) {
+        Write-Host "[VER] Found $PackageKey version $userVersion"
     } else {
-        Write-Host "[WARN] Existing ${DisplayName} version differs — reinstalling."
+        Write-Host "[INFO] $PackageKey not detected."
     }
 
-    # --- First install attempt (quiet) ---------------------------------
-    Write-Host "[INFO] Beginning installation of ${DisplayName} $PreferredVersion..."
-    $result = Invoke-Choco @('install', $PackageName, '--version', $PreferredVersion, '-y', '--use-enhanced-exit-codes')
-
-    if ($result.ExitCode -eq 0 -or $result.ExitCode -eq 3010) {
-        Write-Host "[OK] ${DisplayName} installed successfully."
-    } else {
-        Write-Host "[WARN] First install failed (exit $($result.ExitCode)). Attempting full cleanup and reinstall."
-
-        Clean-PackageState -Pkg $PackageName
-        Start-Sleep -Seconds 2
-
-        $retry = Invoke-Choco @('install', $PackageName, '--version', $PreferredVersion, '-y', '-dv', '--force', '--use-enhanced-exit-codes')
-        if ($retry.ExitCode -eq 0 -or $retry.ExitCode -eq 3010) {
-            Write-Host "[OK] Reinstall succeeded after cleanup."
-        } else {
-            Write-Host "[ERR] Reinstall failed again (exit $($retry.ExitCode))."
-            if ($retry.StdErr) { Write-Host "[ERR] STDERR: $($retry.StdErr.Trim())" }
-            exit 3
+    # 1️⃣ Too old version?
+    if ($userVersion -and $MinimumRequiredVersion) {
+        $cmp = Compare-Version $userVersion $MinimumRequiredVersion
+        if ($cmp -lt 0) {
+            Write-Host "[ERR] Installed version $userVersion is older than minimum required $MinimumRequiredVersion."
+            Write-Host "[ERR] Manual user approval required before upgrading. Exiting with code 10."
+            exit 10
         }
     }
 
-    # --- Verification -------------------------------------------------
-    Write-Host "[INFO] Verifying $DisplayName installation..."
-    Start-Sleep -Seconds 2
-
-    $verifiedVer = Get-InstalledElectronVersion
-    $installDir  = Join-Path $env:ProgramData "chocolatey\lib\$PackageName.$PreferredVersion\tools"
-
-    if ($verifiedVer -eq $PreferredVersion -or (Test-Path $installDir)) {
-        Write-Host "[OK] Verified installation of ${DisplayName} $PreferredVersion"
-        Write-Host "[OK] ${DisplayName} is ready."
+    # 2️⃣ Already meets preferred version
+    if ($userVersion -and (Compare-Version $userVersion $PreferredVersion) -ge 0) {
+        Write-Host "[OK] Installed version $userVersion meets preferred $PreferredVersion. Skipping installation."
         exit 0
-    } else {
-        Write-Host "[WARN] Verification failed — version mismatch or path missing."
-        Write-Host ("[VER] Expected: {0}  |  Found: {1}" -f $PreferredVersion, (if ($verifiedVer) { $verifiedVer } else { 'none' }))
-        exit 2
     }
+
+    # 3️⃣ Installation or upgrade attempts
+    $attempts = @(
+        @{ Ver = $PreferredVersion; Force = $false },
+        @{ Ver = $PreferredVersion; Force = $true },
+        @{ Ver = $MinimumRequiredVersion; Force = $false },
+        @{ Ver = $MinimumRequiredVersion; Force = $true }
+    )
+
+    foreach ($a in $attempts) {
+        $ver = $a.Ver
+        if (-not $ver) { continue } # skip if version is empty
+
+        Write-Host "[INFO] Attempting install of $PackageKey $ver (Force=$($a.Force))..."
+        $args = @('install', $PackageName, '--version', $ver, '-y', '--use-enhanced-exit-codes')
+        if ($a.Force) { $args += '--force' }
+
+        $res = Invoke-Choco $args
+        if ($res.ExitCode -eq 0 -or $res.ExitCode -eq 3010) {
+            Write-Host "[OK] $PackageKey $ver installed successfully."
+            break
+        } else {
+            Write-Host "[WARN] Installation of $PackageKey $ver failed with code $($res.ExitCode)."
+            if ($res.StdErr) { Write-Host "[ERR] STDERR: $($res.StdErr.Trim())" }
+        }
+    }
+
+    # 4️⃣ Verify installation result
+    Write-Host "[INFO] Verifying $PackageKey installation..."
+    Start-Sleep -Seconds 2
+    $finalVer = Get-ChocoVersion $PackageName -Silent
+
+    if (-not $finalVer) {
+        Write-Host "[ERR] Verification failed — $PackageKey not found after installation."
+        exit 3
+    }
+
+    Write-Host "[VER] Installed version detected: $finalVer"
+
+    if ((Compare-Version $finalVer $PreferredVersion) -ge 0) {
+        Write-Host "[OK] $PackageKey installation verified — version $finalVer"
+        exit 0
+    }
+
+    if ($MinimumRequiredVersion -and (Compare-Version $finalVer $MinimumRequiredVersion) -ge 0) {
+        Write-Host "[OK] $PackageKey meets minimum requirement ($finalVer ≥ $MinimumRequiredVersion)"
+        exit 0
+    }
+
+    Write-Host "[ERR] Installation completed but version $finalVer is below requirement."
+    exit 2
 }
 catch {
     Write-Host "[ERR] Unexpected error: $($_.Exception.Message)"
-    exit 3
+    exit 9
 }
 finally {
     $ErrorActionPreference = 'Continue'

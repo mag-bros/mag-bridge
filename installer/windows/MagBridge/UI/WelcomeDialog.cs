@@ -8,7 +8,7 @@ public sealed class WelcomeDialog : Form
     private readonly Button exitBtn;
 
     public IReadOnlyCollection<string> SelectedPackageKeys =>
-        list.CheckedItems.Cast<TaskConfig>()
+        list.CheckedItems.Cast<TaskParams>()
             .Select(s => string.IsNullOrWhiteSpace(s.PackageKey) ? s.Label : s.PackageKey)
             .ToArray();
 
@@ -141,7 +141,7 @@ public sealed class WelcomeDialog : Form
             // Pre-check according to JSON or business rule
             bool prechecked = task.PreChecked;
 
-            // Add directly (TaskConfig.ToString() → Label)
+            // Add directly (TaskParams.ToString() → Label)
             list.Items.Add(task, prechecked);
         }
 

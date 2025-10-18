@@ -19,7 +19,7 @@ namespace MagBridge.Core
         /// Runs a PowerShell script asynchronously.
         /// Returns the true process exit code.
         /// </summary>
-        public async Task<int> RunScriptAsync(TaskConfig task, CancellationToken token = default)
+        public async Task<int> RunScriptAsync(TaskParams task, CancellationToken token = default)
         {
             if (!File.Exists(task.Script))
             {
@@ -27,11 +27,20 @@ namespace MagBridge.Core
                 return -1;
             }
             // Sourcing additional scripts instruction
-            // string loggingPath = Path.Combine(AppContext.Base    Directory, "Scripts", "_HostLogging.ps1");
-            // string escapedLog = loggingPath.Replace("'", "''");
+            string helperScript = Path.Combine(AppContext.BaseDirectory, "Scripts", "_Helpers.ps1");
+            helperScript = helperScript.Replace("'", "''");
 
             string sanitizedScript = task.Script.Replace("'", "''");
-            string command = $"-NoProfile -ExecutionPolicy Bypass -Command \"& {{ . '{sanitizedScript}' -PreferredVersion '{task.PreferredVersion}'; exit $LASTEXITCODE }}\"";
+            string command =
+                $"-NoProfile -ExecutionPolicy Bypass -Command " +
+                "\"& {\n" +
+                $"    . '{helperScript}';\n" +
+                $"    . '{sanitizedScript}'" +
+                $" -PackageKey '{task.PackageKey}'" +
+                $" -PreferredVersion '{task.PreferredVersion}'" +
+                $" -MinimumRequiredVersion '{task.MinimalRequiredVersion}'" +
+                "    exit $LASTEXITCODE\n" +
+                "}\"";
 
             var psi = new ProcessStartInfo("powershell.exe", command)
             {

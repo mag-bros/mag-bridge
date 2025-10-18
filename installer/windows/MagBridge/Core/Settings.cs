@@ -31,7 +31,7 @@ namespace MagBridge.Core
 
         // This maps "tasks" array in JSON → Tasks list in C#
         [JsonPropertyName("tasks")]
-        public List<TaskConfig> Tasks { get; set; } = new();
+        public List<TaskParams> Tasks { get; set; } = new();
 
         [JsonIgnore]
         public HashSet<string> SelectedPackages { get; set; } =
@@ -87,7 +87,7 @@ namespace MagBridge.Core
 
         public string GetIconPath() => Path.Combine(AppContext.BaseDirectory, Icon);
 
-        public IEnumerable<TaskConfig> GetDisplayTasks()
+        public IEnumerable<TaskParams> GetDisplayTasks()
         {
             return Tasks
                 .GroupBy(s => s.Key, StringComparer.OrdinalIgnoreCase)
@@ -98,7 +98,7 @@ namespace MagBridge.Core
         public override string ToString() => $"{Name} v{Version} ({RunType})";
     }
 
-    public class TaskConfig
+    public class TaskParams
     {
         [JsonPropertyName("progressLabel")]
         public string ProgressLabel { get; set; } = "";
