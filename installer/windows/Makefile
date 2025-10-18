@@ -48,8 +48,12 @@ build-uninstall:
 # ------------------------------------------------------------
 # 🧩 Development Utilities — .NET Project Management
 # ------------------------------------------------------------
-PROFILE ?= sdk
-DOTNET_ARGS = -p:Profile=$(PROFILE)
+APP_CONFIG  ?= ../Configs/sdk-installer.json
+APP_LICENSE ?= ../Licenses/sdk-license.txt
+APP_ICON    ?= ../Assets/sdk.ico
+DOTNET_ARGS = -p:AppConfig=$(APP_CONFIG) \
+              -p:AppLicense=$(APP_LICENSE) \
+              -p:AppIcon=$(APP_ICON)
 
 clean:
 	@powershell -NoProfile -Command "dotnet clean '$(DOTNET_PROJECT)'"

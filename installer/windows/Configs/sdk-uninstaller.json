@@ -1,0 +1,17 @@
+{
+  "name": "MagBridge Uninstaller (SDK)",
+  "runType": "SDK",
+  "version": "1.0.0",
+  "description": "Removes developer tools and dependencies installed via SDK installer.",
+  "tasks": [
+    {
+      "progressLabel": "Removing Chocolatey...",
+      "label": "Remove Chocolatey (Well-Known Package Manager)",
+      "script": "Scripts\\Remove-Choco.ps1",
+      "packageKey": "Chocolatey",
+      "preChecked": true,
+      "preferredVersion": "",
+      "minimalRequiredVersion": ""
+    }
+  ]
+}
