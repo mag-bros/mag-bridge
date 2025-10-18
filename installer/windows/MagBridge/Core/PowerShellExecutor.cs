@@ -51,53 +51,47 @@ namespace MagBridge.Core
             using var proc = new Process { StartInfo = psi, EnableRaisingEvents = true };
             proc.Start();
 
-            // --- Async streaming of stdout/stderr ---
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+            var killTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(Timeout.Infinite, cts.Token); // waits until cancelled
+                }
+                catch (OperationCanceledException)
+                {
+                    if (!proc.HasExited)
+                    {
+                        try
+                        {
+                            proc.Kill(entireProcessTree: true);
+                            _logger.Write($"[WARN] Script '{Path.GetFileName(task.Script)}' killed on cancellation.");
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.Write($"[ERR] Kill failed: {ex.Message}");
+                        }
+                    }
+                }
+            });
+
             var outTask = Task.Run(async () =>
             {
                 using var reader = proc.StandardOutput;
                 string? line;
-                while ((line = await reader.ReadLineAsync()) != null)
-                {
-                    if (token.IsCancellationRequested) break;
+                while ((line = await reader.ReadLineAsync()) != null && !token.IsCancellationRequested)
                     _logger.Write($"[OUT] [{task.PackageKey ?? Path.GetFileNameWithoutExtension(task.Script)}] {line}");
-                }
             }, token);
 
             var errTask = Task.Run(async () =>
             {
                 using var reader = proc.StandardError;
                 string? line;
-                while ((line = await reader.ReadLineAsync()) != null)
-                {
-                    if (token.IsCancellationRequested) break;
+                while ((line = await reader.ReadLineAsync()) != null && !token.IsCancellationRequested)
                     _logger.Write($"[ERR] [{task.PackageKey ?? Path.GetFileNameWithoutExtension(task.Script)}] {line}");
-                }
             }, token);
 
-            // --- Wait for process completion ---
-            await Task.WhenAll(outTask, errTask);
-
-            try
-            {
-                await proc.WaitForExitAsync(token);
-            }
-            catch (OperationCanceledException)
-            {
-                try
-                {
-                    if (!proc.HasExited)
-                    {
-                        proc.Kill(true);
-                        _logger.Write($"[WARN] Script process forcibly terminated ({Path.GetFileName(task.Script)}).");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.Write($"[ERR] Failed to terminate script: {ex.Message}");
-                }
-                return -2;
-            }
-
+            await Task.WhenAll(outTask, errTask, proc.WaitForExitAsync(token).ContinueWith(_ => cts.Cancel()));
             int exitCode = proc.ExitCode;
             _logger.Write($"[VER] Script '{Path.GetFileName(task.Script)}' exited with code {exitCode}");
             return exitCode;

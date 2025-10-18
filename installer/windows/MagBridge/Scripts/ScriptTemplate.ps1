@@ -138,7 +138,8 @@ function Invoke-Ensure {
     $Config.RunVerify()
     $Config.Ok("{$pkg} process completed.")
 
-    if ($LASTEXITCODE -ne 0) {
+    # Forward the last non-zero exit code so the caller detects failure
+    if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {
         exit $LASTEXITCODE
     }
 }
