@@ -16,14 +16,22 @@ class ScriptTemplate {
     [ScriptBlock]$VerifyAction
     [ScriptBlock]$PostInstallAction
 
-    ScriptTemplate([string]$pkgKey, [string]$pkgName, [string]$prefVer, [string]$minVer, [string]$path, [string]$src, [string]$cmd) {
-        $this.PackageKey = $pkgKey
-        $this.PackageName = $pkgName
-        $this.PreferredVersion = $prefVer
-        $this.MinimumRequiredVersion = $minVer
-        $this.InstallPath = $path
-        $this.InstallSource = $src
-        $this.InstallerCommand = $cmd
+    ScriptTemplate(
+        [string]$pkgKey,
+        [string]$pkgName,
+        [string]$prefVer,
+        [string]$minVer,
+        [string]$path,
+        [string]$src,
+        [string]$cmd
+    ) {
+        $this.PackageKey = if ($pkgKey) { $pkgKey } else { "UnknownPackage" }
+        $this.PackageName = if ($pkgName) { $pkgName } else { "unknown" }
+        $this.PreferredVersion = if ($prefVer) { $prefVer } else { "latest" }
+        $this.MinimumRequiredVersion = if ($minVer) { $minVer } else { "0.0.0" }
+        $this.InstallPath = if ($path) { $path } else { "C:\ProgramData\DefaultPath" }
+        $this.InstallSource = if ($src) { $src } else { "https://example.org" }
+        $this.InstallerCommand = if ($cmd) { $cmd } else { "choco" }
     }
 
     [void] Log([string]$Level, [string]$Message) {
@@ -88,7 +96,12 @@ function Invoke-Ensure {
     }
 
     if ($userVersion -and $verMin -and (Compare-Version $userVersion $verMin) -ge 0) {
-        $Config.Ok("Installed version {$userVersion} meets minimum requirement ({$verMin}).")
+        if ($verMin -eq '0.0.0') {
+            $Config.Info("Installed version {$userVersion}; minimum requirement not specified or not important.")
+        }
+        else {
+            $Config.Ok("Installed version {$userVersion} meets minimum requirement ({$verMin}).")
+        }
         exit 0
     }
 
@@ -124,4 +137,8 @@ function Invoke-Ensure {
     # Verification phase
     $Config.RunVerify()
     $Config.Ok("{$pkg} process completed.")
+
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
 }

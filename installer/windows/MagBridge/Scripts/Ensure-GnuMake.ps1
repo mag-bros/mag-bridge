@@ -7,23 +7,20 @@ param(
     [string]$MinimumRequiredVersion = "4.3.0"
 )
 
-# Configure template
 $taskConfig = [ScriptTemplate]::new(
-    $PackageKey,
-    "make",
-    $PreferredVersion,
-    $MinimumRequiredVersion,
-    "C:\ProgramData\chocolatey\lib\make",
-    "https://community.chocolatey.org/packages/make",
-    "choco"
+    $PackageKey,                 # [string] $pkgKey
+    "make",                      # [string] $pkgName
+    $PreferredVersion,           # [string] $prefVer
+    $MinimumRequiredVersion,     # [string] $minVer
+    "C:\ProgramData\chocolatey\lib\make", # [string] $path
+    "https://community.chocolatey.org/packages/make", # [string] $src
+    "choco"                      # [string] $cmd
 )
 
-# Bootstrap — can be empty since it's a choco package
 $taskConfig.BootstrapAction = {
     Write-Host "[VER] No manual bootstrap required for {PackageKey} (handled by Chocolatey)."
 }
 
-# Verify Action
 $taskConfig.VerifyAction = {
     Write-Host "[INFO] Verifying {PackageKey} executable availability..."
     $makeCmd = Get-Command make -ErrorAction SilentlyContinue
@@ -36,5 +33,5 @@ $taskConfig.VerifyAction = {
     }
 }
 
-# Run the shared ensure routine
+# Go Make!
 Invoke-Ensure -Config $taskConfig
