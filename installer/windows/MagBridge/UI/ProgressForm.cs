@@ -89,7 +89,7 @@ public class ProgressForm : Form
         LogWriter.Global.Attach(logBox);
         LogWriter.Global.Write("[VER] LogWriter attached post-handle creation.");
 
-        await RunInstallerAsync(settings);
+        await RunInAsyncLoop(settings);
     }
 
     // ----------------------------------------------------------
@@ -138,7 +138,7 @@ public class ProgressForm : Form
     // ----------------------------------------------------------
     // Main installer loop
     // ----------------------------------------------------------
-    private async Task RunInstallerAsync(Settings settings)
+    private async Task RunInAsyncLoop(Settings settings)
     {
         try
         {
@@ -163,7 +163,7 @@ public class ProgressForm : Form
 
             await Task.Run(async () =>
             {
-                var runner = new ScriptRunner(LogWriter.Global);
+                var ps_executor = new PowerShellExecutor(LogWriter.Global);
 
                 foreach (var task in tasks)
                 {
@@ -176,7 +176,7 @@ public class ProgressForm : Form
                     LogWriter.Global.Write($"[VER] Executing task '{progressLabel}'");
 
                     LogWriter.Global.Write($"[INFO] === Running {Path.GetFileName(task.Script)} ===");
-                    int exitCode = await runner.RunScriptAsync(task, ctl.Token);
+                    int exitCode = await ps_executor.RunScriptAsync(task, ctl.Token);
                     currentProcess = null;
 
                     if (exitCode != 0)

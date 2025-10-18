@@ -14,6 +14,8 @@ $ErrorActionPreference = 'Stop'
 # Internals: exe name vs package id
 $ChocoExeName = 'choco'
 $ChocoPkgId = 'chocolatey'
+$chocoPath = 'C:\ProgramData\chocolatey'
+$chocoOfficialInstallScript = 'https://community.chocolatey.org/install.ps1'
 
 # -- local helper: run official bootstrap once --------------------------------
 function Invoke-ChocoBootstrap {
@@ -22,7 +24,7 @@ function Invoke-ChocoBootstrap {
     $installScript = Join-Path $env:TEMP "install_${ChocoPkgId}.ps1"
     try {
         # From Chocolatey maintainers
-        Invoke-WebRequest -Uri "https://community.chocolatey.org/install.ps1" -OutFile $installScript -UseBasicParsing
+        Invoke-WebRequest -Uri "${chocoOfficialInstallScript}" -OutFile $installScript -UseBasicParsing
         Write-Host "[VER] Downloaded installer script to $installScript"
 
         Set-ExecutionPolicy Bypass -Scope Process -Force
@@ -41,12 +43,12 @@ function Test-ChocoSuccessCode {
 }
 
 try {
-    Write-Host "[INFO] Checking for Chocolatey..."
+    Write-Host "[VER] Checking system for Chocolatey..."
     $cmd = Get-Command $ChocoExeName -ErrorAction SilentlyContinue
 
     # 1) Not found at all -> run official bootstrap
     if (-not $cmd) {
-        Write-Host "[INFO] Chocolatey not found. Starting installation bootstrap..."
+        Write-Host "[INFO] Chocolatey not found — starting automatic installation..."
         Invoke-ChocoBootstrap
 
         # Re-check
@@ -55,16 +57,16 @@ try {
             # Common pitfall: stale dir present, bootstrap refuses to overwrite
             $chocoDir = Join-Path $env:ProgramData 'chocolatey'
             if (Test-Path $chocoDir) {
-                Write-Host "[INFO] Chocolatey files were detected but the executable is missing."
+                Write-Host "[INFO] Chocolatey directory found but executable missing — possible stale install."
                 Write-Host "[VER] Stale install dir: $chocoDir"
                 $backup = "${chocoDir}_backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
                 try {
-                    Write-Host "[INFO] Preparing system for retry (renaming leftover directory)..."
+                    Write-Host "[INFO] Preparing retry — renaming old Chocolatey folder..."
                     Rename-Item -Path $chocoDir -NewName $backup -ErrorAction Stop
                     Write-Host "[VER] Renamed stale folder to: $backup"
                 }
                 catch {
-                    Write-Host "[WARN] Rename failed: $($_.Exception.Message)"
+                    Write-Host "[WARN] Could not rename old Chocolatey directory — $($_.Exception.Message)"
                     Write-Host "[INFO] Attempting safe fallback cleanup..."
                     try {
                         # Attempt to release file locks (only affects local PowerShell sessions)
@@ -79,11 +81,11 @@ try {
                         New-Item -ItemType Directory -Path $backup -Force | Out-Null
                         Get-ChildItem -Path $chocoDir -ErrorAction SilentlyContinue | Move-Item -Destination $backup -Force -ErrorAction SilentlyContinue
 
-                        Write-Host "[OK] Moved locked Chocolatey files to $backup"
+                        Write-Host "[OK] Moved locked Chocolatey files safely to: $backup"
                     }
                     catch {
                         Write-Host "[ERR] Fallback cleanup failed: $($_.Exception.Message)"
-                        Write-Host "[WARN] Please manually remove or rename C:\ProgramData\chocolatey and re-run installer."
+                        Write-Host "[WARN] Manual action required — please remove or rename '${chocoPath}' and retry."
                         exit 2
                     }
                 }
@@ -105,7 +107,7 @@ try {
                     Write-Host "[OK] Chocolatey installation verified via direct path."
                 }
                 else {
-                    Write-Host "[WARN] Chocolatey binary found but command registration delayed."
+                    Write-Host "[WARN] Chocolatey installed; shell PATH update pending - restart PowerShell Terminal to activate."
                 }
             }
             else {
@@ -114,10 +116,10 @@ try {
             }
         }
 
-        Write-Host "[OK] Chocolatey installed at $($cmd.Source)"
+        Write-Host "[OK] Chocolatey available at: $($cmd.Source)"
     }
     else {
-        Write-Host "[INFO] Chocolatey is present."
+        Write-Host "[OK] Chocolatey present at: $($cmd.Source)"
         Write-Host "[VER] choco path: $($cmd.Source)"
     }
 
@@ -130,7 +132,7 @@ try {
         Write-Host "[OK] Chocolatey exit code features configured."
     }
     catch {
-        Write-Host "[WARN] Could not enable Chocolatey features: $($_.Exception.Message)"
+        Write-Host "[INFO] Optional Chocolatey features skipped — $($_.Exception.Message)"
     }
 
     # 3) Detect installed version (package id is 'chocolatey')
@@ -140,13 +142,13 @@ try {
         Write-Host "[VER] Installed version: $userVersion"
     }
     else {
-        Write-Host "[INFO] Chocolatey not reported by package list."
+        Write-Host "[INFO] Chocolatey not yet registered in package list — possibly fresh install."
     }
 
     # 4) Version policy
     if ($userVersion -and $MinimumRequiredVersion -and (Compare-Version $userVersion $MinimumRequiredVersion) -lt 0) {
         Write-Host "[ERR] Installed version $userVersion is older than minimum required $MinimumRequiredVersion."
-        Write-Host "[ERR] Manual user approval required before upgrade. Exiting with code 10."
+        Write-Host "[INFO] Manual approval required before upgrading Chocolatey to $MinimumRequiredVersion."
         exit 10
     }
 
@@ -175,7 +177,7 @@ try {
         $ver = $a.Ver
         if (-not $ver) { continue }
 
-        Write-Host "[INFO] Ensuring Chocolatey package is installed (version $ver, Force=$($a.Force))..."
+        Write-Host "[VER] Ensuring package state (v$ver, Force=$($a.Force))..."
         $args = @('install', $ChocoPkgId, '--version', $ver, '-y', '--use-enhanced-exit-codes')
         if ($a.Force) { $args += '--force' }
 
@@ -204,15 +206,15 @@ try {
             Write-Host "[OK] Chocolatey ready. Version $finalVersion"
         }
         else {
-            Write-Host "[WARN] choco.exe not yet available in PATH — this is normal until the next shell restart."
-            Write-Host "[OK] Executable is accessible directly at: C:\ProgramData\chocolatey\bin\choco.exe"
+            Write-Host "[INFO] PATH not yet refreshed — restart PowerShell to enable choco.exe command."
+            Write-Host "[INFO] You can run Chocolatey from: ${chocoPath}\bin\choco.exe"
         }
 
         exit 0
     }
     else {
-        if (-not $cmd) { Write-Host "[WARN] choco.exe not in PATH." }
-        Write-Host "[ERR] Verification failed — Chocolatey executable missing or unreadable."
+        if (-not $cmd) { Write-Host "[INFO] choco.exe not yet registered in PATH (restart may be required)." }
+        Write-Host "[ERR] Verification failed — executable missing. Try rerunning or rebooting."
         exit 3
     }
 }

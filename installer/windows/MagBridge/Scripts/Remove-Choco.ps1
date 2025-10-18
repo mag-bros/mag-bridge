@@ -13,7 +13,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 try {
-    Write-Host "[INFO] Starting removal of ${PackageKey}..."
+    Write-Host [INFO] Initiating ${PackageKey} removal process...
 
     # Resolve install root
     $chocoRoot = $env:ChocolateyInstall
@@ -35,14 +35,14 @@ try {
     try {
         $svc = Get-Service -Name chocolatey-agent -ErrorAction SilentlyContinue
         if ($svc -and $svc.Status -eq 'Running') {
-            Write-Host "[INFO] Stopping chocolatey-agent service..."
+            Write-Host "[VER] Attempting to stop background service: chocolatey-agent..."
             $svc.Stop()
             $svc.WaitForStatus('Stopped', '00:00:10') | Out-Null
             Write-Host "[OK] chocolatey-agent stopped."
         }
     }
     catch {
-        Write-Host "[WARN] Could not stop chocolatey-agent: $($_.Exception.Message)"
+        Write-Host "[INFO] Skipped stopping chocolatey-agent (not running or inaccessible)."
     }
 
     # Backup PATH (User & Machine) preserving env refs
@@ -61,10 +61,10 @@ try {
 
         Write-Host "[OK] Backed up PATH values to: $backupFile"
 
-        $warning = "Editing PATH. If anything breaks after reboot, restore from $backupFile."
+        $pathInfo = "[INFO] Adjusting PATH variables — backup saved to $backupFile."
 
         if ($userPath -like "*$chocoRoot*") {
-            Write-Host "[WARN] $warning"
+            Write-Host "${pathInfo}"
             $newUserPATH = @(
                 $userPath -split [System.IO.Path]::PathSeparator |
                 Where-Object { $_ -and $_ -ne "$chocoRoot\bin" }
@@ -74,7 +74,7 @@ try {
         }
 
         if ($machinePath -like "*$chocoRoot*") {
-            Write-Host "[WARN] $warning"
+            Write-Host "${pathInfo}"
             $newMachinePATH = @(
                 $machinePath -split [System.IO.Path]::PathSeparator |
                 Where-Object { $_ -and $_ -ne "$chocoRoot\bin" }
@@ -87,7 +87,7 @@ try {
         $userKey.Close()
     }
     catch {
-        Write-Host "[WARN] Failed to adjust PATH: $($_.Exception.Message)"
+        Write-Host "[WARN] Failed to adjust PATH — environment may require manual cleanup: $($_.Exception.Message)"
     }
 
     # Remove installation directory (packages, shims, logs)
@@ -101,7 +101,7 @@ try {
             }
             catch {
                 if ($_.Exception.Message -match 'denied|in use|being used') {
-                    Write-Host "[WARN] File locked: $chocoRoot. Scheduling for deletion on reboot..."
+                    Write-Host "[INFO] Files in use — scheduling safe deletion after reboot."
                     Schedule-DeleteOnReboot -Path $chocoRoot
                     Write-Host "[OK] Locked files will be removed automatically after reboot."
                 }
@@ -119,13 +119,13 @@ try {
     # Remove Chocolatey Tools Location directory if present
     try {
         if ($env:ChocolateyToolsLocation -and (Test-Path $env:ChocolateyToolsLocation)) {
-            Write-Host "[INFO] Removing Chocolatey tools directory: $env:ChocolateyToolsLocation"
+            Write-Host "[VER] Removing optional Chocolatey tools directory: $env:ChocolateyToolsLocation"
             Remove-Item -Path $env:ChocolateyToolsLocation -Recurse -Force -ErrorAction Stop
             Write-Host "[OK] Removed tools directory."
         }
     }
     catch {
-        Write-Host "[WARN] Failed to remove tools directory: $($_.Exception.Message)"
+        Write-Host "[WARN] Could not remove tools directory — files may be in use: $($_.Exception.Message)"
     }
 
     # Clear Chocolatey environment variables (User & Machine)
@@ -138,20 +138,17 @@ try {
         Write-Host "[OK] Cleared Chocolatey environment variables."
     }
     catch {
-        Write-Host "[WARN] Failed to clear one or more Chocolatey environment variables: $($_.Exception.Message)"
+        Write-Host "[WARN] Skipped clearing some environment variables — details: $($_.Exception.Message)"
     }
 
     # Final verification
-    $chocoCmdFinal = Get-Command choco -ErrorAction SilentlyContinue
-    $dirExists = Test-Path $chocoRoot
-
     if ($global:RemovalFailed) {
         Write-Host "[ERR] ${PackageKey} removal failed due to unexpected error(s)."
         exit 3
     }
 
     if (Test-Path $chocoRoot) {
-        Write-Host "[WARN] ${PackageKey} directory still present: $chocoRoot"
+        Write-Host "[INFO] ${PackageKey} directory still present — likely in use, safe to remove later: $chocoRoot"
         Write-Host "[INFO] This usually happens when files are in use. Reboot and remove manually if desired."
         exit 0  # ✅ Treat as soft success
     }
