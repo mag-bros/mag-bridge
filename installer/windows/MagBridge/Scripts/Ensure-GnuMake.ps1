@@ -10,16 +10,16 @@ try {
     $logPath = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "_Logging.ps1"
     if (Test-Path $logPath) {
         . $logPath
-        Log-Info "Loaded logging module from $logPath"
-    } else {
-        Write-Warning "_Logging.ps1 not found at $logPath — continuing without structured logging."
-        function Log-Info($m) { Write-Host $m }
-        function Log-Warn($m) { Write-Warning $m }
-        function Log-Error($m) { Write-Error $m }
-        function Log-Ok($m) { Write-Host $m -ForegroundColor Green }
+        Log "[VER] Loaded logging module from $logPath"
     }
-} catch {
+    else {
+        Write-Warning "_Logging.ps1 not found at $logPath — continuing without structured logging."
+        function Log($m) { Write-Host $m }
+    }
+}
+catch {
     Write-Warning "Failed to initialize logging: $($_.Exception.Message)"
+    function Log($m) { Write-Host $m }
 }
 
 # --- Main logic ------------------------------------------------------
@@ -44,27 +44,31 @@ function Resolve-MakePath {
 }
 
 try {
-    Log-Info "Checking prerequisites"
+    Log "[INFO] Checking prerequisites"
+
     $choco = Get-Command choco -ErrorAction SilentlyContinue
     if (-not $choco) {
-        Log-Warn "Chocolatey not found; invoking Ensure-Choco.ps1"
+        Log "[WARN] Chocolatey not found; invoking Ensure-Choco.ps1"
         $ensureChoco = Join-Path $script:ScriptRoot 'Ensure-Choco.ps1'
         if (-not (Test-Path $ensureChoco)) {
-            Log-Error "Ensure-Choco.ps1 not found at $ensureChoco"
+            Log "[ERR] Ensure-Choco.ps1 not found at $ensureChoco"
             exit 1
         }
+
         & powershell -NoProfile -ExecutionPolicy Bypass -File $ensureChoco
         if ($LASTEXITCODE -ne 0) {
-            Log-Error "Ensure-Choco.ps1 failed with exit code $LASTEXITCODE"
+            Log "[ERR] Ensure-Choco.ps1 failed with exit code $LASTEXITCODE"
             exit 1
         }
+
         $choco = Get-Command choco -ErrorAction SilentlyContinue
         if (-not $choco) {
-            Log-Error "Chocolatey still not available after Ensure-Choco.ps1"
+            Log "[ERR] Chocolatey still not available after Ensure-Choco.ps1"
             exit 1
         }
-    } else {
-        Log-Info "Chocolatey detected at $($choco.Source)"
+    }
+    else {
+        Log "[INFO] Chocolatey detected at $($choco.Source)"
     }
 
     # --- Detection ---
@@ -74,55 +78,67 @@ try {
             $verOut = & "$existing" --version 2>$null
             if ($LASTEXITCODE -eq 0 -and $verOut) {
                 $line = ($verOut -split "`r?`n")[0]
-                Log-Ok "Detected existing installation: $line"
+                Log "[OK] Detected existing installation: $line"
                 exit 0
             }
-        } catch {
-            Log-Warn "make.exe present but version check failed: $($_.Exception.Message)"
         }
-        Log-Warn "$DisplayName present but unhealthy; will reinstall."
-    } else {
-        Log-Warn "$DisplayName not found; beginning installation."
+        catch {
+            Log "[WARN] make.exe present but version check failed: $($_.Exception.Message)"
+        }
+        Log "[WARN] $DisplayName present but unhealthy; will reinstall."
+    }
+    else {
+        Log "[WARN] $DisplayName not found; beginning installation."
     }
 
     # --- Install/repair ---
-    $args = @('install', $PackageName, '--yes', '--no-progress',
-              '--ignore-detected-reboot', '--exit-when-reboot-detected=false',
-              '--requirechecksum=false')
+    $args = @(
+        'install', $PackageName,
+        '--yes', '--no-progress',
+        '--ignore-detected-reboot',
+        '--exit-when-reboot-detected=false',
+        '--requirechecksum=false'
+    )
+
     $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = 'choco'
+    $psi.FileName = (Get-Command choco).Source
     $psi.Arguments = ($args -join ' ')
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
     $psi.UseShellExecute = $false
     $psi.CreateNoWindow = $true
 
-    Log-Info "Executing: choco $($psi.Arguments)"
+    Log "[INFO] Executing: choco $($psi.Arguments)"
     $proc = [System.Diagnostics.Process]::Start($psi)
+    if (-not $proc) {
+        Log "[ERR] Failed to start Chocolatey process — executable not found or permission issue."
+        exit 1
+    }
+
     $stdout = $proc.StandardOutput.ReadToEnd()
     $stderr = $proc.StandardError.ReadToEnd()
     $proc.WaitForExit()
 
     $filtered = $stdout -split "`r?`n" | Where-Object { $_ -and ($_ -notmatch 'reboot|compare|validation') }
     foreach ($line in $filtered) {
-        if ($line -match '(?i)already installed') { Log-Warn $line }
-        elseif ($line -match '(?i)installed successfully|The install of') { Log-Ok $line }
-        elseif ($line -match '(?i)failed|error|not found') { Log-Error $line }
-        else { Log-Info $line }
+        if ($line -match '(?i)already installed') { Log "[WARN] $line" }
+        elseif ($line -match '(?i)installed successfully|The install of') { Log "[OK] $line" }
+        elseif ($line -match '(?i)failed|error|not found') { Log "[ERR] $line" }
+        else { Log "[INFO] $line" }
     }
 
     switch ($proc.ExitCode) {
-        0     { Log-Ok "$DisplayName installed successfully via Chocolatey."; $installed = $true }
-        1641  { Log-Warn "$DisplayName installed; reboot requested (suppressed)."; $installed = $true }
-        3010  { Log-Warn "$DisplayName installed; pending reboot ignored."; $installed = $true }
+        0     { Log "[OK] $DisplayName installed successfully via Chocolatey."; $installed = $true }
+        1641  { Log "[WARN] $DisplayName installed; reboot requested (suppressed)."; $installed = $true }
+        3010  { Log "[WARN] $DisplayName installed; pending reboot ignored."; $installed = $true }
         default {
-            Log-Error "Chocolatey returned exit code $($proc.ExitCode). STDERR: $stderr"
+            Log "[ERR] Chocolatey returned exit code $($proc.ExitCode). STDERR: $stderr"
             $installed = $false
         }
     }
 
     if (-not $installed) {
-        Log-Error "$DisplayName installation failed."
+        Log "[ERR] $DisplayName installation failed."
         exit 3
     }
 
@@ -132,20 +148,22 @@ try {
         $out = & "$resolved" --version 2>$null
         if ($LASTEXITCODE -eq 0 -and $out) {
             $first = ($out -split "`r?`n")[0]
-            Log-Ok "Verified installation: $first"
-            Log-Ok "$DisplayName is ready."
+            Log "[OK] Verified installation: $first"
+            Log "[OK] $DisplayName is ready."
             exit 0
-        } else {
-            Log-Warn "Version check failed after install."
+        }
+        else {
+            Log "[WARN] Version check failed after install."
             exit 2
         }
-    } else {
-        Log-Warn "$DisplayName appears installed but PATH not refreshed."
+    }
+    else {
+        Log "[WARN] $DisplayName appears installed but PATH not refreshed."
         exit 2
     }
 }
 catch {
-    Log-Error "Unexpected error: $($_.Exception.Message)"
+    Log "[ERR] Unexpected error: $($_.Exception.Message)"
     exit 3
 }
 finally {

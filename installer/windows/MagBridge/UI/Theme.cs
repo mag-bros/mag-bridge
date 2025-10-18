@@ -1,7 +1,12 @@
+using System;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace MagBridge.UI
 {
+    // ============================================================
+    //  THEME DEFINITION
+    // ============================================================
     public static class Theme
     {
         private static ThemeSettings _current = ThemeSettings.Sea;
@@ -16,18 +21,18 @@ namespace MagBridge.UI
         public static Color Error => _current.Error;
         public static Color ButtonOutline => _current.ButtonOutline;
 
-        // --- Progress bar colors --------------------------------------------
+        // --- Progress bar colors --------------------------------
         public static Color ProgressBackground => _current.ProgressBackground;
         public static Color ProgressFill => _current.ProgressFill;
         public static Color ProgressBorder => _current.ProgressBorder;
 
-        // --- Fonts -----------------------------------------------------------
+        // --- Fonts -----------------------------------------------
         public static readonly Font PrimaryFont = new Font("Segoe UI", 10, FontStyle.Regular);
         public static readonly Font TitleFont = new Font("Segoe UI Semibold", 11.5f);
         public static readonly Font MonoFont = new Font("Consolas", 10);
         public static int ButtonBarHeight => 54;
 
-        // --- Helpers -------------------------------------------------------
+        // --- Helpers ---------------------------------------------
         public static void ApplyToForm(Form form)
         {
             form.BackColor = Background;
@@ -36,6 +41,9 @@ namespace MagBridge.UI
         }
     }
 
+    // ============================================================
+    //  THEMED PROGRESS BAR
+    // ============================================================
     public class ThemedProgressBar : ProgressBar
     {
         public ThemedProgressBar()
@@ -43,6 +51,7 @@ namespace MagBridge.UI
             SetStyle(ControlStyles.UserPaint, true);
             BackColor = Theme.ProgressBackground;
         }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             var g = e.Graphics;
@@ -63,6 +72,9 @@ namespace MagBridge.UI
         }
     }
 
+    // ============================================================
+    //  THEMED BUTTON
+    // ============================================================
     public class ThemedButton : Button
     {
         private bool hovered;
@@ -122,9 +134,11 @@ namespace MagBridge.UI
 
             g.DrawString(Text, Theme.PrimaryFont, textBrush, bounds, fmt);
         }
-
     }
 
+    // ============================================================
+    //  THEMED TEXT BOX (for plain input)
+    // ============================================================
     public class ThemedTextBox : TextBox
     {
         private bool focused;
@@ -163,7 +177,6 @@ namespace MagBridge.UI
         {
             var g = e.Graphics;
             var bounds = ClientRectangle;
-
             Color bg = Theme.Surface;
             Color border = focused ? Theme.ButtonOutline : Theme.AccentDark;
             Color fg = Theme.Text;
@@ -173,7 +186,6 @@ namespace MagBridge.UI
             using var textBrush = new SolidBrush(fg);
 
             g.FillRectangle(bgBrush, bounds);
-
             var textRect = new Rectangle(bounds.X + 6, bounds.Y + 3, bounds.Width - 12, bounds.Height - 6);
             var fmt = new StringFormat
             {
@@ -187,4 +199,67 @@ namespace MagBridge.UI
         }
     }
 
+    // ============================================================
+    //  THEMED LOG BOX (RichTextBox for colored logs)
+    // ============================================================
+    public class ThemedLogBox : RichTextBox
+    {
+        private bool focused;
+
+        public ThemedLogBox()
+        {
+            BorderStyle = BorderStyle.FixedSingle;
+            BackColor = Theme.Surface;
+            ForeColor = Theme.Text;
+            Font = Theme.MonoFont;
+            ReadOnly = true;
+            DetectUrls = false;
+            ScrollBars = RichTextBoxScrollBars.Vertical;
+            WordWrap = false;
+            HideSelection = false;
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
+        }
+
+        public void AppendSafe(string text, Color? color = null)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke((Action)(() => AppendSafe(text, color)));
+                return;
+            }
+
+            if (color.HasValue)
+            {
+                int start = TextLength;
+                SelectionStart = start;
+                SelectionLength = 0;
+                SelectionColor = color.Value;
+                AppendText(text);
+                SelectionColor = ForeColor;
+            }
+            else
+            {
+                AppendText(text);
+            }
+
+            ScrollToCaret();
+        }
+
+        protected override void OnEnter(EventArgs e)
+        { focused = true; Invalidate(); base.OnEnter(e); }
+
+        protected override void OnLeave(EventArgs e)
+        { focused = false; Invalidate(); base.OnLeave(e); }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            var g = e.Graphics;
+            var bounds = ClientRectangle;
+            var borderColor = focused ? Theme.ButtonOutline : Theme.AccentDark;
+
+            using var pen = new Pen(borderColor, 1);
+            g.DrawRectangle(pen, bounds.X, bounds.Y, bounds.Width - 1, bounds.Height - 1);
+        }
+    }
 }

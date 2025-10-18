@@ -1,53 +1,30 @@
-using System;
-using System.IO;
-using System.Windows.Forms;
-using System.Threading;
-
 namespace MagBridge.Core
 {
+    /// <summary>
+    /// Controls progress bar and status label, and delegates all logging to LogWriter.
+    /// </summary>
     public class ProgressController
     {
         private readonly ProgressBar _progressBar;
         private readonly Label _statusLabel;
-        private readonly TextBox? _logBox;
-        private readonly string _logFile;
+        private readonly LogWriter _logger;
         private readonly CancellationTokenSource _cts = new();
 
         public CancellationToken Token => _cts.Token;
+        public LogWriter Logger => _logger;
 
-        public ProgressController(ProgressBar progressBar, Label statusLabel, TextBox? logBox = null)
+        public ProgressController(ProgressBar progressBar, Label statusLabel, RichTextBox? logBox = null)
         {
             _progressBar = progressBar;
             _statusLabel = statusLabel;
-            _logBox = logBox;
+            _logger = new LogWriter(logBox);
 
-            string logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "MagBridge", "Logs");
-            Directory.CreateDirectory(logDir);
-            _logFile = Path.Combine(logDir, $"devkit_{DateTime.Now:yyyyMMdd_HHmmss}.log");
-
-            Log($"📄 Logging output to: {_logFile}");
-        }
-
-        public void Log(string message)
-        {
-            string line = $"{DateTime.Now:HH:mm:ss} {message}";
-            Console.WriteLine(line);
-            File.AppendAllText(_logFile, line + Environment.NewLine);
-
-            if (_logBox != null && _logBox.IsHandleCreated)
-            {
-                _logBox.Invoke(() =>
-                {
-                    _logBox.AppendText(line + Environment.NewLine);
-                    _logBox.SelectionStart = _logBox.TextLength;
-                    _logBox.ScrollToCaret();
-                });
-            }
+            _logger.Write("[INFO] ProgressController initialized.");
         }
 
         public void UpdateStatus(string status)
         {
-            Log(status);
+            _logger.Write($"[INFO] {status}");
             if (_statusLabel.IsHandleCreated)
                 _statusLabel.Invoke(() => _statusLabel.Text = status);
         }
@@ -65,6 +42,5 @@ namespace MagBridge.Core
         }
 
         public void Cancel() => _cts.Cancel();
-
     }
 }

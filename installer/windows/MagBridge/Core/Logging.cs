@@ -1,8 +1,3 @@
-using System;
-using System.Drawing;
-using System.IO;
-using System.Windows.Forms;
-
 namespace MagBridge.Core
 {
     public static class Log
@@ -42,7 +37,7 @@ namespace MagBridge.Core
             }
             else
             {
-                uiColor = Color.LightGray;
+                uiColor = Color.Red;
                 consoleColor = ConsoleColor.Gray;
             }
 
