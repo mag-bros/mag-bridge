@@ -12,3 +12,19 @@ function Log {
 
     Write-Output $Message
 }
+
+# ====================================================================
+# Post-script exit normalization
+# This ensures every Ensure-* script exits with a consistent code
+# ====================================================================
+function Set-HostExitCode {
+    param([int]$Code = 0)
+
+    if ((Test-Path variable:LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
+        $global:LASTEXITCODE = $LASTEXITCODE
+    } else {
+        $global:LASTEXITCODE = $Code
+    }
+
+    exit $global:LASTEXITCODE
+}

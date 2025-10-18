@@ -1,146 +1,136 @@
 ﻿# ====================================================================
 # Ensure-GnuMake.ps1 — ensure GNU Make is installed and operational
+# Dependencies: _HostLogging.ps1 (dot-sourced by host)
 # ====================================================================
 
 $ErrorActionPreference = 'Stop'
-
-# --- Main logic ------------------------------------------------------
 $env:MAGBRIDGE_LOG_SOURCE = 'GnuMake'
-$PackageName = 'make'
-$DisplayName = 'GNU Make'
 
+$PackageName  = 'make'
+$DisplayName  = 'GNU Make'
+$script:GnuMakeExitCode = 0
+
+# --- Helper -------------------------------------------------------------
 function Resolve-MakePath {
     $cmd = Get-Command make.exe -ErrorAction SilentlyContinue
     if ($cmd) { return $cmd.Source }
 
-    $cinst = Join-Path $env:ProgramData 'chocolatey'
-    $cbin  = Join-Path $cinst 'bin\make.exe'
-    if (Test-Path $cbin) { return $cbin }
-
-    $lib = Join-Path $cinst 'lib'
-    if (Test-Path $lib) {
-        $cand = Get-ChildItem -Path $lib -Recurse -Filter make.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+    $libPath = Join-Path $env:ProgramData 'chocolatey\lib'
+    if (Test-Path $libPath) {
+        $cand = Get-ChildItem -Path $libPath -Recurse -Filter make.exe -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($cand) { return $cand.FullName }
     }
     return $null
 }
 
-try {
-    Log "[INFO] Checking prerequisites"
-
-    $choco = Get-Command choco -ErrorAction SilentlyContinue
-    if (-not $choco) {
-        Log "[WARN] Chocolatey not found; invoking Ensure-Choco.ps1"
-        $ensureChoco = Join-Path $script:ScriptRoot 'Ensure-Choco.ps1'
-        if (-not (Test-Path $ensureChoco)) {
-            Log "[ERR] Ensure-Choco.ps1 not found at $ensureChoco"
-            exit 1
-        }
-
-        & powershell -NoProfile -ExecutionPolicy Bypass -File $ensureChoco
-        if ($LASTEXITCODE -ne 0) {
-            Log "[ERR] Ensure-Choco.ps1 failed with exit code $LASTEXITCODE"
-            exit 1
-        }
-
-        $choco = Get-Command choco -ErrorAction SilentlyContinue
-        if (-not $choco) {
-            Log "[ERR] Chocolatey still not available after Ensure-Choco.ps1"
-            exit 1
-        }
-    }
-    else {
-        Log "[INFO] Chocolatey detected at $($choco.Source)"
-    }
-
-    # --- Detection ---
-    $existing = Resolve-MakePath
-    if ($existing) {
-        try {
-            $verOut = & "$existing" --version 2>$null
-            if ($LASTEXITCODE -eq 0 -and $verOut) {
-                $line = ($verOut -split "`r?`n")[0]
-                Log "[OK] Detected existing installation: $line"
-                exit 0
-            }
-        }
-        catch {
-            Log "[WARN] make.exe present but version check failed: $($_.Exception.Message)"
-        }
-        Log "[WARN] $DisplayName present but unhealthy; will reinstall."
-    }
-    else {
-        Log "[WARN] $DisplayName not found; beginning installation."
-    }
-
-    # --- Install/repair ---
-    $args = @(
-        'install', $PackageName,
-        '--yes', '--no-progress',
-        '--ignore-detected-reboot',
-        '--exit-when-reboot-detected=false',
-        '--requirechecksum=false'
-    )
+function Invoke-Choco {
+    param([string[]]$Args)
 
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = (Get-Command choco).Source
-    $psi.Arguments = ($args -join ' ')
+    $psi.Arguments = ($Args -join ' ')
     $psi.RedirectStandardOutput = $true
-    $psi.RedirectStandardError = $true
+    $psi.RedirectStandardError  = $true
     $psi.UseShellExecute = $false
     $psi.CreateNoWindow = $true
 
     Log "[INFO] Executing: choco $($psi.Arguments)"
-    $proc = [System.Diagnostics.Process]::Start($psi)
-    if (-not $proc) {
-        Log "[ERR] Failed to start Chocolatey process — executable not found or permission issue."
-        exit 1
-    }
 
+    $proc = [System.Diagnostics.Process]::Start($psi)
     $stdout = $proc.StandardOutput.ReadToEnd()
     $stderr = $proc.StandardError.ReadToEnd()
     $proc.WaitForExit()
 
-    $filtered = $stdout -split "`r?`n" | Where-Object { $_ -and ($_ -notmatch 'reboot|compare|validation') }
-    foreach ($line in $filtered) {
-        if ($line -match '(?i)already installed') { Log "[WARN] $line" }
-        elseif ($line -match '(?i)installed successfully|The install of') { Log "[OK] $line" }
-        elseif ($line -match '(?i)failed|error|not found') { Log "[ERR] $line" }
-        else { Log "[INFO] $line" }
+    # Stream log output
+    foreach ($line in ($stdout -split "`r?`n")) {
+        if ($line -match 'error|fail|not found') { Log "[ERR] $line" }
+        elseif ($line -match 'install|success')  { Log "[OK] $line" }
+        elseif ($line)                           { Log "[INFO] $line" }
     }
 
-    switch ($proc.ExitCode) {
-        0     { Log "[OK] $DisplayName installed successfully via Chocolatey."; $installed = $true }
-        1641  { Log "[WARN] $DisplayName installed; reboot requested (suppressed)."; $installed = $true }
-        3010  { Log "[WARN] $DisplayName installed; pending reboot ignored."; $installed = $true }
-        default {
-            Log "[ERR] Chocolatey returned exit code $($proc.ExitCode). STDERR: $stderr"
-            $installed = $false
+    [PSCustomObject]@{
+        ExitCode = $proc.ExitCode
+        StdOut   = $stdout
+        StdErr   = $stderr
+    }
+}
+
+function Clean-PackageState {
+    param([string]$Pkg)
+    Log "[INFO] Cleaning residual files for $Pkg..."
+    try {
+        & choco uninstall $Pkg -y --force | Out-Null
+    } catch {
+        Log "[WARN] Uninstall command failed or package missing."
+    }
+
+    try {
+        Remove-Item -Recurse -Force "$env:ProgramData\chocolatey\lib\$Pkg" -ErrorAction SilentlyContinue
+        Remove-Item -Recurse -Force "$env:ProgramData\chocolatey\.chocolatey\$Pkg*" -ErrorAction SilentlyContinue
+    } catch {
+        Log "[WARN] Cleanup error: $($_.Exception.Message)"
+    }
+}
+
+# --- Main ---------------------------------------------------------------
+try {
+    Log "[INFO] Checking for Chocolatey..."
+    $choco = Get-Command choco -ErrorAction SilentlyContinue
+    if (-not $choco) {
+        Log "[ERR] Chocolatey not found in PATH."
+        exit 1
+    }
+    Log "[OK] Chocolatey found at $($choco.Source)"
+
+    $makePath = Resolve-MakePath
+    if ($makePath) {
+        try {
+            $ver = & "$makePath" --version 2>$null
+            if ($LASTEXITCODE -eq 0 -and $ver) {
+                Log "[OK] Detected $DisplayName: $($ver.Split('`n')[0])"
+                exit 0
+            }
+        } catch {
+            Log "[WARN] Detected $DisplayName but version check failed — reinstalling."
+        }
+    } else {
+        Log "[WARN] $DisplayName not found — starting installation."
+    }
+
+    # --- First install attempt ---
+    $result = Invoke-Choco @('install', $PackageName, '-y', '--no-progress')
+    if ($result.ExitCode -eq 0) {
+        Log "[OK] $DisplayName installed successfully."
+    } else {
+        Log "[WARN] First install failed (exit $($result.ExitCode)). Attempting full cleanup and reinstall."
+
+        Clean-PackageState -Pkg $PackageName
+        Start-Sleep -Seconds 2
+
+        $retry = Invoke-Choco @('install', $PackageName, '-y', '--no-progress', '--force')
+        if ($retry.ExitCode -eq 0) {
+            Log "[OK] Reinstall succeeded after cleanup."
+        } else {
+            Log "[ERR] Reinstall failed again (exit $($retry.ExitCode))."
+            if ($retry.StdErr) { Log "[ERR] STDERR: $($retry.StdErr.Trim())" }
+            exit 3
         }
     }
 
-    if (-not $installed) {
-        Log "[ERR] $DisplayName installation failed."
-        exit 3
-    }
-
-    # --- Verify ---
+    # --- Verification ---
     $resolved = Resolve-MakePath
     if ($resolved) {
-        $out = & "$resolved" --version 2>$null
-        if ($LASTEXITCODE -eq 0 -and $out) {
-            $first = ($out -split "`r?`n")[0]
-            Log "[OK] Verified installation: $first"
+        $verOut = & "$resolved" --version 2>$null
+        if ($LASTEXITCODE -eq 0 -and $verOut) {
+            Log "[OK] Verified installation: $($verOut.Split('`n')[0])"
             Log "[OK] $DisplayName is ready."
             exit 0
-        }
-        else {
-            Log "[WARN] Version check failed after install."
+        } else {
+            Log "[WARN] Version check failed post-install."
             exit 2
         }
-    }
-    else {
-        Log "[WARN] $DisplayName appears installed but PATH not refreshed."
+    } else {
+        Log "[WARN] make.exe not located after install (PATH not refreshed)."
         exit 2
     }
 }

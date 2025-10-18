@@ -161,6 +161,8 @@ public class ProgressForm : Form
 
             await Task.Run(async () =>
             {
+                var runner = new ScriptRunner(LogWriter.Global);
+
                 foreach (var step in stepsToRun)
                 {
                     if (ctl.Token.IsCancellationRequested)
@@ -179,49 +181,8 @@ public class ProgressForm : Form
                     }
 
                     LogWriter.Global.Write($"[OUT] === Running {Path.GetFileName(scriptPath)} ===");
-
-                    string loggingPath = Path.Combine(AppContext.BaseDirectory, "Scripts", "_HostLogging.ps1");
-                    string command = $"-NoProfile -ExecutionPolicy Bypass -Command \"& {{ . '{loggingPath}'; . '{scriptPath}' }}\"";
-
-                    var psi = new ProcessStartInfo("powershell.exe", command)
-                    {
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    };
-
-                    using var proc = Process.Start(psi)
-                        ?? throw new InvalidOperationException($"Failed to start process for '{step.PackageKey}'");
-
-                    currentProcess = proc;
-
-                    proc.OutputDataReceived += (_, e) =>
-                    {
-                        if (!string.IsNullOrWhiteSpace(e.Data))
-                            LogWriter.Global.Write($"[OUT] [{step.PackageKey}] {e.Data}");
-                    };
-
-                    proc.ErrorDataReceived += (_, e) =>
-                    {
-                        if (!string.IsNullOrWhiteSpace(e.Data))
-                            LogWriter.Global.Write($"[ERR] [{step.PackageKey}] {e.Data}");
-                    };
-
-                    proc.BeginOutputReadLine();
-                    proc.BeginErrorReadLine();
-
-                    try
-                    {
-                        await proc.WaitForExitAsync(ctl.Token);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        LogWriter.Global.Write($"[INFO] Cancellation requested during '{step.PackageKey}'");
-                        break;
-                    }
-
-                    int exitCode = proc.HasExited ? proc.ExitCode : -1;
+                    int exitCode = await runner.RunScriptAsync(scriptPath, step.PackageKey, ctl.Token);
+                    currentProcess = null;
 
                     if (exitCode != 0)
                     {
@@ -233,7 +194,6 @@ public class ProgressForm : Form
 
                     LogWriter.Global.Write($"[OK] Step completed successfully: {step.PackageKey}");
                     ctl.SetProgress((double)current / total * 100.0);
-                    currentProcess = null;
                 }
             });
 
