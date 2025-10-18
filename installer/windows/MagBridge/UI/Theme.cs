@@ -1,7 +1,3 @@
-using System;
-using System.Drawing;
-using System.Windows.Forms;
-
 namespace MagBridge.UI
 {
     // ============================================================
@@ -260,6 +256,112 @@ namespace MagBridge.UI
 
             using var pen = new Pen(borderColor, 1);
             g.DrawRectangle(pen, bounds.X, bounds.Y, bounds.Width - 1, bounds.Height - 1);
+        }
+    }
+
+    public class ThemedDropdown : ComboBox
+    {
+        public ThemedDropdown()
+        {
+            DropDownStyle = ComboBoxStyle.DropDownList;
+            FlatStyle = FlatStyle.Flat;
+            BackColor = Theme.Surface;
+            ForeColor = Theme.Text;
+            Font = Theme.PrimaryFont;
+            IntegralHeight = false;
+            MaxDropDownItems = 12;
+            DrawMode = DrawMode.OwnerDrawFixed; // so we can theme items
+            ItemHeight = Math.Max(18, (int)Math.Ceiling(Font.GetHeight()) + 4);
+
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
+        }
+
+        // Owner-draw items (keeps them on brand)
+        protected override void OnDrawItem(DrawItemEventArgs e)
+        {
+            e.DrawBackground();
+            if (e.Index >= 0 && e.Index < Items.Count)
+            {
+                var isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+                using var bg = new SolidBrush(isSelected ? Theme.AccentDark : BackColor);
+                using var fg = new SolidBrush(ForeColor);
+
+                e.Graphics.FillRectangle(bg, e.Bounds);
+                var text = GetItemText(Items[e.Index]);
+                e.Graphics.DrawString(text, Font, fg, e.Bounds.X + 6, e.Bounds.Y + 2);
+            }
+            e.DrawFocusRectangle();
+            base.OnDrawItem(e);
+        }
+
+        // Thin custom border to match your themed controls
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e); // ComboBox painting is mostly native; border is drawn below via WndProc
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+            const int WM_PAINT = 0x000F;
+            if (m.Msg == WM_PAINT && !DroppedDown)
+            {
+                using var g = CreateGraphics();
+                using var pen = new Pen(Theme.AccentDark, 1);
+                var r = ClientRectangle;
+                g.DrawRectangle(pen, 0, 0, r.Width - 1, r.Height - 1);
+            }
+        }
+
+        // ---------- Convenience: bind any enum cleanly ----------
+        public void BindEnum<TEnum>(TEnum initialValue, Action<TEnum>? onChanged = null) where TEnum : struct, Enum
+        {
+            DataSource = Enum.GetValues(typeof(TEnum));
+            SelectedItem = initialValue;
+
+            SelectionChangeCommitted += (_, __) =>
+            {
+                if (SelectedItem is TEnum val)
+                    onChanged?.Invoke(val);
+            };
+        }
+
+        public TEnum GetSelected<TEnum>() where TEnum : struct, Enum
+            => SelectedItem is TEnum val ? val : default;
+    }
+
+    public class ThemedBottomBar : Panel
+    {
+        public ThemedBottomBar()
+        {
+            Dock = DockStyle.Bottom;
+            Height = 48;
+            Padding = new Padding(12, 6, 12, 6);
+            BackColor = Theme.Surface;
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
+        }
+
+        protected override void OnLayout(LayoutEventArgs e)
+        {
+            base.OnLayout(e);
+
+            var dropdown = Controls.OfType<ComboBox>().FirstOrDefault();
+            var button = Controls.OfType<Button>().FirstOrDefault();
+            if (dropdown == null && button == null) return;
+
+            if (dropdown != null)
+            {
+                dropdown.Anchor = AnchorStyles.Left | AnchorStyles.Top;
+                dropdown.Location = new Point(Padding.Left, (Height - dropdown.Height) / 2);
+            }
+
+            if (button != null)
+            {
+                button.Anchor = AnchorStyles.Right | AnchorStyles.Top;
+                button.Location = new Point(
+                    Width - button.Width - Padding.Right,
+                    (Height - button.Height) / 2);
+            }
         }
     }
 }

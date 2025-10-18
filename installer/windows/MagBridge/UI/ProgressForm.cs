@@ -9,6 +9,7 @@ public class ProgressForm : Form
     private readonly Label statusLabel;
     private readonly ThemedLogBox logBox;
     private readonly Button cancelButton;
+    private readonly ThemedDropdown logLevelDropdown;
     private readonly Settings settings;
 
     private ProgressController controller;
@@ -63,14 +64,31 @@ public class ProgressForm : Form
         cancelButton = new ThemedButton
         {
             Text = "Cancel",
-            Dock = DockStyle.Bottom
         };
         cancelButton.Click += CancelButton_Click;
 
+        // --- Log level dropdown ---
+        logLevelDropdown = new ThemedDropdown
+        {
+            Width = 180
+        };
+        logLevelDropdown.BindEnum(LogLevel.Info, level =>
+            {
+                LogWriter.Global.SetLogLevel(level);
+                LogWriter.Global.Write($"[INFO] Log level changed to {level}");
+            });
+        logLevelDropdown.SelectedItem = LogWriter.Global.LogLevel;
+
+        // --- Bottom control bar ---
+        var bottomBar = new ThemedBottomBar();
+        bottomBar.Controls.Add(logLevelDropdown);
+        bottomBar.Controls.Add(cancelButton);
+
+        // --- Layout assembly ---
         Controls.Add(logBox);
         Controls.Add(statusLabel);
         Controls.Add(progressBar);
-        Controls.Add(cancelButton);
+        Controls.Add(bottomBar);
 
         Theme.ApplyToForm(this);
         controller = new ProgressController(progressBar, statusLabel, logBox, LogWriter.Global);

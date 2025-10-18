@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using MagBridge.Core;
-using MagBridge.UI;
 
 internal static class Program
 {

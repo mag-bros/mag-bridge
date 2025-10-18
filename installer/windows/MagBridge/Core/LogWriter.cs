@@ -1,6 +1,3 @@
-using System.ComponentModel.Composition.Hosting;
-using Microsoft.VisualBasic.Logging;
-
 namespace MagBridge.Core
 {
     public enum LogLevel
@@ -57,10 +54,12 @@ namespace MagBridge.Core
         // ==================================================
         private readonly object _lock = new();
         private readonly List<string> _buffer = new();
-        private readonly string _logFile;
         private readonly List<string> _logHistory = new();
         private RichTextBox? _targetBox;
-        private LogLevel _currentLogLevel = LogLevel.Info;
+        private readonly string _logFile;
+        private LogLevel _logLevel = LogLevel.Info;
+        public LogLevel LogLevel => _logLevel;
+
 
         // ==========================================================
         // LogWriter Constructor
@@ -69,7 +68,7 @@ namespace MagBridge.Core
         {
             _settings = settings;
             _targetBox = targetBox;
-            _currentLogLevel = settings?.LoggingLevel ?? LogLevel.Info;
+            _logLevel = settings?.LoggingLevel ?? LogLevel.Info;
 
             // Determine log directory (fallback to Temp if needed)
             var logDir = Path.Combine(
@@ -91,7 +90,7 @@ namespace MagBridge.Core
 
             // Header
             Write($"[VER] LogWriter {(settings is null ? "bootstrap" : "configured")} instance created.");
-            Write($"[INFO] Log file: {_logFile} (Level: {_currentLogLevel})");
+            Write($"[INFO] Log file: {_logFile} (Level: {_logLevel})");
         }
 
         // ==========================================================
@@ -163,7 +162,7 @@ namespace MagBridge.Core
                 LogLevel msgLevel = DetermineLogLevel(message);
 
                 // 🚫 Filter only what gets printed to the visible box
-                bool filterLogLevel = (int)msgLevel < (int)_currentLogLevel;
+                bool filterLogLevel = (int)msgLevel < (int)_logLevel;
                 if (filterLogLevel) return;
 
                 // --- Visual display logic ---
@@ -218,9 +217,10 @@ namespace MagBridge.Core
             _targetBox = targetBox;
         }
 
-        public void SetLogLevel(LogLevel level)
+        public void SetLogLevel(LogLevel newLevel)
         {
-            _currentLogLevel = level;
+            _logLevel = newLevel;
+            Write($"[VER] Log level updated to: {newLevel}");
         }
 
         // ==========================================================
