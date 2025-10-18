@@ -3,27 +3,33 @@
   "runType": "SDK",
   "version": "1.0.0",
   "description": "Sets up developer tools and dependencies for contributors.",
-  "steps": [
+  "tasks": [
     {
       "progressLabel": "Ensuring Chocolatey...",
-      "label": "Chocolatey",
-      "action": "Scripts\\Ensure-Choco.ps1",
+      "label": "Chocolatey for Windows (Well-Known Package Manager)",
+      "script": "Scripts\\Ensure-Choco.ps1",
       "packageKey": "Chocolatey",
-      "preChecked": true
+      "preChecked": true,
+      "preferredVersion": "2.5.1",
+      "minimalRequiredVersion": ""
     },
     {
       "progressLabel": "Ensuring GNU Make...",
       "label": "GnuMake for Windows (installed via Chocolatey)",
-      "action": "Scripts\\Ensure-GnuMake.ps1",
+      "script": "Scripts\\Ensure-GnuMake.ps1",
       "packageKey": "GnuMake",
-      "preChecked": true
+      "preChecked": true,
+      "preferredVersion": "4.4.1",
+      "minimalRequiredVersion": ""
     },
     {
       "progressLabel": "Ensuring Electron...",
       "label": "Electron (installed via Chocolatey)",
-      "action": "Scripts\\Ensure-Electron.ps1",
+      "script": "Scripts\\Ensure-Electron.ps1",
       "packageKey": "Electron",
-      "preChecked": true
+      "preChecked": true,
+      "preferredVersion": "34.0.1",
+      "minimalRequiredVersion": ""
     }
   ]
 }
