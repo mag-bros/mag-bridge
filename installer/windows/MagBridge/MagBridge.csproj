@@ -9,7 +9,9 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
 
     <!-- Default build profile -->
-    <Profile Condition="'$(Profile)'==''">sdk</Profile>
+    <AppConfig Condition="'$(AppConfig)'==''">../Configs/sdk-installer.json</AppConfig>
+    <AppLicense Condition="'$(AppLicense)'==''">../Licenses/sdk-license.txt</AppLicense>
+    <AppIcon Condition="'$(AppIcon)'==''">../Assets/sdk.ico</AppIcon>
   </PropertyGroup>
 
   <!-- PowerShell SDK -->
@@ -24,20 +26,20 @@
 
   <!-- Parameterized external resources -->
   <ItemGroup>
-    <!-- Manifest -->
-    <None Include="..\Configs\$(Profile)-installer.json"
-          Link="Configs\app.json"
-          CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(AppConfig)">
+      <Link>Configs\app.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
 
-    <!-- License -->
-    <None Include="..\Licenses\$(Profile)-license.txt"
-          Link="Licenses\LICENSE.txt"
-          CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(AppLicense)">
+      <Link>Licenses\sdk-license.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
 
-    <!-- Icon -->
-    <None Include="..\Assets\$(Profile).ico"
-          Link="Assets\icon.ico"
-          CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(AppIcon)">
+      <Link>Assets\sdk.ico</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

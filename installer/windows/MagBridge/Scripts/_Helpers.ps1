@@ -25,18 +25,26 @@ function Compare-Version {
 # Reusable Chocolatey command runner
 function Invoke-Choco {
     param([string[]]$ChocoArgs)
-
+    
+    # Prefer command in PATH, fallback to direct ProgramData path
     $cmd = Get-Command choco -ErrorAction SilentlyContinue
     if (-not $cmd) {
-        Write-Host "[ERR] Cannot invoke Chocolatey: not found."
-        return [PSCustomObject]@{ ExitCode = 1; StdOut = ''; StdErr = 'choco not found' }
+        $chocoPath = Join-Path $env:ProgramData 'chocolatey\bin\choco.exe'
+        if (Test-Path $chocoPath) {
+            $cmd = [PSCustomObject]@{ Source = $chocoPath }
+            Write-Host "[VER] Using direct Chocolatey path: $chocoPath"
+        }
+        else {
+            Write-Host "[ERR] Cannot invoke Chocolatey: not found."
+            return [PSCustomObject]@{ ExitCode = 1; StdOut = ''; StdErr = 'choco not found' }
+        }
     }
 
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = $cmd.Source
     $psi.Arguments = ($ChocoArgs -join ' ')
     $psi.RedirectStandardOutput = $true
-    $psi.RedirectStandardError  = $true
+    $psi.RedirectStandardError = $true
     $psi.UseShellExecute = $false
     $psi.CreateNoWindow = $true
 
@@ -78,7 +86,24 @@ function Get-ChocoVersion {
     )
 
     try {
-        $output = choco list --local-only --limit-output 2>$null
+        # Try PATH first
+        $exe = (Get-Command choco -ErrorAction SilentlyContinue).Source
+        if (-not $exe) {
+            $exe = Join-Path $env:ProgramData 'chocolatey\bin\choco.exe'
+            if ((Test-Path $exe) -and (-not $Silent)) {
+                Write-Host "[VER] Using direct Chocolatey path: $exe"
+            }
+        }
+
+        if (-not (Test-Path $exe)) {
+            if (-not $Silent) {
+                Write-Host "[WARN] choco.exe not found in PATH or ProgramData."
+            }
+            return $null
+        }
+
+        # Execute `choco list` safely and parse the version
+        $output = & "$exe" list --local-only --limit-output 2>$null
         if (-not $output) { return $null }
 
         $line = $output | Where-Object { $_ -match ("^" + [Regex]::Escape($PackageName) + "\|") } | Select-Object -First 1
@@ -95,5 +120,23 @@ function Get-ChocoVersion {
             Write-Host "[ERR] Failed to get version for ${PackageName}: $($_.Exception.Message)"
         }
         return $null
+    }
+}
+
+function Schedule-DeleteOnReboot {
+    param([string]$Path)
+    try {
+        $signature = @"
+        [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Unicode)]
+        public static extern bool MoveFileEx(string lpExistingFileName, string lpNewFileName, int dwFlags);
+"@
+        Add-Type -MemberDefinition $signature -Name "Win32MoveFileEx" -Namespace Win32
+
+        # 4 = MOVEFILE_DELAY_UNTIL_REBOOT
+        [Win32.Win32MoveFileEx]::MoveFileEx($Path, $null, 4) | Out-Null
+        Write-Host "[OK] Scheduled deletion of locked file after reboot: ${Path}"
+    }
+    catch {
+        Write-Host "[WARN] Failed to schedule deletion for ${Path}: $($_.Exception.Message)"
     }
 }

@@ -206,7 +206,7 @@ public class ProgressForm : Form
             else
             {
                 ctl.UpdateStatus("All tasks completed successfully.");
-                LogWriter.Global.Write("[OK] Installation completed successfully.");
+                LogWriter.Global.Write("[SUCCESS] Installation completed successfully. You can now close this window.");
             }
 
             ConvertCancelToQuit();

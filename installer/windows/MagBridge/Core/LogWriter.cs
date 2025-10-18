@@ -112,7 +112,7 @@ namespace MagBridge.Core
         private static Color DetermineColor(string message)
         {
             if (message.Contains("[ERR]", StringComparison.OrdinalIgnoreCase))
-                return Color.FromArgb(220, 76, 70); // red
+                return Color.Red;
             if (message.Contains("[WARN]", StringComparison.OrdinalIgnoreCase))
                 return Color.Goldenrod;
             if (message.Contains("[OK]", StringComparison.OrdinalIgnoreCase))
@@ -121,6 +121,8 @@ namespace MagBridge.Core
                 return Color.Gray;
             if (message.Contains("[INFO]", StringComparison.OrdinalIgnoreCase))
                 return Color.LightSkyBlue;
+            if (message.Contains("[SUCCESS]", StringComparison.OrdinalIgnoreCase))
+                return Color.Green;
             return Color.WhiteSmoke;
         }
 
