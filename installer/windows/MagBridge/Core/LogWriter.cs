@@ -82,31 +82,36 @@ namespace MagBridge.Core
             _logHistory.Add(line);
         }
 
-        // Reads the main LogFile
+        // Read Only function that reads core application log
+        // This file contains all possible log levels
         // Returns a list of log lines for current LogLevel
         public List<string> FilterLogLevel()
         {
             if (!File.Exists(_logFile))
                 return new List<string>();
 
-            // Select all tags where key >= current _logLevel
             var tags = LogLevelMap
                 .Where(kv => (int)kv.Key >= (int)_logLevel)
                 .Select(kv => kv.Value.Tag)
                 .ToArray();
 
             var result = new List<string>();
-            foreach (var line in File.ReadLines(_logFile))
+
+            // ✅ Allow shared read while LogWriter keeps writing
+            using var stream = new FileStream(
+                _logFile,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite);
+
+            using var reader = new StreamReader(stream);
+            string? line;
+            while ((line = reader.ReadLine()) != null)
             {
-                foreach (var tag in tags)
-                {
-                    if (line.Contains(tag, StringComparison.OrdinalIgnoreCase))
-                    {
-                        result.Add(line);
-                        break; // stop checking tags once matched
-                    }
-                }
+                if (tags.Any(tag => line.Contains(tag, StringComparison.OrdinalIgnoreCase)))
+                    result.Add(line);
             }
+
             return result;
         }
 
