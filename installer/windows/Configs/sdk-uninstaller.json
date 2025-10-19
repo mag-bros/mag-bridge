@@ -3,6 +3,7 @@
   "runType": "SDK",
   "version": "1.0.0",
   "description": "Removes developer tools and dependencies installed via SDK installer.",
+  "loggingLevel": "Verbose",
   "tasks": [
     {
       "progressLabel": "Removing Chocolatey...",

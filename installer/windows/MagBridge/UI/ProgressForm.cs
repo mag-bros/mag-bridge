@@ -291,7 +291,7 @@ public class ProgressForm : Form
         All tasks completed successfully
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ");
-                LogService.Global.Write("[OK] You better now close this window and get to work! c:");
+                LogService.Global.Write("[OK] You better now close this window and get to work!");
             }
 
             ChangeButtonText(cancelButton, "Quit", () => Close());

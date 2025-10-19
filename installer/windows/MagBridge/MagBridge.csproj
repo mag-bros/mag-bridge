@@ -9,8 +9,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
 
     <!-- Default build profile -->
-    <!-- <AppConfig Condition="'$(AppConfig)'==''">../Configs/sdk-installer.json</AppConfig> -->
-    <AppConfig Condition="'$(AppConfig)'==''">../Configs/sdk-uninstaller.json</AppConfig>
+    <AppConfig Condition="'$(AppConfig)'==''">../Configs/sdk-installer.json</AppConfig>
+    <!-- <AppConfig Condition="'$(AppConfig)'==''">../Configs/sdk-uninstaller.json</AppConfig> -->
 
     <AppLicense Condition="'$(AppLicense)'==''">../Licenses/sdk-license.txt</AppLicense>
     <AppIcon Condition="'$(AppIcon)'==''">../Assets/sdk.ico</AppIcon>

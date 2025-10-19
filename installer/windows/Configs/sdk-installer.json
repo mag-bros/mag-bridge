@@ -3,6 +3,7 @@
   "runType": "SDK",
   "version": "1.0.0",
   "description": "Sets up developer tools and dependencies for contributors.",
+  "loggingLevel": "Info",
   "tasks": [
     {
       "progressLabel": "Ensuring Chocolatey...",
