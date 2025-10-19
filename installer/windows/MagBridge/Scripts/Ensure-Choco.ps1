@@ -21,6 +21,32 @@ $template = [ScriptTemplate]::new(
 
 $template.BootstrapAction = {
     $this.Info("Chocolatey not found — starting official bootstrap...")
+
+    $this.Ver("Checking for stale Chocolatey directory...")
+    if (Test-Path $this.InstallPath) {
+        $exePath = Join-Path $this.InstallPath "bin\choco.exe"
+        if (-not (Test-Path $exePath)) {
+            $timestamp = (Get-Date).ToString("yyyyMMdd_HHmmss")
+            $backupPath = "${this.InstallPath}_backup_${timestamp}"
+
+            $this.Warn("Stale Chocolatey folder detected at $($this.InstallPath).")
+            $this.Info("Renaming existing folder to: $backupPath (no deletion).")
+
+            try {
+                Rename-Item -Path $this.InstallPath -NewName ("chocolatey_backup_${timestamp}") -ErrorAction Stop
+                $this.Ok("Renamed safely — previous files preserved.")
+            }
+            catch {
+                $this.Err("Could not rename folder: $($_.Exception.Message)")
+                $this.Info("Installation will continue using existing folder.")
+            }
+        }
+        else {
+            $this.Ok("Existing Chocolatey installation found — skipping bootstrap.")
+            exit 0
+        }
+    }
+
     $installScript = Join-Path $env:TEMP "install_choco.ps1"
     try {
         Invoke-WebRequest -Uri $this.InstallSource -OutFile $installScript -UseBasicParsing

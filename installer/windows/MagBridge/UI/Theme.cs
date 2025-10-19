@@ -4,23 +4,24 @@ namespace MagBridge.UI
 {
     public static class Theme
     {
-        private static ThemeSettings _current = ThemeSettings.Sea;
+        private static ThemeSettings _currentTheme = ThemeSettings.Sea;
 
         // --- Core Palette ---------------
-        public static Color Background => _current.Background;
-        public static Color Surface => _current.Surface;
-        public static Color Accent => _current.Accent;
-        public static Color AccentDark => _current.AccentDark;
-        public static Color Text => _current.Text;
-        public static Color SubtleText => _current.SubtleText;
-        public static Color Error => _current.Error;
-        public static Color ButtonOutline => _current.ButtonOutline;
+        public static Color Background => _currentTheme.Background;
+        public static Color Surface => _currentTheme.Surface;
+        public static Color Accent => _currentTheme.Accent;
+        public static Color AccentDark => _currentTheme.AccentDark;
+        public static Color Text => _currentTheme.Text;
+        public static Color SubtleText => _currentTheme.SubtleText;
+        public static Color Error => _currentTheme.Error;
+        public static Color ButtonOutline => _currentTheme.ButtonOutline;
 
         // --- Progress bar colors --------------------------------
-        public static Color ProgressBackground => _current.ProgressBackground;
-        public static Color ProgressFill => _current.ProgressFill;
-        public static Color ProgressBorder => _current.ProgressBorder;
+        public static Color ProgressBackground => _currentTheme.ProgressBackground;
+        public static Color ProgressFill => _currentTheme.ProgressFill;
+        public static Color ProgressBorder => _currentTheme.ProgressBorder;
         public static event Action? ThemeChanged;
+        public static ThemeSettings CurrentTheme => _currentTheme;
 
         // --- Fonts -----------------------------------------------
         public static readonly Font PrimaryFont = new Font("Segoe UI", 10, FontStyle.Regular);
@@ -50,10 +51,10 @@ namespace MagBridge.UI
 
         public static void SetTheme(ThemeSettings theme)
         {
-            if (_current == theme)
+            if (_currentTheme == theme)
                 return;
 
-            _current = theme;
+            _currentTheme = theme;
             ThemeChanged?.Invoke();  // notify all subscribers
         }
     }
@@ -91,6 +92,8 @@ namespace MagBridge.UI
         private bool hovered;
         private bool pressed;
 
+        public bool IsActive { get; set; }
+
         protected override Size DefaultSize => new Size(120, 36);
 
         public ThemedButton()
@@ -118,28 +121,27 @@ namespace MagBridge.UI
             var g = e.Graphics;
             var bounds = ClientRectangle;
 
-            // 🧹 Always clear the surface completely before painting
             g.Clear(Parent?.BackColor ?? Theme.Surface);
 
-            // 🎨 Determine fill color based on state
+            // 🎨 Determine fill color — add active state priority
             Color fill = !Enabled
-                ? Color.FromArgb(100, Theme.AccentDark) // translucent dim
-                : pressed
-                    ? Theme.AccentDark
-                    : hovered
-                        ? Theme.Accent
-                        : Theme.ProgressBackground;
+                ? Color.FromArgb(100, Theme.AccentDark)
+                : IsActive
+                    ? Theme.Accent
+                    : pressed
+                        ? Theme.AccentDark
+                        : hovered
+                            ? Theme.Accent
+                            : Theme.ProgressBackground;
 
-            // 🧱 Draw background + border
             using var bg = new SolidBrush(fill);
-            using var border = new Pen(hovered ? Theme.ButtonOutline : Theme.AccentDark, 1.4f);
+            using var border = new Pen(IsActive ? Theme.AccentDark : Theme.ButtonOutline, 1.4f);
             using var textBrush = new SolidBrush(Theme.Text);
 
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             g.FillRectangle(bg, bounds);
             g.DrawRectangle(border, 0, 0, bounds.Width - 1, bounds.Height - 1);
 
-            // 🪶 Center text
             var fmt = new StringFormat
             {
                 Alignment = StringAlignment.Center,
@@ -468,7 +470,7 @@ namespace MagBridge.UI
             ForeColor = Theme.Text;
             Font = Theme.PrimaryFont;
             Margin = new Padding(8, 0, 8, 0);
+            TextAlign = HorizontalAlignment.Center;
         }
     }
-
 }

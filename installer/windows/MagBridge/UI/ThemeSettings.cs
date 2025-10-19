@@ -112,5 +112,19 @@ namespace MagBridge.UI
             ButtonOutline = Color.FromArgb(35, 85, 190)
         };
 
+        public static ThemeSettings Dark => new ThemeSettings
+        {
+            Background = Color.Black,                        // Primary window background
+            Surface = SystemColors.ControlDarkDark,        // Panels / cards
+            Accent = SystemColors.Highlight,              // System highlight (usually blue)
+            AccentDark = ControlPaint.Dark(SystemColors.Highlight),  // Derived darker tone
+            Text = SystemColors.ControlLightLight,      // Primary text color
+            SubtleText = SystemColors.GrayText,               // Secondary/subtle text
+            Error = Color.IndianRed,                     // Standard error accent
+            ProgressBackground = SystemColors.ControlDark,          // Progress bar background
+            ProgressFill = SystemColors.Highlight,              // Follows accent
+            ProgressBorder = ControlPaint.Dark(SystemColors.Highlight),
+            ButtonOutline = SystemColors.ControlDark             // Standard neutral outline
+        };
     }
 }
