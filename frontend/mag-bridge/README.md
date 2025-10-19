@@ -11,6 +11,7 @@
 - (recommended) Running frontend via electron in development mode: `npm run dev`.
 
 ### Running installer build commands
+In case of build issues, the `dist/electron` directory needs to be purged of any data. 
 - MacOS: `npm run build:mac`.
 - Windows:  `npm run build:win`.
 - Linux:  `npm run build:linux`.
