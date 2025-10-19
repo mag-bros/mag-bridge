@@ -1,3 +1,5 @@
+using MagBridge.Core;
+
 namespace MagBridge.UI
 {
     // ============================================================
@@ -261,6 +263,9 @@ namespace MagBridge.UI
 
     public class ThemedDropdown : ComboBox
     {
+        private bool _logLevelBound;
+        private EventHandler? _enumHandler;
+
         public ThemedDropdown()
         {
             DropDownStyle = ComboBoxStyle.DropDownList;
@@ -270,98 +275,172 @@ namespace MagBridge.UI
             Font = Theme.PrimaryFont;
             IntegralHeight = false;
             MaxDropDownItems = 12;
-            DrawMode = DrawMode.OwnerDrawFixed; // so we can theme items
-            ItemHeight = Math.Max(18, (int)Math.Ceiling(Font.GetHeight()) + 4);
+            DrawMode = DrawMode.Normal;
 
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
         }
 
-        // Owner-draw items (keeps them on brand)
-        protected override void OnDrawItem(DrawItemEventArgs e)
-        {
-            e.DrawBackground();
-            if (e.Index >= 0 && e.Index < Items.Count)
-            {
-                var isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
-                using var bg = new SolidBrush(isSelected ? Theme.AccentDark : BackColor);
-                using var fg = new SolidBrush(ForeColor);
-
-                e.Graphics.FillRectangle(bg, e.Bounds);
-                var text = GetItemText(Items[e.Index]);
-                e.Graphics.DrawString(text, Font, fg, e.Bounds.X + 6, e.Bounds.Y + 2);
-            }
-            e.DrawFocusRectangle();
-            base.OnDrawItem(e);
-        }
-
-        // Thin custom border to match your themed controls
+        // Light custom border rendering
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e); // ComboBox painting is mostly native; border is drawn below via WndProc
+            base.OnPaint(e);
+
+            // Draw a thin border to match themed controls
+            using var pen = new Pen(Theme.AccentDark, 1);
+            var rect = ClientRectangle;
+            rect.Width -= 1;
+            rect.Height -= 1;
+            e.Graphics.DrawRectangle(pen, rect);
         }
 
-        protected override void WndProc(ref Message m)
+        public void BindEnum<TEnum>(TEnum initialValue, Action<TEnum>? onChanged = null)
+            where TEnum : struct, Enum
         {
-            base.WndProc(ref m);
-            const int WM_PAINT = 0x000F;
-            if (m.Msg == WM_PAINT && !DroppedDown)
+            // Unhook previous
+            if (_enumHandler != null)
             {
-                using var g = CreateGraphics();
-                using var pen = new Pen(Theme.AccentDark, 1);
-                var r = ClientRectangle;
-                g.DrawRectangle(pen, 0, 0, r.Width - 1, r.Height - 1);
+                SelectedIndexChanged -= _enumHandler;
+                _enumHandler = null;
+            }
+
+            // Manual fill avoids DataSource reset quirks
+            DataSource = null;
+            Items.Clear();
+            foreach (var v in Enum.GetValues(typeof(TEnum)))
+                Items.Add(v);
+
+            // Select by value equality
+            int idx = -1;
+            for (int i = 0; i < Items.Count; i++)
+                if (Items[i] is TEnum tv && tv.Equals(initialValue)) { idx = i; break; }
+            SelectedIndex = idx >= 0 ? idx : (Items.Count > 0 ? 0 : -1);
+
+            // Change callback
+            if (onChanged != null)
+            {
+                _enumHandler = (_, __) =>
+                {
+                    if (SelectedItem is TEnum val) onChanged(val);
+                };
+                SelectedIndexChanged += _enumHandler;
             }
         }
 
-        // ---------- Convenience: bind any enum cleanly ----------
-        public void BindEnum<TEnum>(TEnum initialValue, Action<TEnum>? onChanged = null) where TEnum : struct, Enum
-        {
-            DataSource = Enum.GetValues(typeof(TEnum));
-            SelectedItem = initialValue;
-
-            SelectionChangeCommitted += (_, __) =>
-            {
-                if (SelectedItem is TEnum val)
-                    onChanged?.Invoke(val);
-            };
-        }
-
-        public TEnum GetSelected<TEnum>() where TEnum : struct, Enum
+        public TEnum GetSelected<TEnum>() where TEnum : struct, System.Enum
             => SelectedItem is TEnum val ? val : default;
+
+        // Specialized binding for LogWriter.LogLevel
+        public void BindLogLevelDropdown()
+        {
+            if (_logLevelBound)
+                return;
+
+            Items.Clear();
+            foreach (var level in System.Enum.GetValues(typeof(LogLevel)))
+                Items.Add(level);
+
+            var current = LogWriter.Global.LogLevel;
+            int matchIndex = -1;
+            for (int i = 0; i < Items.Count; i++)
+            {
+                if (Items[i] is LogLevel lv && lv.Equals(current))
+                {
+                    matchIndex = i;
+                    break;
+                }
+            }
+            SelectedIndex = matchIndex >= 0 ? matchIndex : (Items.Count > 0 ? 0 : -1);
+
+            SelectedIndexChanged += (_, __) =>
+            {
+                if (SelectedItem is LogLevel selected)
+                {
+                    LogWriter.Global.SetLogLevel(selected);
+                    LogWriter.Global.Write($"[INFO] Log level changed to {selected}");
+                }
+            };
+
+            _logLevelBound = true;
+        }
     }
 
-    public class ThemedBottomBar : Panel
+    public class ThemedBottomBar : TableLayoutPanel
     {
-        public ThemedBottomBar()
+        public ThemedBottomBar(float[]? columnPercents = null)
         {
             Dock = DockStyle.Bottom;
             Height = 48;
             Padding = new Padding(12, 6, 12, 6);
             BackColor = Theme.Surface;
-            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
+            RowCount = 1;
+            ColumnCount = 4;
+            DoubleBuffered = true;
+
+            var percents = columnPercents ?? new float[] { 5, 10, 65, 20 };
+            foreach (var p in percents)
+                ColumnStyles.Add(new ColumnStyle(SizeType.Percent, p));
+
+            RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            // Ensure internal layout behaves like the old version (manual placement)
+            AutoSize = false;
+            GrowStyle = TableLayoutPanelGrowStyle.FixedSize;
         }
 
         protected override void OnLayout(LayoutEventArgs e)
         {
             base.OnLayout(e);
 
+            var label = Controls.OfType<Label>().FirstOrDefault();
             var dropdown = Controls.OfType<ComboBox>().FirstOrDefault();
             var button = Controls.OfType<Button>().FirstOrDefault();
-            if (dropdown == null && button == null) return;
+
+            if (label == null && dropdown == null && button == null)
+                return;
+
+            SuspendLayout();
+
+            // Clear layout slots once
+            foreach (Control c in Controls)
+                SetCellPosition(c, new TableLayoutPanelCellPosition(0, 0));
+
+            if (label != null)
+            {
+                SetColumn(label, 0);
+                label.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
+            }
 
             if (dropdown != null)
             {
-                dropdown.Anchor = AnchorStyles.Left | AnchorStyles.Top;
-                dropdown.Location = new Point(Padding.Left, (Height - dropdown.Height) / 2);
+                SetColumn(dropdown, 1);
+                dropdown.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
             }
 
             if (button != null)
             {
-                button.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                button.Location = new Point(
-                    Width - button.Width - Padding.Right,
-                    (Height - button.Height) / 2);
+                SetColumn(button, 3);
+                button.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
             }
+
+            ResumeLayout();
         }
     }
+
+    public class ThemedLabel : TextBox
+    {
+        public ThemedLabel()
+        {
+            ReadOnly = true;
+            BorderStyle = BorderStyle.None;
+            Multiline = false;
+            TabStop = false;
+            AutoSize = true;
+            BackColor = Theme.Surface;
+            ForeColor = Theme.Text;
+            Font = Theme.PrimaryFont;
+        }
+    }
+
 }

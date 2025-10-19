@@ -7,7 +7,8 @@ namespace MagBridge.Core
         Ok = 3,
         Warning = 5,
         Error = 10,
-        Success = 99
+        Success = 99,
+        Docs = 999
     }
 
     public class LogWriter
@@ -191,6 +192,8 @@ namespace MagBridge.Core
                 return Color.Gray;
             if (message.Contains("[INFO]", StringComparison.OrdinalIgnoreCase))
                 return Color.LightSkyBlue;
+            if (message.Contains("[DOCS]", StringComparison.OrdinalIgnoreCase))
+                return Color.LightSkyBlue;
             if (message.Contains("[SUCCESS]", StringComparison.OrdinalIgnoreCase))
                 return Color.Green;
             return Color.WhiteSmoke;
@@ -220,7 +223,6 @@ namespace MagBridge.Core
         public void SetLogLevel(LogLevel newLevel)
         {
             _logLevel = newLevel;
-            Write($"[VER] Log level updated to: {newLevel}");
         }
 
         // ==========================================================

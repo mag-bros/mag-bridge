@@ -68,23 +68,29 @@ public class ProgressForm : Form
         cancelButton.Click += CancelButton_Click;
 
         // --- Log level dropdown ---
+        var logLevelLabel = new ThemedLabel
+        {
+            Text = "Log level:"
+        };
         logLevelDropdown = new ThemedDropdown
         {
             Width = 180
         };
-        logLevelDropdown.BindEnum(LogLevel.Info, level =>
-            {
-                LogWriter.Global.SetLogLevel(level);
-                LogWriter.Global.Write($"[INFO] Log level changed to {level}");
-            });
-        logLevelDropdown.SelectedItem = LogWriter.Global.LogLevel;
+        // Bind directly to LogLevel enum
+        logLevelDropdown.BindEnum(LogWriter.Global.LogLevel, level =>
+        {
+            LogWriter.Global.SetLogLevel(level);
+            LogWriter.Global.Write($"[INFO] Log level changed to {level}");
+        });
 
         // --- Bottom control bar ---
-        var bottomBar = new ThemedBottomBar();
+        var bottomBar = new ThemedBottomBar(new float[] { 10, 15, 55, 20 });
+        cancelButton.Dock = DockStyle.Right;
+        bottomBar.Controls.Add(logLevelLabel);
         bottomBar.Controls.Add(logLevelDropdown);
         bottomBar.Controls.Add(cancelButton);
 
-        // --- Layout assembly ---
+        // --- Top Level Form ---
         Controls.Add(logBox);
         Controls.Add(statusLabel);
         Controls.Add(progressBar);
@@ -203,7 +209,7 @@ public class ProgressForm : Form
  - Verify the tool by running it manually in a new shell.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎯  All tasks completed successfully
+        All tasks completed successfully
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ");
                 LogWriter.Global.Write("[OK] You better now close this window and get to work! c:");
