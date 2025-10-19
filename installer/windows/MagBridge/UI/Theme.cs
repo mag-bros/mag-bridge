@@ -2,9 +2,6 @@ using MagBridge.Core;
 
 namespace MagBridge.UI
 {
-    // ============================================================
-    //  THEME DEFINITION
-    // ============================================================
     public static class Theme
     {
         private static ThemeSettings _current = ThemeSettings.Sea;
@@ -233,50 +230,79 @@ namespace MagBridge.UI
     /// Controls are placed left-to-right in Add() order, one per column.
     /// Example: {8,18,12,52,10} → label=8%, dropdown=18%, copy=12%, spacer=52%, cancel=10%.
     /// </summary>
-    public sealed class ThemedBottomBar : TableLayoutPanel
+    public sealed class ThemedTable : TableLayoutPanel
     {
-        /// <summary>
-        /// If true, controls added without an explicit (col,row) are auto-slotted
-        /// left-to-right into the next free column on row 0. Explicit positions are respected.
-        /// </summary>
+        public enum BarOrientation { Horizontal, Vertical }
+
+        /// <summary>If true, controls added without explicit position are auto-slotted.</summary>
         public bool AutoSlot { get; init; } = true;
 
-        public ThemedBottomBar(float[]? columnPercents = null)
+        public BarOrientation Orientation { get; }
+
+        // Back-compat: existing ctor (horizontal, bottom bar)
+        public ThemedTable(float[]? percents = null)
+            : this(BarOrientation.Horizontal, percents) { }
+
+        // New ctor: choose orientation
+        public ThemedTable(BarOrientation orientation, float[]? percents = null)
         {
-            Dock = DockStyle.Bottom;
-            Height = 48;
+            Orientation = orientation;
+
+            // Theme & perf flags
             Padding = new Padding(12, 6, 12, 6);
             BackColor = Theme.Surface;
             DoubleBuffered = true;
-
             SetStyle(ControlStyles.AllPaintingInWmPaint |
                      ControlStyles.OptimizedDoubleBuffer |
                      ControlStyles.UserPaint, true);
 
-            ConfigureColumns(columnPercents ?? new float[] { 10, 18, 12, 50, 10 }); // default: label, dropdown, copy, spacer, cancel
-
-            RowCount = 1;
-            RowStyles.Clear();
-            RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            // Sensible defaults per orientation
+            if (orientation == BarOrientation.Horizontal)
+            {
+                Dock = DockStyle.Bottom;
+                Height = 48;
+                ConfigureSegments(percents ?? new float[] { 12, 12, 44, 16, 16 });
+            }
+            else
+            {
+                Dock = DockStyle.Right;
+                Width = 220; // tweak to taste
+                ConfigureSegments(percents ?? new float[] { 12, 22, 22, 22, 22 }); // label + buttons
+            }
 
             AutoSize = false;
             GrowStyle = TableLayoutPanelGrowStyle.FixedSize;
         }
 
-        /// <summary>Reconfigure the percent columns at runtime.</summary>
-        public void ConfigureColumns(float[] percents)
+        /// <summary>
+        /// Percent layout. For Horizontal → columns; for Vertical → rows.
+        /// </summary>
+        public void ConfigureSegments(float[] percents)
         {
-            if (percents is null || percents.Length == 0)
-                throw new ArgumentException("Column percents must be non-empty.", nameof(percents));
+            if (percents == null || percents.Length == 0)
+                throw new ArgumentException("Segments must be non-empty.", nameof(percents));
 
-            ColumnCount = percents.Length;
             ColumnStyles.Clear();
-            foreach (var p in percents)
-                ColumnStyles.Add(new ColumnStyle(SizeType.Percent, p));
+            RowStyles.Clear();
+
+            if (Orientation == BarOrientation.Horizontal)
+            {
+                ColumnCount = percents.Length;
+                RowCount = 1;
+                foreach (var p in percents) ColumnStyles.Add(new ColumnStyle(SizeType.Percent, p));
+                RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            }
+            else
+            {
+                ColumnCount = 1;
+                RowCount = percents.Length;
+                ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+                foreach (var p in percents) RowStyles.Add(new RowStyle(SizeType.Percent, p));
+            }
+
             PerformLayout();
         }
 
-        /// <summary>Convenience spacer if you want an explicit flexible gap column.</summary>
         public static Control Spacer() => new Panel { Margin = Padding.Empty, Dock = DockStyle.Fill };
 
         protected override void OnControlAdded(ControlEventArgs e)
@@ -285,12 +311,19 @@ namespace MagBridge.UI
             var c = e.Control;
             if (c is null) return;
 
-            // Always fill columns left → right, respecting Add() order
             if (AutoSlot)
             {
-                int col = Math.Min(Controls.Count - 1, ColumnCount - 1);
-                SetColumn(c, col);
-                SetRow(c, 0);
+                int idx = Math.Min(Controls.Count - 1, (Orientation == BarOrientation.Horizontal ? ColumnCount : RowCount) - 1);
+                if (Orientation == BarOrientation.Horizontal)
+                {
+                    SetColumn(c, idx);
+                    SetRow(c, 0);
+                }
+                else
+                {
+                    SetColumn(c, 0);
+                    SetRow(c, idx);
+                }
             }
 
             if (c.Dock == DockStyle.None)

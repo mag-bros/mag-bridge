@@ -3,12 +3,12 @@ using MagBridge.UI;
 
 public sealed class WelcomeDialog : Form
 {
-    private readonly CheckedListBox list;
+    private readonly CheckedListBox checkBox;
     private readonly Button okBtn;
     private readonly Button exitBtn;
 
     public IReadOnlyCollection<string> SelectedPackageKeys =>
-        list.CheckedItems.Cast<TaskParams>()
+        checkBox.CheckedItems.Cast<TaskParams>()
             .Select(s => string.IsNullOrWhiteSpace(s.PackageKey) ? s.Label : s.PackageKey)
             .ToArray();
 
@@ -24,7 +24,7 @@ public sealed class WelcomeDialog : Form
     {
         Text = $"Welcome — {settings.Name} - {settings.Version}";
         StartPosition = FormStartPosition.CenterParent;
-        MinimumSize = new Size(620, 420); // slightly wider for all buttons
+        MinimumSize = new Size(620, 420);
         MaximizeBox = false;
         MinimizeBox = false;
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -39,143 +39,113 @@ public sealed class WelcomeDialog : Form
             Padding = new Padding(12, 12, 12, 0)
         };
 
-        // Package list
-        list = new CheckedListBox
+        // List
+        checkBox = new CheckedListBox
         {
             Dock = DockStyle.Fill,
             CheckOnClick = true,
             IntegralHeight = false,
             BorderStyle = BorderStyle.FixedSingle
         };
-        // --- Bottom panel ---------------------------------------------------
-        var bottomPanel = new Panel
+
+        // ───────────────────────────────────────────────
+        // CENTER PANEL (header + list in one container)
+        // ───────────────────────────────────────────────
+        var centerPanel = new ThemedTable(ThemedTable.BarOrientation.Vertical, new float[] { 10, 90 })
+        {
+            Dock = DockStyle.Fill,
+            Padding = new Padding(0),
+            Margin = new Padding(0)
+        };
+        centerPanel.Controls.Add(header);
+        centerPanel.Controls.Add(checkBox);
+
+        // ───────────────────────────────────────────────
+        // RIGHT THEME PANEL
+        // ───────────────────────────────────────────────
+        var themeLabel = new ThemedLabel
+        {
+            Text = "Theme:",
+            Margin = new Padding(4, 2, 4, 10)
+        };
+        var themeSea = new ThemedButton { Text = "Sea", Margin = new Padding(6, 4, 6, 8) };
+        var themeClassic = new ThemedButton { Text = "Classic White", Margin = new Padding(6, 4, 6, 8) };
+        var themeMatrix = new ThemedButton { Text = "Matrix", Margin = new Padding(6, 4, 6, 8) };
+
+        themeSea.Click += (_, __) => MessageBox.Show("Theme set to Sea (placeholder)");
+        themeClassic.Click += (_, __) => MessageBox.Show("Theme set to Classic White (placeholder)");
+        themeMatrix.Click += (_, __) => MessageBox.Show("Theme set to Matrix (placeholder)");
+
+        var rightPanel = new ThemedTable(ThemedTable.BarOrientation.Vertical, new float[] { 10, 14, 14, 14, 48 })
+        {
+            Width = 150,
+            Dock = DockStyle.Right,
+            Padding = new Padding(8, 12, 8, 12),
+            Margin = new Padding(8, 0, 8, 0)
+        };
+        rightPanel.Controls.Add(themeLabel);
+        rightPanel.Controls.Add(themeSea);
+        rightPanel.Controls.Add(themeClassic);
+        rightPanel.Controls.Add(themeMatrix);
+        rightPanel.Controls.Add(ThemedTable.Spacer());
+
+        // ───────────────────────────────────────────────
+        // BOTTOM ACTION BAR
+        // ───────────────────────────────────────────────
+        var selectAll = new ThemedButton { Text = "Select All", Height = 42, Margin = new Padding(4, 6, 4, 6) };
+        var clearAll = new ThemedButton { Text = "Clear All", Height = 42, Margin = new Padding(4, 6, 4, 6) };
+        okBtn = new ThemedButton { Text = "Continue", Height = 42, Margin = new Padding(4, 6, 4, 6) };
+        exitBtn = new ThemedButton { Text = "Exit", Height = 42, Margin = new Padding(4, 6, 4, 6) };
+
+        var bottomPanel = new ThemedTable(new float[] { 15, 15, 38, 16, 16 })
         {
             Dock = DockStyle.Bottom,
-            Height = 50,
-            Padding = new Padding(12),
+            Padding = new Padding(10, 4, 10, 6)
         };
-
-        // Buttons (left side)
-        var selectAll = new ThemedButton
-        {
-            Text = "Select All",
-            Width = 70,
-            Height = 30
-        };
-
-        var clearAll = new ThemedButton
-        {
-            Text = "Clear All",
-            Width = 70,
-            Height = 30
-        };
-
-        // Buttons (right side)
-        okBtn = new ThemedButton
-        {
-            Text = "Continue",
-            Width = 110,
-            Height = 30
-        };
-
-        exitBtn = new ThemedButton
-        {
-            Text = "Exit",
-            Width = 40,
-            Height = 30
-        };
-
-        // Add buttons (order does NOT matter anymore)
         bottomPanel.Controls.Add(selectAll);
         bottomPanel.Controls.Add(clearAll);
+        bottomPanel.Controls.Add(ThemedTable.Spacer());
         bottomPanel.Controls.Add(okBtn);
         bottomPanel.Controls.Add(exitBtn);
 
-        // Layout handler
-        bottomPanel.Layout += (_, __) =>
-        {
-            int margin = 12;
-            int spacing = 10;
-            int y = bottomPanel.ClientSize.Height - selectAll.Height - margin;
-
-            // Left group
-            selectAll.Location = new Point(margin, y);
-            clearAll.Location = new Point(margin + selectAll.Width + spacing, y);
-
-            // Right group
-            exitBtn.Location = new Point(bottomPanel.ClientSize.Width - exitBtn.Width - margin, y);
-            okBtn.Location = new Point(exitBtn.Left - okBtn.Width - spacing, y);
-        };
-
-        Controls.Add(list);
-        Controls.Add(header);
+        // ───────────────────────────────────────────────
+        // Add to form
+        // ───────────────────────────────────────────────
+        Controls.Add(centerPanel);
+        Controls.Add(rightPanel);
         Controls.Add(bottomPanel);
 
         Theme.ApplyToForm(this);
 
-        // Dynamic button positioning
-        bottomPanel.Resize += (_, __) =>
-        {
-            int margin = 12;
-            int spacing = 10;
+        // Populate list
+        foreach (var task in settings.GetDisplayTasks())
+            checkBox.Items.Add(task, task.PreChecked);
 
-            // Left side
-            selectAll.Left = margin;
-            selectAll.Top = bottomPanel.Height - selectAll.Height - margin;
-
-            clearAll.Left = selectAll.Left + selectAll.Width + spacing;
-            clearAll.Top = selectAll.Top;
-
-            // Right side
-            exitBtn.Left = bottomPanel.Width - exitBtn.Width - margin;
-            exitBtn.Top = bottomPanel.Height - exitBtn.Height - margin;
-
-            okBtn.Left = exitBtn.Left - okBtn.Width - spacing;
-            okBtn.Top = exitBtn.Top;
-        };
-        // --- Populate package list ----------------------------------------------------
-        var tasks = settings.GetDisplayTasks().ToList();
-
-        foreach (var task in tasks)
-        {
-            // Pre-check according to JSON or business rule
-            bool prechecked = task.PreChecked;
-
-            // Add directly (TaskParams.ToString() → Label)
-            list.Items.Add(task, prechecked);
-        }
-
-        // --- Button behaviors --------------------------------------------------------
-
-        // Select All
+        // Button logic
         selectAll.Click += (_, __) =>
         {
-            for (int i = 0; i < list.Items.Count; i++)
-                list.SetItemChecked(i, true);
+            for (int i = 0; i < checkBox.Items.Count; i++)
+                checkBox.SetItemChecked(i, true);
         };
 
-        // Clear All
         clearAll.Click += (_, __) =>
         {
-            for (int i = 0; i < list.Items.Count; i++)
-                list.SetItemChecked(i, false);
+            for (int i = 0; i < checkBox.Items.Count; i++)
+                checkBox.SetItemChecked(i, false);
         };
 
-        // Continue / OK
         okBtn.Click += (_, __) =>
         {
-            if (list.CheckedItems.Count == 0)
+            if (checkBox.CheckedItems.Count == 0)
             {
                 MessageBox.Show("Select at least one item to continue.",
                     "Nothing selected", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-
             DialogResult = DialogResult.OK;
             Close();
         };
 
-        // Exit / Cancel
         exitBtn.Click += (_, __) =>
         {
             DialogResult = DialogResult.Cancel;

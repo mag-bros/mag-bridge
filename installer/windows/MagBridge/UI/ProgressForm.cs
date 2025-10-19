@@ -95,11 +95,11 @@ public class ProgressForm : Form
         });
 
         // --- Bottom control bar ---
-        var bottomBar = new ThemedBottomBar(new float[] { 6, 18, 18, 40, 20 }); // label, dropdown, copy, spacer, cancel
+        var bottomBar = new ThemedTable(new float[] { 6, 18, 18, 40, 20 }); // label, dropdown, copy, spacer, cancel
         bottomBar.Controls.Add(logLevelLabel);
         bottomBar.Controls.Add(logLevelDropdown);
         bottomBar.Controls.Add(copyButton);
-        bottomBar.Controls.Add(ThemedBottomBar.Spacer()); // optional explicit spacer
+        bottomBar.Controls.Add(ThemedTable.Spacer()); // optional explicit spacer
         bottomBar.Controls.Add(cancelButton);
 
         // --- Top Level Form ---
