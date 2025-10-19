@@ -10,7 +10,7 @@ public sealed class WelcomeDialog : Form
     private readonly ThemedTable bottomPanel;
     private readonly ThemedTable rightPanel;
     private readonly ThemedTable centerPanel;
-    private readonly ThemedLabel themeLabel; // Declare as readonly
+    private readonly ThemedLabel themeLabel;
     private readonly ThemedLabel header;
     private readonly List<ThemedButton> _themeButtons = new();
     private readonly List<(string Name, ThemeSettings Settings)> _themes =
@@ -36,7 +36,7 @@ public sealed class WelcomeDialog : Form
         // Initialize themeLabel
         themeLabel = new ThemedLabel
         {
-            Text = "Select the software/components to install:",
+            Text = "Theme:",
             Dock = DockStyle.Top,
             Height = 44,
             Padding = new Padding(12, 12, 12, 0)  // Set padding on all sides, top margin via Padding
@@ -112,7 +112,7 @@ public sealed class WelcomeDialog : Form
         Controls.Add(centerPanel);
         Controls.Add(rightPanel);
         Controls.Add(bottomPanel);
-        HighlightActiveButton(_themeButtons.FirstOrDefault(btn => btn.Tag.Equals(Theme.CurrentTheme)) ?? _themeButtons.First());
+        HighlightActiveButton(_themeButtons.FirstOrDefault(btn => btn.Tag?.Equals(Theme.CurrentTheme) == true) ?? _themeButtons.First());
 
         // Apply initial theme
         Theme.ApplyToForm(this);
@@ -154,7 +154,7 @@ public sealed class WelcomeDialog : Form
         }
     }
 
-    private IReadOnlyCollection<string> SelectedPackageKeys =>
+    public IReadOnlyCollection<string> SelectedPackageKeys =>
         checkBox.CheckedItems.Cast<TaskParams>()
             .Select(s => string.IsNullOrWhiteSpace(s.PackageKey) ? s.Label : s.PackageKey)
             .ToArray();
