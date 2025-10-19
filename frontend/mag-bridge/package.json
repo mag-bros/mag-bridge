@@ -12,7 +12,6 @@
     "electron-dev": "NODE_ENV=development electron .",
     "start": "npm run build-angular && npm run electron",
     "dev": "concurrently \"npm run serve-angular-hmr\" \"wait-on http://localhost:4200 && NODE_ENV=development electron .\"",
-    "build": "npm run build-angular && electron-builder",
     "build:win": "npm run build-angular && electron-builder --win",
     "build:mac": "npm run build-angular && electron-builder --mac",
     "build:linux": "npm run build-angular && electron-builder --linux"
