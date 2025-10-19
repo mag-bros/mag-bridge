@@ -84,7 +84,7 @@ public sealed class WelcomeDialog : Form
         themeSandstorm.Click += (_, __) => Theme.SetTheme(ThemeSettings.Sandstorm);
         themeLava.Click += (_, __) => Theme.SetTheme(ThemeSettings.Lava);
 
-        var rightPanel = new ThemedTable(ThemedTable.BarOrientation.Vertical, new float[] { 10, 14, 14, 14, 48 })
+        var rightPanel = new ThemedTable(ThemedTable.BarOrientation.Vertical, new float[] { 8, 12, 12, 12, 12, 12, 12, 20 })
         {
             Width = 120,
             Dock = DockStyle.Right,
@@ -95,6 +95,9 @@ public sealed class WelcomeDialog : Form
         rightPanel.Controls.Add(themeSea);
         rightPanel.Controls.Add(themeWhite);
         rightPanel.Controls.Add(themeMatrix);
+        rightPanel.Controls.Add(themeLofi);
+        rightPanel.Controls.Add(themeSandstorm);
+        rightPanel.Controls.Add(themeLava);
         rightPanel.Controls.Add(ThemedTable.Spacer());
 
         // ───────────────────────────────────────────────
