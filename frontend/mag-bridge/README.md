@@ -17,10 +17,19 @@
 ### Running the Frontend App
 
 Recommended (development mode):
-   `npm run dev`
+   `npm run dev-frontend`
 
 This command runs the Angular development server with Hot Module Replacement (HMR)
 and launches the Electron app for live-reload development.
+
+### Running the Backend App
+
+Backend is build on FastAPI in Python. It needs to be activated from the project's root directory (`dc-magnetic-data-calculator`), which has been taken into account when writing this script:
+    `npm run dev-backend`
+
+### Running both Backend and Frontend
+Please use the following command:
+    `npm run dev`
 
 ### Building Installer Packages
 
