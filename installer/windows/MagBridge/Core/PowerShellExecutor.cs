@@ -5,14 +5,14 @@ namespace MagBridge.Core
 {
     /// <summary>
     /// Executes PowerShell scripts with real-time log streaming, correct exit-code propagation,
-    /// and integrated LogWriter output. Safe for Windows 7 PowerShell 5.1 and newer.
+    /// and integrated LogService output. Safe for Windows 7 PowerShell 5.1 and newer.
     /// </summary>
     public class PowerShellExecutor
     {
-        private readonly LogWriter _logger;
+        private readonly LogService _logger;
         private readonly string PsExe = "powershell.exe";
 
-        public PowerShellExecutor(LogWriter logger)
+        public PowerShellExecutor(LogService logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }

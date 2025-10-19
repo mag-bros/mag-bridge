@@ -61,7 +61,7 @@ namespace MagBridge.Core
             {
                 if (string.IsNullOrWhiteSpace(task.Script))
                 {
-                    LogWriter.Global.Write($"[ERR] Task '{task.Label}' has no Script defined.");
+                    LogService.Global.Write($"[ERR] Task '{task.Label}' has no Script defined.");
                     continue;
                 }
 
@@ -70,9 +70,9 @@ namespace MagBridge.Core
                     task.Script = Path.Combine(AppContext.BaseDirectory, task.Script);
 
                 if (!File.Exists(task.Script))
-                    LogWriter.Global.Write($"[ERR] Missing script for '{task.PackageKey ?? task.Label}' — expected at: {task.Script}");
+                    LogService.Global.Write($"[ERR] Missing script for '{task.PackageKey ?? task.Label}' — expected at: {task.Script}");
                 else
-                    LogWriter.Global.Write($"[VER] Registered script for '{task.PackageKey ?? task.Label}': {task.Script}");
+                    LogService.Global.Write($"[VER] Registered script for '{task.PackageKey ?? task.Label}': {task.Script}");
             }
 
             return settings;

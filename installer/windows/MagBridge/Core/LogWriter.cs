@@ -11,7 +11,7 @@ namespace MagBridge.Core
         Docs = 999
     }
 
-    public class LogWriter
+    public class LogService
     {
 
         private static readonly Dictionary<LogLevel, (string Tag, int Weight, Color Color)> LogLevelMap = new()
@@ -26,7 +26,7 @@ namespace MagBridge.Core
         };
 
         private static readonly object _sync = new();
-        private static LogWriter? _instance;
+        private static LogService? _instance;
         public event Action<LogMessage>? LogUpdated;
 
         private Settings? _settings;
@@ -43,7 +43,7 @@ namespace MagBridge.Core
         public int LogHistoryCount => _logHistory.Count;
 
         // Constructor
-        private LogWriter(Settings? settings = null)
+        private LogService(Settings? settings = null)
         {
             _settings = settings;
             _logLevel = settings?.LoggingLevel ?? LogLevel.Info;
@@ -67,7 +67,7 @@ namespace MagBridge.Core
             _logFile = Path.Combine(logDir, $"devkit_{DateTime.Now:yyyyMMdd_HHmmss}.log");
 
             // Header
-            Write($"[VER] LogWriter {(settings is null ? "bootstrap" : "configured")} instance created.");
+            Write($"[VER] LogService {(settings is null ? "bootstrap" : "configured")} instance created.");
             Write($"[INFO] Log file: {_logFile} (Level: {_logLevel})");
         }
 
@@ -114,14 +114,14 @@ namespace MagBridge.Core
             _settings = settings;
         }
 
-        public static LogWriter Global
+        public static LogService Global
         {
             get
             {
                 lock (_sync)
                 {
                     // Auto-bootstrap logger for pre-init use
-                    return _instance ??= new LogWriter(settings: null);
+                    return _instance ??= new LogService(settings: null);
                 }
             }
         }
@@ -138,7 +138,7 @@ namespace MagBridge.Core
                     _instance.ApplySettings(settings);
                     _instance.SetLogLevel(settings.LoggingLevel);
                 }
-                else { _instance = new LogWriter(settings); }
+                else { _instance = new LogService(settings); }
 
                 _instance.Write($"[INFO] Logging system activated — runtime configuration loaded (LogLevel: {settings.LoggingLevel}).");
             }

@@ -34,8 +34,8 @@ internal static class Program
             return;
         }
 
-        // === Initialize LogWriter Singleton ===============================
-        LogWriter.Init(settings);
+        // === Initialize LogService Singleton ===============================
+        LogService.Init(settings);
 
         // === Welcome screen ===============================================
         try

@@ -1,8 +1,6 @@
-﻿using UITimer = System.Windows.Forms.Timer;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using MagBridge.Core;
 using MagBridge.UI;
-using System.Text;
 
 public class ProgressForm : Form
 {
@@ -79,10 +77,10 @@ public class ProgressForm : Form
             Width = 180
         };
         // This code will trigger when dropdown changes
-        logLevelDropdown.BindEnum(LogWriter.Global.LogLevel, level =>
+        logLevelDropdown.BindEnum(LogService.Global.LogLevel, level =>
         {
-            LogWriter.Global.SetLogLevel(level);
-            LogWriter.Global.Write($"[VER] Log level changed to {level}");
+            LogService.Global.SetLogLevel(level);
+            LogService.Global.Write($"[VER] Log level changed to {level}");
             logBox.Clear();
             _lastRenderedCount = 0;
             RefreshLogBox();
@@ -102,7 +100,7 @@ public class ProgressForm : Form
         Controls.Add(bottomBar);
 
         Theme.ApplyToForm(this);
-        LogWriter.Global.LogUpdated += OnLogUpdated;
+        LogService.Global.LogUpdated += OnLogUpdated;
         controller = new ProgressController(progressBar, statusLabel);
     }
 
@@ -113,7 +111,7 @@ public class ProgressForm : Form
         BeginInvoke((Action)(() =>
         {
             // Filter by current log level
-            if ((int)msg.Level < (int)LogWriter.Global.LogLevel)
+            if ((int)msg.Level < (int)LogService.Global.LogLevel)
                 return;
 
             // Append only new line — no Clear(), no full refresh
@@ -128,7 +126,7 @@ public class ProgressForm : Form
 
     private void RefreshLogBox()
     {
-        var logs = LogWriter.Global.FilterLogLevel();
+        var logs = LogService.Global.FilterLogLevel();
         if (logs.Count == 0)
             return;
 
@@ -173,7 +171,7 @@ public class ProgressForm : Form
         if (!logBox.IsHandleCreated)
             await Task.Run(() => logBox.CreateControl());
 
-        LogWriter.Global.Write("[VER] LogWriter attached post-handle creation.");
+        LogService.Global.Write("[VER] LogService attached post-handle creation.");
 
         await RunInAsyncLoop(settings);
     }
@@ -197,16 +195,16 @@ public class ProgressForm : Form
             int total = tasks.Count;
             int current = 0;
 
-            LogWriter.Global.Write($"[VER] Loaded configuration: {settings.RunType} - v{settings.Version}");
-            LogWriter.Global.Write($"[INFO] User Selected packages: {string.Join(", ", tasks.Select(s => s.PackageKey))}");
-            LogWriter.Global.Write($"[VER] Tasks to execute: {total}");
+            LogService.Global.Write($"[VER] Loaded configuration: {settings.RunType} - v{settings.Version}");
+            LogService.Global.Write($"[INFO] User Selected packages: {string.Join(", ", tasks.Select(s => s.PackageKey))}");
+            LogService.Global.Write($"[VER] Tasks to execute: {total}");
             ctl.UpdateStatus("Starting installation...");
 
             bool hasError = false;
 
             await Task.Run(async () =>
             {
-                var ps_executor = new PowerShellExecutor(LogWriter.Global);
+                var ps_executor = new PowerShellExecutor(LogService.Global);
 
                 foreach (var task in tasks)
                 {
@@ -216,20 +214,20 @@ public class ProgressForm : Form
                     var progressLabel = task.ProgressLabel ?? task.Label;
 
                     ctl.UpdateStatus($"Step {++current}/{total}: {progressLabel}");
-                    LogWriter.Global.Write($"[VER] Executing task '{progressLabel}'");
+                    LogService.Global.Write($"[VER] Executing task '{progressLabel}'");
 
-                    LogWriter.Global.Write($"[INFO] === Running {Path.GetFileName(task.Script)} ===");
+                    LogService.Global.Write($"[INFO] === Running {Path.GetFileName(task.Script)} ===");
                     int exitCode = await ps_executor.RunScriptAsync(task, ctl.Token);
 
                     if (exitCode != 0)
                     {
-                        LogWriter.Global.Write($"[ERR] Step '{task.PackageKey}' failed with exit code {exitCode}.");
+                        LogService.Global.Write($"[ERR] Step '{task.PackageKey}' failed with exit code {exitCode}.");
                         ctl.UpdateStatus($"Step failed: {task.PackageKey}");
                         hasError = true;
                         break;
                     }
 
-                    LogWriter.Global.Write($"[VER] Step completed successfully: {task.PackageKey}");
+                    LogService.Global.Write($"[VER] Step completed successfully: {task.PackageKey}");
                     ctl.SetProgress((double)current / total * 100.0);
                 }
             });
@@ -238,18 +236,18 @@ public class ProgressForm : Form
             if (ctl.Token.IsCancellationRequested)
             {
                 ctl.UpdateStatus("Installation cancelled by user.");
-                LogWriter.Global.Write("[WARN] User cancelled installation.");
+                LogService.Global.Write("[WARN] User cancelled installation.");
             }
             else if (hasError)
             {
                 ctl.UpdateStatus("Installation failed.");
-                LogWriter.Global.Write("[ERR] One or more tasks failed.");
+                LogService.Global.Write("[ERR] One or more tasks failed.");
             }
             else
             {
                 ctl.UpdateStatus("All tasks completed successfully.");
-                LogWriter.Global.Write("[SUCCESS] All tasks completed successfully. ");
-                LogWriter.Global.Write(@"[INFO] What's next?
+                LogService.Global.Write("[SUCCESS] All tasks completed successfully. ");
+                LogService.Global.Write(@"[INFO] What's next?
 
  - You may need to restart your terminal or computer 
      for environment changes (e.g. PATH) to take effect.
@@ -259,7 +257,7 @@ public class ProgressForm : Form
         All tasks completed successfully
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ");
-                LogWriter.Global.Write("[OK] You better now close this window and get to work! c:");
+                LogService.Global.Write("[OK] You better now close this window and get to work! c:");
             }
 
             ChangeButtonText(cancelButton, "Quit", () => Close());
@@ -267,7 +265,7 @@ public class ProgressForm : Form
         catch (Exception ex)
         {
             controller?.UpdateStatus("Installation failed.");
-            LogWriter.Global.Write($"[ERR] {ex.Message}");
+            LogService.Global.Write($"[ERR] {ex.Message}");
             MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
@@ -302,7 +300,7 @@ public class ProgressForm : Form
     }
 
     /// <summary>
-    /// Controls progress bar and status label, and delegates all logging to LogWriter.
+    /// Controls progress bar and status label, and delegates all logging to LogService.
     /// </summary>
     protected class ProgressController
     {
@@ -317,19 +315,19 @@ public class ProgressForm : Form
             _progressBar = progressBar ?? throw new ArgumentNullException(nameof(progressBar));
             _statusLabel = statusLabel ?? throw new ArgumentNullException(nameof(statusLabel));
 
-            LogWriter.Global.Write("[VER] ProgressController initialized.");
+            LogService.Global.Write("[VER] ProgressController initialized.");
         }
 
         public void UpdateStatus(string status)
         {
-            LogWriter.Global.Write($"[VER] {status}");
+            LogService.Global.Write($"[VER] {status}");
             if (_statusLabel.IsHandleCreated)
                 _statusLabel.Invoke(() => _statusLabel.Text = status);
         }
 
         public void SetProgress(double percent)
         {
-            LogWriter.Global.Write($"[VER] Updating progress: {(int)Math.Round(percent)}%");
+            LogService.Global.Write($"[VER] Updating progress: {(int)Math.Round(percent)}%");
             if (_progressBar.IsHandleCreated)
             {
                 _progressBar.Invoke(() =>

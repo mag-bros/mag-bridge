@@ -368,7 +368,7 @@ namespace MagBridge.UI
         public TEnum GetSelected<TEnum>() where TEnum : struct, System.Enum
             => SelectedItem is TEnum val ? val : default;
 
-        // Specialized binding for LogWriter.LogLevel
+        // Specialized binding for LogService.LogLevel
         public void BindLogLevelDropdown()
         {
             if (_logLevelBound)
@@ -377,7 +377,7 @@ namespace MagBridge.UI
             Items.Clear();
             foreach (var level in System.Enum.GetValues(typeof(LogLevel)))
                 Items.Add(level);
-            var current = LogWriter.Global.LogLevel;
+            var current = LogService.Global.LogLevel;
             int matchIndex = -1;
             for (int i = 0; i < Items.Count; i++)
             {
@@ -393,8 +393,8 @@ namespace MagBridge.UI
             {
                 if (SelectedItem is LogLevel selected)
                 {
-                    LogWriter.Global.SetLogLevel(selected);
-                    LogWriter.Global.Write($"[INFO] Log level changed to {selected}");
+                    LogService.Global.SetLogLevel(selected);
+                    LogService.Global.Write($"[INFO] Log level changed to {selected}");
                 }
             };
 
