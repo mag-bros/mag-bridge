@@ -101,7 +101,7 @@ public class ProgressForm : Form
         Controls.Add(bottomBar);
 
         Theme.ApplyToForm(this);
-        controller = new ProgressController(progressBar, statusLabel, logBox, LogWriter.Global);
+        controller = new ProgressController(progressBar, statusLabel);
     }
 
     // ----------------------------------------------------------
@@ -269,7 +269,7 @@ public class ProgressForm : Form
 
         public CancellationToken Token => _cts.Token;
 
-        public ProgressController(ProgressBar progressBar, Label statusLabel, RichTextBox? logBox, LogWriter logger)
+        public ProgressController(ProgressBar progressBar, Label statusLabel)
         {
             _progressBar = progressBar ?? throw new ArgumentNullException(nameof(progressBar));
             _statusLabel = statusLabel ?? throw new ArgumentNullException(nameof(statusLabel));
