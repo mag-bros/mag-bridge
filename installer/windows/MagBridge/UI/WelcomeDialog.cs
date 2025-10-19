@@ -66,6 +66,8 @@ public sealed class WelcomeDialog : Form
         var themeLabel = new ThemedLabel
         {
             Text = "Theme:",
+            TextAlign = HorizontalAlignment.Center,
+            Dock = DockStyle.Fill,
             Margin = new Padding(4, 2, 4, 10)
         };
         var themeSea = new ThemedButton { Text = "Sea", Margin = new Padding(6, 4, 6, 8) };
