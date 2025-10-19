@@ -27,6 +27,7 @@ namespace MagBridge.Core
 
         private static readonly object _sync = new();
         private static LogWriter? _instance;
+        public event Action<LogMessage>? LogUpdated;
 
         private Settings? _settings;
         private LogLevel _logLevel = LogLevel.Info;
@@ -34,10 +35,12 @@ namespace MagBridge.Core
 
         private readonly object _lock = new();
         private readonly List<string> _buffer = new();
-        private readonly List<string> _logHistory = new();
+        private readonly List<LogMessage> _logHistory = new();
 
         public string LogFile => _logFile;
         public LogLevel LogLevel => _logLevel;
+        public object Lock => _lock;
+        public int LogHistoryCount => _logHistory.Count;
 
         // Constructor
         private LogWriter(Settings? settings = null)
@@ -74,56 +77,32 @@ namespace MagBridge.Core
 
         public void Write(string message)
         {
-            string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
-            // Console Logging
+            var line = $"[{DateTime.Now:HH:mm:ss}] {message}";
             Console.WriteLine(line);
-            // File Logging
-            lock (_lock) { File.AppendAllText(_logFile, line + Environment.NewLine); }
-            _logHistory.Add(line);
-        }
 
-        // Read Only function that reads core application log
-        // This file contains all possible log levels
-        // Returns a list of log lines for current LogLevel
-        public List<string> FilterLogLevel()
-        {
-            if (!File.Exists(_logFile))
-                return new List<string>();
+            var msg = LogMessage.FromRaw(line, LogLevelMap);
 
-            var tags = LogLevelMap
-                .Where(kv => (int)kv.Key >= (int)_logLevel)
-                .Select(kv => kv.Value.Tag)
-                .ToArray();
-
-            var result = new List<string>();
-
-            // ✅ Allow shared read while LogWriter keeps writing
-            using var stream = new FileStream(
-                _logFile,
-                FileMode.Open,
-                FileAccess.Read,
-                FileShare.ReadWrite);
-
-            using var reader = new StreamReader(stream);
-            string? line;
-            while ((line = reader.ReadLine()) != null)
+            lock (_lock)
             {
-                if (tags.Any(tag => line.Contains(tag, StringComparison.OrdinalIgnoreCase)))
-                    result.Add(line);
+                File.AppendAllText(_logFile, line + Environment.NewLine);
+                _logHistory.Add(msg);
+                if (_logHistory.Count > 25000)
+                    _logHistory.RemoveAt(0);
             }
 
-            return result;
+            // 🔔 Notify subscribers asynchronously (don’t block logger)
+            Task.Run(() => LogUpdated?.Invoke(msg));
         }
 
-        public Color DetermineColor(string message)
+        public List<LogMessage> FilterLogLevel()
         {
-            var level = DetermineLogLevel(message);
-            return LogLevelMap.TryGetValue(level, out var meta) ? meta.Color : Color.WhiteSmoke;
+            lock (_lock)
+            {
+                return _logHistory
+                    .Where(m => (int)m.Level >= (int)_logLevel)
+                    .ToList();
+            }
         }
-
-        private LogLevel DetermineLogLevel(string message) =>
-            LogLevelMap.FirstOrDefault(kv =>
-                message.Contains(kv.Value.Tag, StringComparison.OrdinalIgnoreCase)).Key;
 
         public void SetLogLevel(LogLevel newLevel)
         {
@@ -165,4 +144,44 @@ namespace MagBridge.Core
             }
         }
     }
+
+    public class LogMessage
+    {
+        public string Raw { get; }
+        public LogLevel Level { get; }
+        public string Tag { get; }
+        public Color Color { get; }
+
+        public LogMessage(string raw, LogLevel level, string tag, Color color)
+        {
+            Raw = raw;
+            Level = level;
+            Tag = tag;
+            Color = color;
+        }
+
+        public static LogMessage FromRaw(string raw, Dictionary<LogLevel, (string Tag, int Weight, Color Color)> levelMap)
+        {
+            var level = DeserializeLogLevel(raw, levelMap);
+
+            (string Tag, int Weight, Color Color) meta =
+                levelMap.TryGetValue(level, out var m) ? m : ("[VER]", 0, Color.Gray);
+
+            return new LogMessage(raw, level, meta.Tag, meta.Color);
+        }
+
+        private static LogLevel DeserializeLogLevel(string message, Dictionary<LogLevel, (string Tag, int Weight, Color Color)> levelMap)
+        {
+            foreach (var kv in levelMap)
+            {
+                if (message.Contains(kv.Value.Tag, StringComparison.OrdinalIgnoreCase))
+                    return kv.Key;
+            }
+            return LogLevel.Verbose;
+        }
+
+        public override string ToString() => Raw;
+    }
+
+
 }

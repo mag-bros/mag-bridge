@@ -2,11 +2,11 @@
 using System.ComponentModel;
 using MagBridge.Core;
 using MagBridge.UI;
+using System.Text;
 
 public class ProgressForm : Form
 {
-    private readonly UITimer _timer = new() { Interval = 10 };
-    private long _lastLogSize;
+    private int _lastRenderedCount = 0;
     private readonly ProgressBar progressBar;
     private readonly Label statusLabel;
     private readonly ThemedLogBox logBox;
@@ -82,7 +82,10 @@ public class ProgressForm : Form
         logLevelDropdown.BindEnum(LogWriter.Global.LogLevel, level =>
         {
             LogWriter.Global.SetLogLevel(level);
-            LogWriter.Global.Write($"[INFO] Log level changed to {level}");
+            LogWriter.Global.Write($"[VER] Log level changed to {level}");
+            logBox.Clear();
+            _lastRenderedCount = 0;
+            RefreshLogBox();
         });
 
         // --- Bottom control bar ---
@@ -99,38 +102,50 @@ public class ProgressForm : Form
         Controls.Add(bottomBar);
 
         Theme.ApplyToForm(this);
-        _lastLogSize = new FileInfo(LogWriter.Global.LogFile).Length;
-        _timer.Tick += (_, __) => CheckLogUpdate();
-        _timer.Start();
+        LogWriter.Global.LogUpdated += OnLogUpdated;
         controller = new ProgressController(progressBar, statusLabel);
     }
 
-    private void CheckLogUpdate()
+    private void OnLogUpdated(LogMessage msg)
     {
-        var file = LogWriter.Global.LogFile;
-        if (!File.Exists(file)) return;
+        if (!IsHandleCreated) return;
 
-        long currentSize = new FileInfo(file).Length;
-        if (currentSize != _lastLogSize)
+        BeginInvoke((Action)(() =>
         {
-            _lastLogSize = currentSize;
-            RefreshLogBox();
-        }
+            // Filter by current log level
+            if ((int)msg.Level < (int)LogWriter.Global.LogLevel)
+                return;
+
+            // Append only new line — no Clear(), no full refresh
+            logBox.SelectionStart = logBox.TextLength;
+            logBox.SelectionColor = msg.Color;
+            logBox.AppendText(msg.Raw + Environment.NewLine);
+            logBox.SelectionColor = logBox.ForeColor;
+            logBox.ScrollToCaret();
+        }));
     }
+
 
     private void RefreshLogBox()
     {
-        logBox.Clear();
-        var lines = LogWriter.Global.FilterLogLevel();
-        foreach (var line in lines)
+        var logs = LogWriter.Global.FilterLogLevel();
+        if (logs.Count == 0)
+            return;
+
+        logBox.SuspendLayout();
+
+        for (int i = _lastRenderedCount; i < logs.Count; i++)
         {
-            Color color = LogWriter.Global.DetermineColor(line);
+            var msg = logs[i];
             logBox.SelectionStart = logBox.TextLength;
-            logBox.SelectionColor = color;
-            logBox.AppendText(line + Environment.NewLine);
+            logBox.SelectionColor = msg.Color;
+            logBox.AppendText(msg.Raw + Environment.NewLine);
         }
+
+        _lastRenderedCount = logs.Count;
         logBox.SelectionColor = logBox.ForeColor;
         logBox.ScrollToCaret();
+        logBox.ResumeLayout();
     }
 
     // ----------------------------------------------------------
@@ -285,14 +300,6 @@ public class ProgressForm : Form
         if (onClick != null)
             button.Click += (_, __) => onClick();
     }
-
-    protected override void OnFormClosed(FormClosedEventArgs e)
-    {
-        _timer.Stop();
-        _timer.Dispose();
-        base.OnFormClosed(e);
-    }
-
 
     /// <summary>
     /// Controls progress bar and status label, and delegates all logging to LogWriter.
