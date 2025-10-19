@@ -84,7 +84,7 @@ public class ProgressForm : Form
         });
 
         // --- Bottom control bar ---
-        var bottomBar = new ThemedBottomBar(new float[] { 10, 15, 55, 20 });
+        var bottomBar = new ThemedBottomBar(new float[] { 7, 12, 55, 20 });
         cancelButton.Dock = DockStyle.Right;
         bottomBar.Controls.Add(logLevelLabel);
         bottomBar.Controls.Add(logLevelDropdown);
