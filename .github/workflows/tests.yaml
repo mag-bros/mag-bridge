@@ -12,7 +12,7 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     env:
-      PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/tests"
+      PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/src:${{ github.workspace }}/tests"
     steps:
       - uses: actions/checkout@v4
 

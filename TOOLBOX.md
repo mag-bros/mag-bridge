@@ -103,17 +103,70 @@ pip install -r requirements-dev.txt
 ```
 # Git Instructions
 # How to push local changes to repository?
-## 1. add files to commit
+## 1. how to fix merge conflicts
+### 1.1 make sure your branch is up to date
+> [!NOTE]
+> you should have all files commited
+```bash
+git checkout <YOUR_BRANCH>
+git status
+```
+### 1.2 be sure that local master is up to date
+> [!NOTE]
+> make sure master is clean and up to date with remote
+```bash
+git checkout master
+git pull
+```
+### 1.3 go back to your branch
+> [!NOTE]
+> we are going to merge master into `<YOUR_BRANCH>`
+```bash
+git checkout <YOUR_BRANCH>
+git status
+```
+### 1.4 merge master
+> [!NOTE]
+> be sure you are on your branch (master -> `<YOUR_BRANCH>`)
+```bash
+git merge master
+git commit -m 'updated from master'
+```
+### 1.5 conflict after merge 
+> [!IMPORTANT]
+> in each file the conflict must be solved
+
+**EXAMPLE:**
+```bash
+If you have questions, please
+ <<<<<<< HEAD
+open an issue
+=======
+ask your question in IRC.
+ >>>>>>> branch-a
+```
+### 1.6 make a decision
+> [!NOTE]
+> choose version.
+### 1.7 add version to change
+> [!NOTE]
+> solve in VS Code merge editor
+```bash
+git add .
+git commit -m 'message'
+```
+
+## 2. add files to commit
 ```bash
 git add --all
 ```
 
-## 2. create commit with added files (staged files)
+## 3. create commit with added files (staged files)
 ```bash
 git commit -m 'what was changed? what is the new feature name?'
 ```
 
-## 3. push changes (push commit)
+## 4. push changes (push commit)
 ```bash
 git push
 ```

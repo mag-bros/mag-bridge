@@ -4,6 +4,7 @@ Reference (DOI): 10.1021/ed085p532
 This dictionary represents the diamagnetic constants for elements in
 different bonding/oxidation_state/ionic_charge scenarios. Here's a breakdown of the values:
 """
+
 PASCAL_CONST = {
     "C": {
         "covalent": {
@@ -680,7 +681,7 @@ PASCAL_CONST = {
             "ring": None,
             "open_chain": None,
             "charge": {
-                "-2": -12.0, # The value of χDi for O2– is reported as –6.0 in some sources
+                "-2": -12.0,  # The value of χDi for O2– is reported as –6.0 in some sources
             },
         },
     },
@@ -876,7 +877,7 @@ PASCAL_CONST = {
             "ring": None,
             "open_chain": None,
             "ox_state": {
-                '(III)': -74.0,
+                "(III)": -74.0,
             },
         },
         "ionic": {
@@ -912,7 +913,7 @@ PASCAL_CONST = {
             "ring": None,
             "open_chain": None,
             "charge": {
-                "-2": -48, # This value is uncertain
+                "-2": -48,  # This value is uncertain
                 "+4": -8,
                 "+6": -5,
             },
@@ -928,7 +929,7 @@ PASCAL_CONST = {
             "ring": None,
             "open_chain": None,
             "charge": {
-                "+4": -1, 
+                "+4": -1,
             },
         },
     },
@@ -943,7 +944,7 @@ PASCAL_CONST = {
             "open_chain": None,
             "charge": {
                 "+2": -23,
-                "+3": -20, 
+                "+3": -20,
             },
         },
     },
@@ -952,7 +953,7 @@ PASCAL_CONST = {
             "ring": None,
             "open_chain": None,
             "ox_state": {
-                '(IV)': -30,
+                "(IV)": -30,
             },
         },
         "ionic": {
@@ -1057,7 +1058,7 @@ PASCAL_CONST = {
             "ring": None,
             "open_chain": None,
             "ox_state": {
-                '(I)': -40.0,
+                "(I)": -40.0,
             },
         },
         "ionic": {

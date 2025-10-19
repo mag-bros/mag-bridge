@@ -2,9 +2,12 @@
 __pycache__/
 *.py[codz]
 *$py.class
-
+images/
 # C extensions
 *.so
+
+# Electron node modules
+frontend/node_modules
 
 # Distribution / packaging
 .Python
