@@ -117,7 +117,7 @@ public sealed class WelcomeDialog : Form
         Controls.Add(rightPanel);
         Controls.Add(bottomPanel);
 
-        Theme.ApplyToForm(this);
+        // Theme.ApplyToForm(this);
 
         // Populate list
         foreach (var task in settings.GetDisplayTasks())
