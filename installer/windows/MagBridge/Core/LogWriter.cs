@@ -13,6 +13,18 @@ namespace MagBridge.Core
 
     public class LogWriter
     {
+
+        private static readonly Dictionary<LogLevel, (string Tag, int Weight, Color Color)> LogLevelMap = new()
+        {
+            [LogLevel.Verbose] = ("[VER]", 0, Color.Gray),
+            [LogLevel.Info] = ("[INFO]", 2, Color.LightSkyBlue),
+            [LogLevel.Ok] = ("[OK]", 3, Color.LightGreen),
+            [LogLevel.Warning] = ("[WARN]", 5, Color.Goldenrod),
+            [LogLevel.Error] = ("[ERR]", 10, Color.Red),
+            [LogLevel.Success] = ("[SUCCESS]", 99, Color.Green),
+            [LogLevel.Docs] = ("[DOCS]", 999, Color.LightSkyBlue)
+        };
+
         private static LogWriter? _instance;
         private static readonly object _sync = new();
         private Settings? _settings;
@@ -58,9 +70,9 @@ namespace MagBridge.Core
         private readonly List<string> _logHistory = new();
         private RichTextBox? _targetBox;
         private readonly string _logFile;
+        public string LogFile => _logFile;
         private LogLevel _logLevel = LogLevel.Info;
         public LogLevel LogLevel => _logLevel;
-
 
         // ==========================================================
         // LogWriter Constructor
@@ -180,34 +192,14 @@ namespace MagBridge.Core
             }
         }
 
+        private static LogLevel DetermineLogLevel(string message) =>
+            LogLevelMap.FirstOrDefault(kv =>
+                message.Contains(kv.Value.Tag, StringComparison.OrdinalIgnoreCase)).Key;
+
         private static Color DetermineColor(string message)
         {
-            if (message.Contains("[ERR]", StringComparison.OrdinalIgnoreCase))
-                return Color.Red;
-            if (message.Contains("[WARN]", StringComparison.OrdinalIgnoreCase))
-                return Color.Goldenrod;
-            if (message.Contains("[OK]", StringComparison.OrdinalIgnoreCase))
-                return Color.LightGreen;
-            if (message.Contains("[VER]", StringComparison.OrdinalIgnoreCase))
-                return Color.Gray;
-            if (message.Contains("[INFO]", StringComparison.OrdinalIgnoreCase))
-                return Color.LightSkyBlue;
-            if (message.Contains("[DOCS]", StringComparison.OrdinalIgnoreCase))
-                return Color.LightSkyBlue;
-            if (message.Contains("[SUCCESS]", StringComparison.OrdinalIgnoreCase))
-                return Color.Green;
-            return Color.WhiteSmoke;
-        }
-
-        private static LogLevel DetermineLogLevel(string message)
-        {
-            if (message.Contains("[ERR]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Error;
-            if (message.Contains("[WARN]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Warning;
-            if (message.Contains("[OK]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Ok;
-            if (message.Contains("[SUCCESS]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Success;
-            if (message.Contains("[INFO]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Info;
-            if (message.Contains("[VER]", StringComparison.OrdinalIgnoreCase)) return LogLevel.Verbose;
-            return LogLevel.Verbose; // default fallback
+            var level = DetermineLogLevel(message);
+            return LogLevelMap.TryGetValue(level, out var meta) ? meta.Color : Color.WhiteSmoke;
         }
 
         public void SetSettings(Settings settings)
@@ -251,6 +243,35 @@ namespace MagBridge.Core
                 Write("[VER] LogWriter attached to UI logBox.");
                 FlushBuffer();
             }
+        }
+
+        // ------------------------------------------------------------------
+        // Filter log file lines by current or higher LogLevel
+        // ------------------------------------------------------------------
+        public List<string> FilterLogLevel()
+        {
+            if (!File.Exists(_logFile))
+                return new List<string>();
+
+            // Select all tags where key >= current _logLevel
+            var tags = LogLevelMap
+                .Where(kv => (int)kv.Key >= (int)_logLevel)
+                .Select(kv => kv.Value.Tag)
+                .ToArray();
+
+            var result = new List<string>();
+            foreach (var line in File.ReadLines(_logFile))
+            {
+                foreach (var tag in tags)
+                {
+                    if (line.Contains(tag, StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.Add(line);
+                        break; // stop checking tags once matched
+                    }
+                }
+            }
+            return result;
         }
     }
 }

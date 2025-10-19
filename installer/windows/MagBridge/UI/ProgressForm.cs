@@ -76,11 +76,15 @@ public class ProgressForm : Form
         {
             Width = 180
         };
-        // Bind directly to LogLevel enum
+        // This code will trigger when dropdown changes
         logLevelDropdown.BindEnum(LogWriter.Global.LogLevel, level =>
         {
             LogWriter.Global.SetLogLevel(level);
             LogWriter.Global.Write($"[INFO] Log level changed to {level}");
+            var lines = LogWriter.Global.FilterLogLevel();
+            logBox.Clear();
+            foreach (var line in lines)
+                logBox.AppendText(line + Environment.NewLine);
         });
 
         // --- Bottom control bar ---

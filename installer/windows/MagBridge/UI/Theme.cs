@@ -261,6 +261,70 @@ namespace MagBridge.UI
         }
     }
 
+    public class ThemedBottomBar : TableLayoutPanel
+    {
+        public ThemedBottomBar(float[]? columnPercents = null)
+        {
+            Dock = DockStyle.Bottom;
+            Height = 48;
+            Padding = new Padding(12, 6, 12, 6);
+            BackColor = Theme.Surface;
+            RowCount = 1;
+            ColumnCount = 4;
+            DoubleBuffered = true;
+
+            var percents = columnPercents ?? new float[] { 5, 10, 65, 20 };
+            foreach (var p in percents)
+                ColumnStyles.Add(new ColumnStyle(SizeType.Percent, p));
+
+            RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            // Ensure internal layout behaves like the old version (manual placement)
+            AutoSize = false;
+            GrowStyle = TableLayoutPanelGrowStyle.FixedSize;
+        }
+
+        protected override void OnLayout(LayoutEventArgs e)
+        {
+            base.OnLayout(e);
+
+            var label = Controls.OfType<Label>().FirstOrDefault();
+            var dropdown = Controls.OfType<ComboBox>().FirstOrDefault();
+            var button = Controls.OfType<Button>().FirstOrDefault();
+
+            if (label == null && dropdown == null && button == null)
+                return;
+
+            SuspendLayout();
+
+            // Clear layout slots once
+            foreach (Control c in Controls)
+                SetCellPosition(c, new TableLayoutPanelCellPosition(0, 0));
+
+            if (label != null)
+            {
+                SetColumn(label, 0);
+                label.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
+            }
+
+            if (dropdown != null)
+            {
+                SetColumn(dropdown, 1);
+                dropdown.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
+            }
+
+            if (button != null)
+            {
+                SetColumn(button, 3);
+                button.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
+            }
+
+            ResumeLayout();
+        }
+    }
+
     public class ThemedDropdown : ComboBox
     {
         private bool _logLevelBound;
@@ -361,70 +425,6 @@ namespace MagBridge.UI
             };
 
             _logLevelBound = true;
-        }
-    }
-
-    public class ThemedBottomBar : TableLayoutPanel
-    {
-        public ThemedBottomBar(float[]? columnPercents = null)
-        {
-            Dock = DockStyle.Bottom;
-            Height = 48;
-            Padding = new Padding(12, 6, 12, 6);
-            BackColor = Theme.Surface;
-            RowCount = 1;
-            ColumnCount = 4;
-            DoubleBuffered = true;
-
-            var percents = columnPercents ?? new float[] { 5, 10, 65, 20 };
-            foreach (var p in percents)
-                ColumnStyles.Add(new ColumnStyle(SizeType.Percent, p));
-
-            RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-
-            RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-
-            // Ensure internal layout behaves like the old version (manual placement)
-            AutoSize = false;
-            GrowStyle = TableLayoutPanelGrowStyle.FixedSize;
-        }
-
-        protected override void OnLayout(LayoutEventArgs e)
-        {
-            base.OnLayout(e);
-
-            var label = Controls.OfType<Label>().FirstOrDefault();
-            var dropdown = Controls.OfType<ComboBox>().FirstOrDefault();
-            var button = Controls.OfType<Button>().FirstOrDefault();
-
-            if (label == null && dropdown == null && button == null)
-                return;
-
-            SuspendLayout();
-
-            // Clear layout slots once
-            foreach (Control c in Controls)
-                SetCellPosition(c, new TableLayoutPanelCellPosition(0, 0));
-
-            if (label != null)
-            {
-                SetColumn(label, 0);
-                label.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
-            }
-
-            if (dropdown != null)
-            {
-                SetColumn(dropdown, 1);
-                dropdown.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
-            }
-
-            if (button != null)
-            {
-                SetColumn(button, 3);
-                button.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
-            }
-
-            ResumeLayout();
         }
     }
 
