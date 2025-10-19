@@ -71,16 +71,16 @@ public sealed class WelcomeDialog : Form
             Margin = new Padding(4, 2, 4, 10)
         };
         var themeSea = new ThemedButton { Text = "Sea", Margin = new Padding(6, 4, 6, 8) };
-        var themeClassic = new ThemedButton { Text = "Classic White", Margin = new Padding(6, 4, 6, 8) };
+        var themeClassic = new ThemedButton { Text = "White", Margin = new Padding(6, 4, 6, 8) };
         var themeMatrix = new ThemedButton { Text = "Matrix", Margin = new Padding(6, 4, 6, 8) };
 
         themeSea.Click += (_, __) => MessageBox.Show("Theme set to Sea (placeholder)");
-        themeClassic.Click += (_, __) => MessageBox.Show("Theme set to Classic White (placeholder)");
+        themeClassic.Click += (_, __) => MessageBox.Show("Theme set to White (placeholder)");
         themeMatrix.Click += (_, __) => MessageBox.Show("Theme set to Matrix (placeholder)");
 
         var rightPanel = new ThemedTable(ThemedTable.BarOrientation.Vertical, new float[] { 10, 14, 14, 14, 48 })
         {
-            Width = 150,
+            Width = 120,
             Dock = DockStyle.Right,
             Padding = new Padding(8, 12, 8, 12),
             Margin = new Padding(8, 0, 8, 0)
