@@ -25,25 +25,24 @@ namespace MagBridge.Core
             [LogLevel.Docs] = ("[DOCS]", 999, Color.LightSkyBlue)
         };
 
-        private static LogWriter? _instance;
         private static readonly object _sync = new();
+        private static LogWriter? _instance;
+
         private Settings? _settings;
+        private LogLevel _logLevel = LogLevel.Info;
+        private readonly string _logFile;
+
         private readonly object _lock = new();
         private readonly List<string> _buffer = new();
         private readonly List<string> _logHistory = new();
-        private RichTextBox? _targetBox;
-        private readonly string _logFile;
+
         public string LogFile => _logFile;
-        private LogLevel _logLevel = LogLevel.Info;
         public LogLevel LogLevel => _logLevel;
 
-        // ==========================================================
-        // LogWriter Constructor
-        // ==========================================================
-        private LogWriter(Settings? settings = null, RichTextBox? targetBox = null)
+        // Constructor
+        private LogWriter(Settings? settings = null)
         {
             _settings = settings;
-            _targetBox = targetBox;
             _logLevel = settings?.LoggingLevel ?? LogLevel.Info;
 
             // Determine log directory (fallback to Temp if needed)
@@ -70,147 +69,21 @@ namespace MagBridge.Core
         }
 
         // ==========================================================
-        // Core logging logic
+        // Singleton Global API Start
         // ==========================================================
+
         public void Write(string message)
         {
             string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
-
-            // Console
+            // Console Logging
             Console.WriteLine(line);
-
-            // File
-            lock (_lock)
-            {
-                File.AppendAllText(_logFile, line + Environment.NewLine);
-
-                // UI not yet attached → buffer it
-                if (_targetBox == null || !_targetBox.IsHandleCreated || _targetBox.IsDisposed)
-                {
-                    _buffer.Add(line);
-                    return;
-                }
-            }
-
-            AppendToLogBox(line);
+            // File Logging
+            lock (_lock) { File.AppendAllText(_logFile, line + Environment.NewLine); }
+            _logHistory.Add(line);
         }
 
-        // ==========================================================
-        // Flush buffered logs to UI
-        // ==========================================================
-        private void FlushBuffer()
-        {
-            lock (_lock)
-            {
-                if (_targetBox == null || _buffer.Count == 0)
-                    return;
-
-                foreach (var msg in _buffer)
-                    AppendToLogBox(msg);
-
-                _buffer.Clear();
-            }
-        }
-
-        // ==========================================================
-        // Append message to RichTextBox (thread-safe)
-        // ==========================================================
-        private void AppendToLogBox(string message)
-        {
-            if (_targetBox == null)
-                return;
-
-            try
-            {
-                if (_targetBox.InvokeRequired)
-                {
-                    _targetBox.BeginInvoke((Action)(() => AppendToLogBox(message)));
-                    return;
-                }
-
-                // 🧩 Always store full verbose logs in full history (unfiltered)
-                _logHistory.Add(message);
-                const int MaxEntries = 25000; // prevent memory bloat
-                if (_logHistory.Count > MaxEntries)
-                    _logHistory.RemoveAt(0);
-
-                // 🧮 Determine message log level
-                LogLevel msgLevel = DetermineLogLevel(message);
-
-                // 🚫 Filter only what gets printed to the visible box
-                bool filterLogLevel = (int)msgLevel < (int)_logLevel;
-                if (filterLogLevel) return;
-
-                // --- Visual display logic ---
-                Color color = DetermineColor(message);
-                _targetBox.SelectionStart = _targetBox.TextLength;
-                _targetBox.SelectionColor = color;
-                _targetBox.AppendText(message + Environment.NewLine);
-                _targetBox.SelectionColor = _targetBox.ForeColor;
-                _targetBox.ScrollToCaret();
-            }
-            catch (ObjectDisposedException)
-            {
-                _targetBox = null;
-            }
-        }
-
-        private static LogLevel DetermineLogLevel(string message) =>
-            LogLevelMap.FirstOrDefault(kv =>
-                message.Contains(kv.Value.Tag, StringComparison.OrdinalIgnoreCase)).Key;
-
-        private static Color DetermineColor(string message)
-        {
-            var level = DetermineLogLevel(message);
-            return LogLevelMap.TryGetValue(level, out var meta) ? meta.Color : Color.WhiteSmoke;
-        }
-
-        public void SetSettings(Settings settings)
-        {
-            _settings = settings;
-        }
-
-        private void SetTargetLogBox(RichTextBox? targetBox)
-        {
-            _targetBox = targetBox;
-        }
-
-        public void SetLogLevel(LogLevel newLevel)
-        {
-            _logLevel = newLevel;
-        }
-
-        // ==========================================================
-        // Attach RichTextBox sink (with buffer flush)
-        // ==========================================================
-        public void Attach(RichTextBox? target)
-        {
-            _targetBox = target;
-
-            if (_targetBox == null)
-            {
-                Console.WriteLine("[WARN] Detached UI log sink (no active RichTextBox).");
-                return;
-            }
-
-            if (!_targetBox.IsHandleCreated)
-            {
-                _targetBox.HandleCreated += (_, __) =>
-                {
-                    Write("[VER] LogWriter attached to UI logBox (delayed bind).");
-                    FlushBuffer();
-                };
-            }
-            else
-            {
-                Write("[VER] LogWriter attached to UI logBox.");
-                FlushBuffer();
-            }
-        }
-
-        // ------------------------------------------------------------------
-        // Filter log file lines by current or higher LogLevel
-        // ------------------------------------------------------------------
+        // Reads the main LogFile
+        // Returns a list of log lines for current LogLevel
         public List<string> FilterLogLevel()
         {
             if (!File.Exists(_logFile))
@@ -237,6 +110,26 @@ namespace MagBridge.Core
             return result;
         }
 
+        public Color DetermineColor(string message)
+        {
+            var level = DetermineLogLevel(message);
+            return LogLevelMap.TryGetValue(level, out var meta) ? meta.Color : Color.WhiteSmoke;
+        }
+
+        private LogLevel DetermineLogLevel(string message) =>
+            LogLevelMap.FirstOrDefault(kv =>
+                message.Contains(kv.Value.Tag, StringComparison.OrdinalIgnoreCase)).Key;
+
+        public void SetLogLevel(LogLevel newLevel)
+        {
+            _logLevel = newLevel;
+        }
+
+        private void ApplySettings(Settings settings)
+        {
+            _settings = settings;
+        }
+
         public static LogWriter Global
         {
             get
@@ -249,24 +142,21 @@ namespace MagBridge.Core
             }
         }
 
-        public static void Init(Settings settings, RichTextBox? targetBox = null)
+        public static void Init(Settings settings)
         {
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));
 
             lock (_sync)
             {
-                // If Global already created a bootstrap logger, just reconfigure it
-                if (_instance == null)
-                    _instance = new LogWriter(settings, targetBox);
-                else
+                if (_instance != null)
                 {
-                    _instance.SetSettings(settings);
-                    _instance.SetTargetLogBox(targetBox);
+                    _instance.ApplySettings(settings);
                     _instance.SetLogLevel(settings.LoggingLevel);
                 }
+                else { _instance = new LogWriter(settings); }
 
-                _instance.Write($"[INFO] Logging system activated — runtime configuration loaded (Level: {settings.LoggingLevel}).");
+                _instance.Write($"[INFO] Logging system activated — runtime configuration loaded (LogLevel: {settings.LoggingLevel}).");
             }
         }
     }

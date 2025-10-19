@@ -218,31 +218,6 @@ namespace MagBridge.UI
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
         }
 
-        public void AppendSafe(string text, Color? color = null)
-        {
-            if (InvokeRequired)
-            {
-                BeginInvoke((Action)(() => AppendSafe(text, color)));
-                return;
-            }
-
-            if (color.HasValue)
-            {
-                int start = TextLength;
-                SelectionStart = start;
-                SelectionLength = 0;
-                SelectionColor = color.Value;
-                AppendText(text);
-                SelectionColor = ForeColor;
-            }
-            else
-            {
-                AppendText(text);
-            }
-
-            ScrollToCaret();
-        }
-
         protected override void OnEnter(EventArgs e)
         { focused = true; Invalidate(); base.OnEnter(e); }
 
@@ -402,7 +377,6 @@ namespace MagBridge.UI
             Items.Clear();
             foreach (var level in System.Enum.GetValues(typeof(LogLevel)))
                 Items.Add(level);
-
             var current = LogWriter.Global.LogLevel;
             int matchIndex = -1;
             for (int i = 0; i < Items.Count; i++)

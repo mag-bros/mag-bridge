@@ -1,10 +1,12 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
+﻿using UITimer = System.Windows.Forms.Timer;
+using System.ComponentModel;
 using MagBridge.Core;
 using MagBridge.UI;
 
 public class ProgressForm : Form
 {
+    private readonly UITimer _timer = new() { Interval = 10 };
+    private long _lastLogSize;
     private readonly ProgressBar progressBar;
     private readonly Label statusLabel;
     private readonly ThemedLogBox logBox;
@@ -81,10 +83,6 @@ public class ProgressForm : Form
         {
             LogWriter.Global.SetLogLevel(level);
             LogWriter.Global.Write($"[INFO] Log level changed to {level}");
-            var lines = LogWriter.Global.FilterLogLevel();
-            logBox.Clear();
-            foreach (var line in lines)
-                logBox.AppendText(line + Environment.NewLine);
         });
 
         // --- Bottom control bar ---
@@ -101,24 +99,38 @@ public class ProgressForm : Form
         Controls.Add(bottomBar);
 
         Theme.ApplyToForm(this);
+        _lastLogSize = new FileInfo(LogWriter.Global.LogFile).Length;
+        _timer.Tick += (_, __) => CheckLogUpdate();
+        _timer.Start();
         controller = new ProgressController(progressBar, statusLabel);
     }
 
-    // ----------------------------------------------------------
-    // OnShown — main startup routine
-    // ----------------------------------------------------------
-    protected override async void OnShown(EventArgs e)
+    private void CheckLogUpdate()
     {
-        base.OnShown(e);
+        var file = LogWriter.Global.LogFile;
+        if (!File.Exists(file)) return;
 
-        // Ensure handle exists before attachment
-        if (!logBox.IsHandleCreated)
-            await Task.Run(() => logBox.CreateControl());
+        long currentSize = new FileInfo(file).Length;
+        if (currentSize != _lastLogSize)
+        {
+            _lastLogSize = currentSize;
+            RefreshLogBox();
+        }
+    }
 
-        LogWriter.Global.Attach(logBox);
-        LogWriter.Global.Write("[VER] LogWriter attached post-handle creation.");
-
-        await RunInAsyncLoop(settings);
+    private void RefreshLogBox()
+    {
+        logBox.Clear();
+        var lines = LogWriter.Global.FilterLogLevel();
+        foreach (var line in lines)
+        {
+            Color color = LogWriter.Global.DetermineColor(line);
+            logBox.SelectionStart = logBox.TextLength;
+            logBox.SelectionColor = color;
+            logBox.AppendText(line + Environment.NewLine);
+        }
+        logBox.SelectionColor = logBox.ForeColor;
+        logBox.ScrollToCaret();
     }
 
     // ----------------------------------------------------------
@@ -133,6 +145,22 @@ public class ProgressForm : Form
         }
 
         controller.Cancel();
+    }
+
+    // ----------------------------------------------------------
+    // OnShown — main startup routine
+    // ----------------------------------------------------------
+    protected override async void OnShown(EventArgs e)
+    {
+        base.OnShown(e);
+
+        // Ensure handle exists before attachment
+        if (!logBox.IsHandleCreated)
+            await Task.Run(() => logBox.CreateControl());
+
+        LogWriter.Global.Write("[VER] LogWriter attached post-handle creation.");
+
+        await RunInAsyncLoop(settings);
     }
 
     // ----------------------------------------------------------
@@ -257,6 +285,14 @@ public class ProgressForm : Form
         if (onClick != null)
             button.Click += (_, __) => onClick();
     }
+
+    protected override void OnFormClosed(FormClosedEventArgs e)
+    {
+        _timer.Stop();
+        _timer.Dispose();
+        base.OnFormClosed(e);
+    }
+
 
     /// <summary>
     /// Controls progress bar and status label, and delegates all logging to LogWriter.
