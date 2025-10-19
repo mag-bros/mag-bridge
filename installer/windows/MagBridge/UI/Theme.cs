@@ -20,6 +20,7 @@ namespace MagBridge.UI
         public static Color ProgressBackground => _current.ProgressBackground;
         public static Color ProgressFill => _current.ProgressFill;
         public static Color ProgressBorder => _current.ProgressBorder;
+        public static event Action? ThemeChanged;
 
         // --- Fonts -----------------------------------------------
         public static readonly Font PrimaryFont = new Font("Segoe UI", 10, FontStyle.Regular);
@@ -33,6 +34,27 @@ namespace MagBridge.UI
             form.BackColor = Background;
             form.ForeColor = Text;
             form.Font = PrimaryFont;
+
+            foreach (Control c in form.Controls)
+                ApplyToControl(c);
+        }
+
+        private static void ApplyToControl(Control c)
+        {
+            c.BackColor = Background;
+            c.ForeColor = Text;
+
+            foreach (Control child in c.Controls)
+                ApplyToControl(child);
+        }
+
+        public static void SetTheme(ThemeSettings theme)
+        {
+            if (_current == theme)
+                return;
+
+            _current = theme;
+            ThemeChanged?.Invoke();  // notify all subscribers
         }
     }
 

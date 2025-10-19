@@ -74,9 +74,9 @@ public sealed class WelcomeDialog : Form
         var themeClassic = new ThemedButton { Text = "White", Margin = new Padding(6, 4, 6, 8) };
         var themeMatrix = new ThemedButton { Text = "Matrix", Margin = new Padding(6, 4, 6, 8) };
 
-        themeSea.Click += (_, __) => MessageBox.Show("Theme set to Sea (placeholder)");
-        themeClassic.Click += (_, __) => MessageBox.Show("Theme set to White (placeholder)");
-        themeMatrix.Click += (_, __) => MessageBox.Show("Theme set to Matrix (placeholder)");
+        themeSea.Click += (_, __) => Theme.SetTheme(ThemeSettings.Sea);
+        themeClassic.Click += (_, __) => Theme.SetTheme(ThemeSettings.White);
+        themeMatrix.Click += (_, __) => Theme.SetTheme(ThemeSettings.Matrix);
 
         var rightPanel = new ThemedTable(ThemedTable.BarOrientation.Vertical, new float[] { 10, 14, 14, 14, 48 })
         {
@@ -117,7 +117,8 @@ public sealed class WelcomeDialog : Form
         Controls.Add(rightPanel);
         Controls.Add(bottomPanel);
 
-        // Theme.ApplyToForm(this);
+        Theme.ApplyToForm(this);
+        Theme.ThemeChanged += () => Theme.ApplyToForm(this);
 
         // Populate list
         foreach (var task in settings.GetDisplayTasks())
