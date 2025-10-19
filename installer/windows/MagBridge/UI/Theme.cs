@@ -245,21 +245,19 @@ namespace MagBridge.UI
             Padding = new Padding(12, 6, 12, 6);
             BackColor = Theme.Surface;
             RowCount = 1;
-            ColumnCount = 4;
             DoubleBuffered = true;
 
             var percents = columnPercents ?? new float[] { 5, 10, 65, 20 };
+            ColumnCount = percents.Length;
             foreach (var p in percents)
                 ColumnStyles.Add(new ColumnStyle(SizeType.Percent, p));
 
             RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
-            RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-
-            // Ensure internal layout behaves like the old version (manual placement)
             AutoSize = false;
             GrowStyle = TableLayoutPanelGrowStyle.FixedSize;
         }
+
 
         protected override void OnLayout(LayoutEventArgs e)
         {

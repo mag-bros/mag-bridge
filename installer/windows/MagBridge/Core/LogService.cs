@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace MagBridge.Core
 {
     public enum LogLevel
@@ -102,6 +104,19 @@ namespace MagBridge.Core
                     .Where(m => (int)m.Level >= (int)_logLevel)
                     .ToList();
             }
+        }
+
+        public string GetFilteredLogText()
+        {
+            var logs = FilterLogLevel();
+            if (logs.Count == 0)
+                return string.Empty;
+
+            var sb = new StringBuilder(logs.Count * 80);
+            foreach (var msg in logs)
+                sb.AppendLine(msg.Raw);
+
+            return sb.ToString();
         }
 
         public void SetLogLevel(LogLevel newLevel)

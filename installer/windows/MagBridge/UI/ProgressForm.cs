@@ -9,6 +9,7 @@ public class ProgressForm : Form
     private readonly Label statusLabel;
     private readonly ThemedLogBox logBox;
     private readonly Button cancelButton;
+    private readonly Button copyButton;
     private readonly ThemedDropdown logLevelDropdown;
     private readonly Settings settings;
 
@@ -60,14 +61,21 @@ public class ProgressForm : Form
             WordWrap = false
         };
 
-        // Cancel/Quit button
+        // Copy Logs Button
+        copyButton = new ThemedButton
+        {
+            Text = "Copy",
+        };
+        copyButton.Click += copyButton_Click;
+
+        // Cancel button
         cancelButton = new ThemedButton
         {
             Text = "Cancel",
         };
         cancelButton.Click += CancelButton_Click;
 
-        // --- Log level dropdown ---
+        // --- Dropdown ---
         var logLevelLabel = new ThemedLabel
         {
             Text = "Log level:"
@@ -87,11 +95,13 @@ public class ProgressForm : Form
         });
 
         // --- Bottom control bar ---
-        var bottomBar = new ThemedBottomBar(new float[] { 7, 12, 55, 20 });
+        var bottomBar = new ThemedBottomBar(new float[] { 7, 12, 10, 46, 25 });
         cancelButton.Dock = DockStyle.Right;
-        bottomBar.Controls.Add(logLevelLabel);
-        bottomBar.Controls.Add(logLevelDropdown);
-        bottomBar.Controls.Add(cancelButton);
+        copyButton.Dock = DockStyle.Fill;
+        bottomBar.Controls.Add(logLevelLabel, 0, 0);
+        bottomBar.Controls.Add(logLevelDropdown, 1, 0);
+        bottomBar.Controls.Add(copyButton, 2, 0);
+        bottomBar.Controls.Add(cancelButton, 4, 0);
 
         // --- Top Level Form ---
         Controls.Add(logBox);
@@ -146,9 +156,6 @@ public class ProgressForm : Form
         logBox.ResumeLayout();
     }
 
-    // ----------------------------------------------------------
-    // Cancel button logic
-    // ----------------------------------------------------------
     private void CancelButton_Click(object? sender, EventArgs e)
     {
         if (cancelButton.Text.Equals("Quit", StringComparison.OrdinalIgnoreCase))
@@ -158,6 +165,21 @@ public class ProgressForm : Form
         }
 
         controller.Cancel();
+    }
+
+    private void copyButton_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            var text = LogService.Global.GetFilteredLogText();
+            if (!string.IsNullOrEmpty(text))
+                Clipboard.SetText(text);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to copy logs: {ex.Message}", "Error",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     // ----------------------------------------------------------
