@@ -28,43 +28,6 @@ namespace MagBridge.Core
         private static LogWriter? _instance;
         private static readonly object _sync = new();
         private Settings? _settings;
-
-        public static LogWriter Global
-        {
-            get
-            {
-                lock (_sync)
-                {
-                    // Auto-bootstrap logger for pre-init use
-                    return _instance ??= new LogWriter(settings: null);
-                }
-            }
-        }
-
-        public static void Init(Settings settings, RichTextBox? targetBox = null)
-        {
-            if (settings == null)
-                throw new ArgumentNullException(nameof(settings));
-
-            lock (_sync)
-            {
-                // If Global already created a bootstrap logger, just reconfigure it
-                if (_instance == null)
-                    _instance = new LogWriter(settings, targetBox);
-                else
-                {
-                    _instance.SetSettings(settings);
-                    _instance.SetTargetLogBox(targetBox);
-                    _instance.SetLogLevel(settings.LoggingLevel);
-                }
-
-                _instance.Write($"[INFO] Logging system activated — runtime configuration loaded (Level: {settings.LoggingLevel}).");
-            }
-        }
-
-        // ==================================================
-        // Instance part
-        // ==================================================
         private readonly object _lock = new();
         private readonly List<string> _buffer = new();
         private readonly List<string> _logHistory = new();
@@ -272,6 +235,39 @@ namespace MagBridge.Core
                 }
             }
             return result;
+        }
+
+        public static LogWriter Global
+        {
+            get
+            {
+                lock (_sync)
+                {
+                    // Auto-bootstrap logger for pre-init use
+                    return _instance ??= new LogWriter(settings: null);
+                }
+            }
+        }
+
+        public static void Init(Settings settings, RichTextBox? targetBox = null)
+        {
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
+
+            lock (_sync)
+            {
+                // If Global already created a bootstrap logger, just reconfigure it
+                if (_instance == null)
+                    _instance = new LogWriter(settings, targetBox);
+                else
+                {
+                    _instance.SetSettings(settings);
+                    _instance.SetTargetLogBox(targetBox);
+                    _instance.SetLogLevel(settings.LoggingLevel);
+                }
+
+                _instance.Write($"[INFO] Logging system activated — runtime configuration loaded (Level: {settings.LoggingLevel}).");
+            }
         }
     }
 }
