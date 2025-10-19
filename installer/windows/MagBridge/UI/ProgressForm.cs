@@ -64,7 +64,7 @@ public class ProgressForm : Form
         // Copy Logs Button
         copyButton = new ThemedButton
         {
-            Text = "Copy",
+            Text = "Copy Content",
         };
         copyButton.Click += copyButton_Click;
 
@@ -95,13 +95,12 @@ public class ProgressForm : Form
         });
 
         // --- Bottom control bar ---
-        var bottomBar = new ThemedBottomBar(new float[] { 7, 12, 10, 46, 25 });
-        cancelButton.Dock = DockStyle.Right;
-        copyButton.Dock = DockStyle.Fill;
-        bottomBar.Controls.Add(logLevelLabel, 0, 0);
-        bottomBar.Controls.Add(logLevelDropdown, 1, 0);
-        bottomBar.Controls.Add(copyButton, 2, 0);
-        bottomBar.Controls.Add(cancelButton, 4, 0);
+        var bottomBar = new ThemedBottomBar(new float[] { 6, 18, 18, 40, 20 }); // label, dropdown, copy, spacer, cancel
+        bottomBar.Controls.Add(logLevelLabel);
+        bottomBar.Controls.Add(logLevelDropdown);
+        bottomBar.Controls.Add(copyButton);
+        bottomBar.Controls.Add(ThemedBottomBar.Spacer()); // optional explicit spacer
+        bottomBar.Controls.Add(cancelButton);
 
         // --- Top Level Form ---
         Controls.Add(logBox);
@@ -133,7 +132,6 @@ public class ProgressForm : Form
         }));
     }
 
-
     private void RefreshLogBox()
     {
         var logs = LogService.Global.FilterLogLevel();
@@ -156,6 +154,35 @@ public class ProgressForm : Form
         logBox.ResumeLayout();
     }
 
+    private async void copyButton_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            var text = LogService.Global.GetFilteredLogText();
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            Clipboard.SetText(text);
+
+            // Soft feedback
+            copyButton.Enabled = false;
+            var oldText = copyButton.Text;
+            copyButton.Text = "Copied!";
+            copyButton.Refresh();
+
+            await Task.Delay(3000);
+
+            copyButton.Text = oldText;
+            copyButton.Enabled = true;
+            copyButton.Refresh();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to copy logs: {ex.Message}", "Error",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
     private void CancelButton_Click(object? sender, EventArgs e)
     {
         if (cancelButton.Text.Equals("Quit", StringComparison.OrdinalIgnoreCase))
@@ -165,21 +192,6 @@ public class ProgressForm : Form
         }
 
         controller.Cancel();
-    }
-
-    private void copyButton_Click(object? sender, EventArgs e)
-    {
-        try
-        {
-            var text = LogService.Global.GetFilteredLogText();
-            if (!string.IsNullOrEmpty(text))
-                Clipboard.SetText(text);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Failed to copy logs: {ex.Message}", "Error",
-                MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
     }
 
     // ----------------------------------------------------------

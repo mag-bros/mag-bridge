@@ -39,9 +39,6 @@ namespace MagBridge.UI
         }
     }
 
-    // ============================================================
-    //  THEMED PROGRESS BAR
-    // ============================================================
     public class ThemedProgressBar : ProgressBar
     {
         public ThemedProgressBar()
@@ -70,9 +67,6 @@ namespace MagBridge.UI
         }
     }
 
-    // ============================================================
-    //  THEMED BUTTON
-    // ============================================================
     public class ThemedButton : Button
     {
         private bool hovered;
@@ -85,12 +79,13 @@ namespace MagBridge.UI
             SetStyle(ControlStyles.AllPaintingInWmPaint |
                      ControlStyles.UserPaint |
                      ControlStyles.OptimizedDoubleBuffer, true);
-
             FlatStyle = FlatStyle.Flat;
             FlatAppearance.BorderSize = 0;
             BackColor = Theme.ProgressBackground;
             ForeColor = Theme.Text;
             Font = Theme.PrimaryFont;
+
+            Margin = new Padding(8, 0, 8, 0);
         }
 
         protected override void OnMouseEnter(EventArgs e)
@@ -99,23 +94,24 @@ namespace MagBridge.UI
         protected override void OnMouseLeave(EventArgs e)
         { hovered = false; pressed = false; Invalidate(); base.OnMouseLeave(e); }
 
-        protected override void OnMouseDown(MouseEventArgs e)
-        { pressed = true; Invalidate(); base.OnMouseDown(e); }
-
-        protected override void OnMouseUp(MouseEventArgs e)
-        { pressed = false; Invalidate(); base.OnMouseUp(e); }
-
         protected override void OnPaint(PaintEventArgs e)
         {
             var g = e.Graphics;
             var bounds = ClientRectangle;
 
-            Color fill = pressed
-                ? Theme.AccentDark
-                : hovered
-                    ? Theme.Accent
-                    : Theme.ProgressBackground;
+            // 🧹 Always clear the surface completely before painting
+            g.Clear(Parent?.BackColor ?? Theme.Surface);
 
+            // 🎨 Determine fill color based on state
+            Color fill = !Enabled
+                ? Color.FromArgb(100, Theme.AccentDark) // translucent dim
+                : pressed
+                    ? Theme.AccentDark
+                    : hovered
+                        ? Theme.Accent
+                        : Theme.ProgressBackground;
+
+            // 🧱 Draw background + border
             using var bg = new SolidBrush(fill);
             using var border = new Pen(hovered ? Theme.ButtonOutline : Theme.AccentDark, 1.4f);
             using var textBrush = new SolidBrush(Theme.Text);
@@ -124,6 +120,7 @@ namespace MagBridge.UI
             g.FillRectangle(bg, bounds);
             g.DrawRectangle(border, 0, 0, bounds.Width - 1, bounds.Height - 1);
 
+            // 🪶 Center text
             var fmt = new StringFormat
             {
                 Alignment = StringAlignment.Center,
@@ -134,9 +131,6 @@ namespace MagBridge.UI
         }
     }
 
-    // ============================================================
-    //  THEMED TEXT BOX (for plain input)
-    // ============================================================
     public class ThemedTextBox : TextBox
     {
         private bool focused;
@@ -197,9 +191,6 @@ namespace MagBridge.UI
         }
     }
 
-    // ============================================================
-    //  THEMED LOG BOX (RichTextBox for colored logs)
-    // ============================================================
     public class ThemedLogBox : RichTextBox
     {
         private bool focused;
@@ -236,65 +227,74 @@ namespace MagBridge.UI
         }
     }
 
-    public class ThemedBottomBar : TableLayoutPanel
+    /// <summary>
+    /// Each number represents a percentage of the total bar width (not remaining space).
+    /// The sum of all values should be about 100 to fill the entire row.
+    /// Controls are placed left-to-right in Add() order, one per column.
+    /// Example: {8,18,12,52,10} → label=8%, dropdown=18%, copy=12%, spacer=52%, cancel=10%.
+    /// </summary>
+    public sealed class ThemedBottomBar : TableLayoutPanel
     {
+        /// <summary>
+        /// If true, controls added without an explicit (col,row) are auto-slotted
+        /// left-to-right into the next free column on row 0. Explicit positions are respected.
+        /// </summary>
+        public bool AutoSlot { get; init; } = true;
+
         public ThemedBottomBar(float[]? columnPercents = null)
         {
             Dock = DockStyle.Bottom;
             Height = 48;
             Padding = new Padding(12, 6, 12, 6);
             BackColor = Theme.Surface;
-            RowCount = 1;
             DoubleBuffered = true;
 
-            var percents = columnPercents ?? new float[] { 5, 10, 65, 20 };
-            ColumnCount = percents.Length;
-            foreach (var p in percents)
-                ColumnStyles.Add(new ColumnStyle(SizeType.Percent, p));
+            SetStyle(ControlStyles.AllPaintingInWmPaint |
+                     ControlStyles.OptimizedDoubleBuffer |
+                     ControlStyles.UserPaint, true);
 
+            ConfigureColumns(columnPercents ?? new float[] { 10, 18, 12, 50, 10 }); // default: label, dropdown, copy, spacer, cancel
+
+            RowCount = 1;
+            RowStyles.Clear();
             RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
             AutoSize = false;
             GrowStyle = TableLayoutPanelGrowStyle.FixedSize;
         }
 
-
-        protected override void OnLayout(LayoutEventArgs e)
+        /// <summary>Reconfigure the percent columns at runtime.</summary>
+        public void ConfigureColumns(float[] percents)
         {
-            base.OnLayout(e);
+            if (percents is null || percents.Length == 0)
+                throw new ArgumentException("Column percents must be non-empty.", nameof(percents));
 
-            var label = Controls.OfType<Label>().FirstOrDefault();
-            var dropdown = Controls.OfType<ComboBox>().FirstOrDefault();
-            var button = Controls.OfType<Button>().FirstOrDefault();
+            ColumnCount = percents.Length;
+            ColumnStyles.Clear();
+            foreach (var p in percents)
+                ColumnStyles.Add(new ColumnStyle(SizeType.Percent, p));
+            PerformLayout();
+        }
 
-            if (label == null && dropdown == null && button == null)
-                return;
+        /// <summary>Convenience spacer if you want an explicit flexible gap column.</summary>
+        public static Control Spacer() => new Panel { Margin = Padding.Empty, Dock = DockStyle.Fill };
 
-            SuspendLayout();
+        protected override void OnControlAdded(ControlEventArgs e)
+        {
+            base.OnControlAdded(e);
+            var c = e.Control;
+            if (c is null) return;
 
-            // Clear layout slots once
-            foreach (Control c in Controls)
-                SetCellPosition(c, new TableLayoutPanelCellPosition(0, 0));
-
-            if (label != null)
+            // Always fill columns left → right, respecting Add() order
+            if (AutoSlot)
             {
-                SetColumn(label, 0);
-                label.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
+                int col = Math.Min(Controls.Count - 1, ColumnCount - 1);
+                SetColumn(c, col);
+                SetRow(c, 0);
             }
 
-            if (dropdown != null)
-            {
-                SetColumn(dropdown, 1);
-                dropdown.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
-            }
-
-            if (button != null)
-            {
-                SetColumn(button, 3);
-                button.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
-            }
-
-            ResumeLayout();
+            if (c.Dock == DockStyle.None)
+                c.Dock = DockStyle.Fill;
         }
     }
 
@@ -313,7 +313,7 @@ namespace MagBridge.UI
             IntegralHeight = false;
             MaxDropDownItems = 12;
             DrawMode = DrawMode.Normal;
-
+            Margin = new Padding(8, 0, 8, 0);
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
         }
 
@@ -412,6 +412,7 @@ namespace MagBridge.UI
             BackColor = Theme.Surface;
             ForeColor = Theme.Text;
             Font = Theme.PrimaryFont;
+            Margin = new Padding(8, 0, 8, 0);
         }
     }
 
