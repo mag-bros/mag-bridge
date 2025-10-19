@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using MagBridge.Core;
+using MagBridge.UI;
 
 internal static class Program
 {
@@ -61,32 +62,32 @@ internal static class Program
         }
 
         // === License agreement ============================================
-        // try
-        // {
-        //     using (var licenseDialog = new LicenseDialog(settings))
-        //     {
-        //         if (licenseDialog.ShowDialog() != DialogResult.OK || !licenseDialog.Accepted)
-        //         {
-        //             MessageBox.Show(
-        //                 "You must accept the license terms to proceed.",
-        //                 "License Agreement",
-        //                 MessageBoxButtons.OK,
-        //                 MessageBoxIcon.Information
-        //             );
-        //             return;
-        //         }
-        //     }
-        // }
-        // catch (Exception ex)
-        // {
-        //     MessageBox.Show(
-        //         $"License display error:\n{ex.Message}",
-        //         "License Error",
-        //         MessageBoxButtons.OK,
-        //         MessageBoxIcon.Error
-        //     );
-        //     return;
-        // }
+        try
+        {
+            using (var licenseDialog = new LicenseDialog(settings))
+            {
+                if (licenseDialog.ShowDialog() != DialogResult.OK || !licenseDialog.Accepted)
+                {
+                    MessageBox.Show(
+                        "You must accept the license terms to proceed.",
+                        "License Agreement",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
+                    return;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"License display error:\n{ex.Message}",
+                "License Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
+            return;
+        }
 
         // === Run Tasks ================================================
         try
