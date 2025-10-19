@@ -1,7 +1,6 @@
 ﻿# ====================================================================
 # Remove-Choco.ps1 — uninstall Chocolatey and clean up environment
-# NOTE: _Helpers.ps1 is sourced upstream by the runner (do NOT dot-source here).
-# This script intentionally ignores Preferred/Minimum version parameters.
+# Compatible with Windows 7 / PowerShell 5.1
 # ====================================================================
 
 param(
@@ -13,17 +12,21 @@ param(
 $ErrorActionPreference = 'Stop'
 
 try {
-    Write-Host [INFO] Initiating ${PackageKey} removal process...
+    Write-Host "[INFO] Initiating ${PackageKey} removal process..."
 
-    # Resolve install root
+    # ------------------------------------------------------------
+    # Locate Chocolatey installation root
+    # ------------------------------------------------------------
     $chocoRoot = $env:ChocolateyInstall
     if (-not $chocoRoot -or [string]::IsNullOrWhiteSpace($chocoRoot)) {
         $chocoRoot = "C:\ProgramData\chocolatey"
     }
-    Write-Host "[VER] ChocolateyInstall resolved to: $chocoRoot"
+    Write-Host "[VER] ChocolateyInstall resolved to: ${chocoRoot}"
 
-    # Quick detection (exists or not)
-    $installed = Test-Path $chocoRoot
+    # ------------------------------------------------------------
+    # Detection
+    # ------------------------------------------------------------
+    $installed = Test-Path "${chocoRoot}"
     $chocoCmd = Get-Command choco -ErrorAction SilentlyContinue
 
     if (-not $installed -and -not $chocoCmd) {
@@ -31,7 +34,9 @@ try {
         exit 0
     }
 
-    # Stop related services (best effort)
+    # ------------------------------------------------------------
+    # Stop background agent if running
+    # ------------------------------------------------------------
     try {
         $svc = Get-Service -Name chocolatey-agent -ErrorAction SilentlyContinue
         if ($svc -and $svc.Status -eq 'Running') {
@@ -45,40 +50,47 @@ try {
         Write-Host "[INFO] Skipped stopping chocolatey-agent (not running or inaccessible)."
     }
 
-    # Backup PATH (User & Machine) preserving env refs
+    # ------------------------------------------------------------
+    # Backup and sanitize PATH
+    # ------------------------------------------------------------
     try {
         $userKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('Environment', $true)
-        $machineKey = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey('SYSTEM\ControlSet001\Control\Session Manager\Environment\', $true)
+        $machineKey = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey(
+            'SYSTEM\ControlSet001\Control\Session Manager\Environment\', $true)
 
         $userPath = $userKey.GetValue('PATH', [string]::Empty, 'DoNotExpandEnvironmentNames').ToString()
         $machinePath = $machineKey.GetValue('PATH', [string]::Empty, 'DoNotExpandEnvironmentNames').ToString()
 
-        $backupFile = "C:\PATH_backups_ChocolateyUninstall.txt"
+        $timestamp = (Get-Date).ToString('yyyyMMdd_HHmmss')
+        $backupDir = Join-Path -Path $env:ProgramData -ChildPath "MagBridge\Backups"
+        if (-not (Test-Path $backupDir)) { New-Item -Path $backupDir -ItemType Directory -Force | Out-Null }
+        $backupFile = Join-Path -Path $backupDir -ChildPath "PATH_backup_ChocolateyUninstall_${timestamp}.txt"
+        
         @(
-            "User PATH: $userPath"
-            "Machine PATH: $machinePath"
-        ) | Set-Content -Path $backupFile -Encoding UTF8 -Force
+            "User PATH: ${userPath}"
+            "Machine PATH: ${machinePath}"
+        ) | Set-Content -Path "${backupFile}" -Encoding UTF8 -Force
 
-        Write-Host "[OK] Backed up PATH values to: $backupFile"
+        $sizeKB = [math]::Round((Get-Item "${backupFile}").Length / 1KB, 2)
+        Write-Host "[OK] Backed up PATH values to: ${backupFile}"
+        Write-Host "[VER] PATH backup size: ${sizeKB} KB"
 
-        $pathInfo = "[INFO] Adjusting PATH variables — backup saved to $backupFile."
-
-        if ($userPath -like "*$chocoRoot*") {
+        if ($userPath -like "*${chocoRoot}*") {
             Write-Host "${pathInfo}"
             $newUserPATH = @(
-                $userPath -split [System.IO.Path]::PathSeparator |
-                Where-Object { $_ -and $_ -ne "$chocoRoot\bin" }
-            ) -join [System.IO.Path]::PathSeparator
+                $userPath -split [IO.Path]::PathSeparator |
+                Where-Object { $_ -and $_ -ne "${chocoRoot}\bin" }
+            ) -join [IO.Path]::PathSeparator
             $userKey.SetValue('PATH', $newUserPATH, 'ExpandString')
             Write-Host "[OK] Removed Chocolatey bin from User PATH."
         }
 
-        if ($machinePath -like "*$chocoRoot*") {
+        if ($machinePath -like "*${chocoRoot}*") {
             Write-Host "${pathInfo}"
             $newMachinePATH = @(
-                $machinePath -split [System.IO.Path]::PathSeparator |
-                Where-Object { $_ -and $_ -ne "$chocoRoot\bin" }
-            ) -join [System.IO.Path]::PathSeparator
+                $machinePath -split [IO.Path]::PathSeparator |
+                Where-Object { $_ -and $_ -ne "${chocoRoot}\bin" }
+            ) -join [IO.Path]::PathSeparator
             $machineKey.SetValue('PATH', $newMachinePATH, 'ExpandString')
             Write-Host "[OK] Removed Chocolatey bin from Machine PATH."
         }
@@ -90,25 +102,33 @@ try {
         Write-Host "[WARN] Failed to adjust PATH — environment may require manual cleanup: $($_.Exception.Message)"
     }
 
-    # Remove installation directory (packages, shims, logs)
+    # ------------------------------------------------------------
+    # Remove installation directory (safeguarded)
+    # ------------------------------------------------------------
     try {
-        if (Test-Path $chocoRoot) {
-            Write-Host "[INFO] Removing Chocolatey directory: $chocoRoot"
-
-            try {
-                Remove-Item -Path $chocoRoot -Recurse -Force -ErrorAction Stop
-                Write-Host "[OK] Removed $chocoRoot"
+        if (Test-Path "${chocoRoot}") {
+            $canonical = [IO.Path]::GetFullPath("${chocoRoot}")
+            if ($canonical -notlike "*\ProgramData\chocolatey*") {
+                Write-Host "[ERR] Refusing to remove non-standard Chocolatey path: ${canonical}"
+                $global:RemovalFailed = $true
             }
-            catch {
-                if ($_.Exception.Message -match 'denied|in use|being used') {
-                    Write-Host "[INFO] Files in use — scheduling safe deletion after reboot."
-                    Schedule-DeleteOnReboot -Path $chocoRoot
-                    Write-Host "[OK] Locked files will be removed automatically after reboot."
+            else {
+                Write-Host "[INFO] Removing Chocolatey directory: ${canonical}"
+                try {
+                    Remove-Item -Path "${canonical}" -Recurse -Force -ErrorAction Stop
+                    Write-Host "[OK] Removed ${canonical}"
+                }
+                catch {
+                    if ($_.Exception.Message -match 'denied|in use|being used') {
+                        Write-Host "[INFO] Files in use — scheduling safe deletion after reboot."
+                        Schedule-DeleteOnReboot -Path "${canonical}"
+                        Write-Host "[OK] Locked files will be removed automatically after reboot."
+                    }
                 }
             }
         }
         else {
-            Write-Host "[VER] Install directory not found: $chocoRoot"
+            Write-Host "[VER] Install directory not found: ${chocoRoot}"
         }
     }
     catch {
@@ -116,11 +136,13 @@ try {
         $global:RemovalFailed = $true
     }
 
-    # Remove Chocolatey Tools Location directory if present
+    # ------------------------------------------------------------
+    # Remove optional Chocolatey tools directory
+    # ------------------------------------------------------------
     try {
-        if ($env:ChocolateyToolsLocation -and (Test-Path $env:ChocolateyToolsLocation)) {
-            Write-Host "[VER] Removing optional Chocolatey tools directory: $env:ChocolateyToolsLocation"
-            Remove-Item -Path $env:ChocolateyToolsLocation -Recurse -Force -ErrorAction Stop
+        if ($env:ChocolateyToolsLocation -and (Test-Path "${env:ChocolateyToolsLocation}")) {
+            Write-Host "[VER] Removing optional Chocolatey tools directory: ${env:ChocolateyToolsLocation}"
+            Remove-Item -Path "${env:ChocolateyToolsLocation}" -Recurse -Force -ErrorAction Stop
             Write-Host "[OK] Removed tools directory."
         }
     }
@@ -128,29 +150,66 @@ try {
         Write-Host "[WARN] Could not remove tools directory — files may be in use: $($_.Exception.Message)"
     }
 
-    # Clear Chocolatey environment variables (User & Machine)
+    # ------------------------------------------------------------
+    # Clear Chocolatey environment variables (with verbose per-var logging)
+    # ------------------------------------------------------------
     try {
+        Write-Host "[INFO] Clearing Chocolatey environment variables..."
+
+        $varsToClear = @(
+            'ChocolateyInstall',
+            'ChocolateyToolsLocation',
+            'ChocolateyProfile',
+            'ChocolateyLastPathUpdate',
+            'ChocolateyPackageName',
+            'ChocolateyEnvironmentPath',
+            'ChocolateyInstallOverride',
+            'ChocolateyExecutionPath'
+        )
+
         foreach ($scope in 'User', 'Machine') {
-            [Environment]::SetEnvironmentVariable('ChocolateyInstall', [string]::Empty, $scope)
-            [Environment]::SetEnvironmentVariable('ChocolateyLastPathUpdate', [string]::Empty, $scope)
-            [Environment]::SetEnvironmentVariable('ChocolateyToolsLocation', [string]::Empty, $scope)
+            foreach ($v in $varsToClear) {
+                $prev = [Environment]::GetEnvironmentVariable("${v}", $scope)
+                if ($null -ne $prev -and -not [string]::IsNullOrWhiteSpace("${prev}")) {
+                    Write-Host "[VER] Clearing ${v} (scope=${scope}) — previous value length=${($prev).Length}"
+                }
+                else {
+                    Write-Host "[VER] ${v} not set (scope=${scope})"
+                }
+
+                try { [Environment]::SetEnvironmentVariable("${v}", $null, $scope) }
+                catch { Write-Host "[WARN] Failed to clear ${v} (scope=${scope}): $($_.Exception.Message)" }
+            }
         }
-        Write-Host "[OK] Cleared Chocolatey environment variables."
+
+        foreach ($v in $varsToClear) {
+            if (Test-Path "Env:\${v}") {
+                Write-Host "[VER] Removing Env:${v} from current session"
+                Remove-Item "Env:\${v}" -ErrorAction SilentlyContinue
+            }
+            else {
+                Write-Host "[VER] Env:${v} not present in current session"
+            }
+        }
+
+        Write-Host "[OK] Cleared Chocolatey environment variables (no profile edits required)."
     }
     catch {
         Write-Host "[WARN] Skipped clearing some environment variables — details: $($_.Exception.Message)"
     }
 
-    # Final verification
+    # ------------------------------------------------------------
+    # Verification
+    # ------------------------------------------------------------
     if ($global:RemovalFailed) {
         Write-Host "[ERR] ${PackageKey} removal failed due to unexpected error(s)."
         exit 3
     }
 
-    if (Test-Path $chocoRoot) {
-        Write-Host "[INFO] ${PackageKey} directory still present — likely in use, safe to remove later: $chocoRoot"
+    if (Test-Path "${chocoRoot}") {
+        Write-Host "[INFO] ${PackageKey} directory still present — likely in use, safe to remove later: ${chocoRoot}"
         Write-Host "[INFO] This usually happens when files are in use. Reboot and remove manually if desired."
-        exit 0  # ✅ Treat as soft success
+        exit 0
     }
 
     Write-Host "[OK] ${PackageKey} fully removed."

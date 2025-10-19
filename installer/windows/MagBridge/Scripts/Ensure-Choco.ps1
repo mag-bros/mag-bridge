@@ -24,7 +24,7 @@ $template.BootstrapAction = {
     $installScript = Join-Path $env:TEMP "install_choco.ps1"
     try {
         Invoke-WebRequest -Uri $this.InstallSource -OutFile $installScript -UseBasicParsing
-        $this.Ver("Downloaded installer to $installScript")
+        $this.Ver("Downloaded installer to ${installScript}")
         Set-ExecutionPolicy Bypass -Scope Process -Force
         & powershell -NoProfile -ExecutionPolicy Bypass -File $installScript | ForEach-Object { $this.Ver($_) }
         $this.Ok("Chocolatey bootstrap completed successfully.")

@@ -64,7 +64,7 @@ public class ProgressForm : Form
         // Copy Logs Button
         copyButton = new ThemedButton
         {
-            Text = "Copy Content",
+            Text = "Copy Log",
         };
         copyButton.Click += copyButton_Click;
 
@@ -170,7 +170,7 @@ public class ProgressForm : Form
             copyButton.Text = "Copied!";
             copyButton.Refresh();
 
-            await Task.Delay(3000);
+            await Task.Delay(2000);
 
             copyButton.Text = oldText;
             copyButton.Enabled = true;
