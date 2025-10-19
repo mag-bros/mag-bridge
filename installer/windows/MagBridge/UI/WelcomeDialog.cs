@@ -67,15 +67,13 @@ public sealed class WelcomeDialog : Form
         {
             var btn = new ThemedButton { Text = theme.Name, Margin = new Padding(6, 4, 6, 8), Tag = theme.Settings };
 
-            // Set the button's state when clicked
             btn.Click += (_, __) =>
             {
                 Theme.SetTheme(theme.Settings);
 
-                // Ensure highlight is applied only after the theme change
-                Theme.ThemeChanged += () => HighlightActiveButton(btn);
+                // Reapply highlight after theme change
+                HighlightActiveButton(btn);
             };
-
             _themeButtons.Add(btn);
         }
 
@@ -96,19 +94,6 @@ public sealed class WelcomeDialog : Form
         rightPanel.Controls.Add(ThemedTable.Spacer());
 
         // Highlight active button
-        void HighlightActiveButton(ThemedButton active)
-        {
-            // Reset all buttons to unhighlighted
-            foreach (var b in _themeButtons)
-            {
-                b.IsActive = false;
-                b.Invalidate();  // This will refresh the button's appearance
-            }
-
-            // Highlight the selected button
-            active.IsActive = true;
-            active.Invalidate();  // Refresh to update visual state
-        }
 
         // Bottom Panel
         selectAll = new ThemedButton { Text = "Select All", Height = 42, Margin = new Padding(4, 6, 4, 6) };
@@ -127,7 +112,7 @@ public sealed class WelcomeDialog : Form
         Controls.Add(centerPanel);
         Controls.Add(rightPanel);
         Controls.Add(bottomPanel);
-        HighlightActiveButton(_themeButtons.FirstOrDefault(btn => btn.Tag?.Equals(Theme.CurrentTheme) == true) ?? _themeButtons.First());
+        HighlightActiveButton(_themeButtons.FirstOrDefault(btn => btn.Tag.Equals(Theme.CurrentTheme)) ?? _themeButtons.First());
 
         // Apply initial theme
         Theme.ApplyToForm(this);
@@ -160,7 +145,16 @@ public sealed class WelcomeDialog : Form
         clearAll.Click += (_, __) => { for (int i = 0; i < checkBox.Items.Count; i++) checkBox.SetItemChecked(i, false); };
     }
 
-    public IReadOnlyCollection<string> SelectedPackageKeys =>
+    private void HighlightActiveButton(ThemedButton active)
+    {
+        foreach (var b in _themeButtons)
+        {
+            b.IsActive = (b == active);  // Only set IsActive to true for the active button
+            b.Invalidate();  // Refresh the button appearance
+        }
+    }
+
+    private IReadOnlyCollection<string> SelectedPackageKeys =>
         checkBox.CheckedItems.Cast<TaskParams>()
             .Select(s => string.IsNullOrWhiteSpace(s.PackageKey) ? s.Label : s.PackageKey)
             .ToArray();
