@@ -47,4 +47,6 @@ Linux:
 ## Common Issues
 
 - Build errors after switching branches:
-   Remove the dist/electron directory and rebuild using the appropriate build command.
+   1. Stop all working electron processes. 
+   2. Remove the `dist/electron` directory and rebuild using the appropriate build command.
+   3. Retry the build process.
