@@ -65,4 +65,6 @@ run: build
 	@powershell -NoProfile -Command "dotnet run --no-build --project '$(DOTNET_PROJECT)'"
 
 build-exe:
+	@dotnet clean "MagBridge\MagBridge.csproj"
+	@dotnet build "MagBridge\MagBridge.csproj"
 	@dotnet publish --no-cache "MagBridge\MagBridge.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true --output "build\MagBridgeSDK-v1.0.0"
