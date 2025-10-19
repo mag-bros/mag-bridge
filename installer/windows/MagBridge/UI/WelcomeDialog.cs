@@ -71,12 +71,18 @@ public sealed class WelcomeDialog : Form
             Margin = new Padding(4, 2, 4, 10)
         };
         var themeSea = new ThemedButton { Text = "Sea", Margin = new Padding(6, 4, 6, 8) };
-        var themeClassic = new ThemedButton { Text = "White", Margin = new Padding(6, 4, 6, 8) };
+        var themeWhite = new ThemedButton { Text = "White", Margin = new Padding(6, 4, 6, 8) };
         var themeMatrix = new ThemedButton { Text = "Matrix", Margin = new Padding(6, 4, 6, 8) };
+        var themeLofi = new ThemedButton { Text = "LoFi", Margin = new Padding(6, 4, 6, 8) };
+        var themeSandstorm = new ThemedButton { Text = "Sandstorm", Margin = new Padding(6, 4, 6, 8) };
+        var themeLava = new ThemedButton { Text = "Lava", Margin = new Padding(6, 4, 6, 8) };
 
         themeSea.Click += (_, __) => Theme.SetTheme(ThemeSettings.Sea);
-        themeClassic.Click += (_, __) => Theme.SetTheme(ThemeSettings.White);
+        themeWhite.Click += (_, __) => Theme.SetTheme(ThemeSettings.White);
         themeMatrix.Click += (_, __) => Theme.SetTheme(ThemeSettings.Matrix);
+        themeLofi.Click += (_, __) => Theme.SetTheme(ThemeSettings.LoFi);
+        themeSandstorm.Click += (_, __) => Theme.SetTheme(ThemeSettings.Sandstorm);
+        themeLava.Click += (_, __) => Theme.SetTheme(ThemeSettings.Lava);
 
         var rightPanel = new ThemedTable(ThemedTable.BarOrientation.Vertical, new float[] { 10, 14, 14, 14, 48 })
         {
@@ -87,7 +93,7 @@ public sealed class WelcomeDialog : Form
         };
         rightPanel.Controls.Add(themeLabel);
         rightPanel.Controls.Add(themeSea);
-        rightPanel.Controls.Add(themeClassic);
+        rightPanel.Controls.Add(themeWhite);
         rightPanel.Controls.Add(themeMatrix);
         rightPanel.Controls.Add(ThemedTable.Spacer());
 
