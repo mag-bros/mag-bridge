@@ -1,0 +1,15 @@
+{
+  "name": "dc-magnetic-data-calculator",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "setup": "npm install",
+    "start": "electron ."
+  },
+  "author": "Karol Wydra, Miron Oskroba, Adrian Kulik",
+  "license": "Apache-2.0 license",
+  "devDependencies": {
+    "electron": "^38.2.2",
+    "electron-reload": "^2.0.0-alpha.1"
+  }
+}

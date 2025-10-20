@@ -6,6 +6,9 @@ images/
 # C extensions
 *.so
 
+# Electron node modules
+frontend/node_modules
+
 # Distribution / packaging
 .Python
 build/

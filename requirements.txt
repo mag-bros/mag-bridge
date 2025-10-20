@@ -1,2 +1,4 @@
 rdkit==2025.3.6
+fastapi[standard]==0.119.0
+uvicorn==0.37.0
 pandas==2.3.3
