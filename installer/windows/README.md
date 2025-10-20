@@ -1,16 +1,21 @@
-# Add new installer feature
+# SDK Installer
+## Goal
+This SDK (Software Development Kit) application automates the installation of software components required for development.
 
-'''
-installer/
- ├─ windows/
- │   ├─ install.ps1          # entrypoint (calls steps)
- │   ├─ ui_helpers.ps1       # New-ProgressForm, Update-ProgressForm, etc.
- │   ├─ logging.ps1          # Write-LogInfo, Write-LogOk, etc.
- │   ├─ choco.ps1            # Ensure-Choco
- │   ├─ make.ps1             # Ensure-GnuMake
- │   ├─ env.ps1              # Ensure-Path, Update-EnvironmentPath
- │   ├─ runspace.ps1         #  The Main Loop
- │   ├─ TODO::IMPROVE_UX.ps1         # 🔥 NEW: background async executor
- │   └─ utils.ps1
-'''
+### Target Group
+ - Windows only (for now)
+ - Contributors and Developers
 
+### What does this app do?
+> Streamlines environment setup, by automating installation of useful tools required for effective and optimal development experience:
+
+### Automation pipeline
+ - Install Chocolatey (Well-known Windows package manager)
+ - Install GnuMake for Windows (via Chocolatey)
+ - Install Electron (via Chocolatey)
+
+### TechStack
+ - C# Windows.Forms application that calls PowerShell Scripts
+
+### Supported Windows Versions
+ - It was designed to work for Windows 7+
