@@ -49,17 +49,16 @@ jobs:
         with:
           webhookUrl: ${{ secrets.DISCORD_PR_WEBHOOK }}
           username: 'MagBridge CI'
-          avatarUrl: 'https://raw.githubusercontent.com/chem-nexus/mag-bridge/assets-v1.0/.github/assets/terminator.png'
+          avatarUrl: 'https://raw.githubusercontent.com/chem-nexus/mag-bridge/assets-v1.1/.github/assets/terminator.png'
           severity: ${{ steps.pr_metrics.outputs.severity }}
           color: '#0099ff'
-          title: '@here 👀 Pull request ready for review!'
+          title: '👀 Pull request ready for review!'
           description: |
-            **Author:** `@${{ github.actor }}`
             **Branch:** `${{ github.head_ref }} ➡️ ${{ github.base_ref }}`
             **Title:** `${{ github.event.pull_request.title }}`
           details: |
-            🧮 **Changes:** +${{ steps.pr_metrics.outputs.additions }} / -${{ steps.pr_metrics.outputs.deletions }}
+            ✨ **Changes:** +${{ steps.pr_metrics.outputs.additions }} / -${{ steps.pr_metrics.outputs.deletions }}
             📁 **Files:** ${{ steps.pr_metrics.outputs.files }}
-            🔢 **Commits:** ${{ steps.pr_metrics.outputs.commits }}
-            🔗 [View Pull Request](${{ github.event.pull_request.html_url }} #${{ github.event.pull_request.number }})
+            📝 **Commits:** ${{ steps.pr_metrics.outputs.commits }}
+            🔗 [View Pull Request #${{ github.event.pull_request.number }}](${{ github.event.pull_request.html_url }})
           footer: "MagBridge CI • ${{ github.event.pull_request.created_at }}"
