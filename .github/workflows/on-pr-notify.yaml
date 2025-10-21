@@ -1,0 +1,28 @@
+name: Notify Discord on PR Open
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+jobs:
+  discord-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Discord
+        uses: rjstone/discord-webhook-notify@v2
+        with:
+          webhookUrl: ${{ secrets.DISCORD_PR_WEBHOOK }}
+          username: 'MagBridge CI'
+          avatarUrl: 'https://raw.githubusercontent.com/github/explore/main/topics/github/github.png'
+          severity: 'info'
+          color: '#0099ff'
+          title: '🧩 New Pull Request Opened!'
+          description: |
+            **Repository:** `${{ github.repository }}`
+            **Author:** `${{ github.actor }}`
+            **Branch:** `${{ github.head_ref }} → ${{ github.base_ref }}`
+            **Title:** `${{ github.event.pull_request.title }}`
+          details: |
+            💬 *${{ github.event.pull_request.body || 'No description provided.' }}*
+            🔗 [View Pull Request](${{ github.event.pull_request.html_url }})
+          footer: "MagBridge CI • ${{ github.event.pull_request.created_at }}"
