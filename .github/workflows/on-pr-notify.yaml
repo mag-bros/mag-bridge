@@ -1,0 +1,64 @@
+name: Notify Discord on PR Open
+
+on:
+  pull_request:
+    branches:
+      - master
+    types: [ready_for_review]
+
+jobs:
+  discord-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute PR Metrics
+        id: pr_metrics
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Fetching PR data..."
+          DATA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} \
+            --jq '{additions, deletions, changed_files, commits}')
+
+          ADD=$(echo "$DATA" | jq -r '.additions')
+          DEL=$(echo "$DATA" | jq -r '.deletions')
+          FILES=$(echo "$DATA" | jq -r '.changed_files')
+          COMMITS=$(echo "$DATA" | jq -r '.commits')
+
+          # Compute severity level based on size
+          TOTAL=$((ADD + DEL))
+          if [ "$TOTAL" -gt 1000 ]; then
+            SEVERITY="error"
+          elif [ "$TOTAL" -gt 200 ]; then
+            SEVERITY="warn"
+          else
+            SEVERITY="info"
+          fi
+
+          echo "Metrics: +$ADD / -$DEL | Files: $FILES | Commits: $COMMITS | Severity: $SEVERITY"
+
+          # Export outputs for next step
+          echo "severity=$SEVERITY" >> $GITHUB_OUTPUT
+          echo "additions=$ADD" >> $GITHUB_OUTPUT
+          echo "deletions=$DEL" >> $GITHUB_OUTPUT
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+          echo "commits=$COMMITS" >> $GITHUB_OUTPUT
+
+      - name: Notify Discord
+        uses: rjstone/discord-webhook-notify@v2
+        with:
+          webhookUrl: ${{ secrets.DISCORD_PR_WEBHOOK }}
+          username: 'MagBridge CI'
+          avatarUrl: 'https://raw.githubusercontent.com/chem-nexus/mag-bridge/assets-v1.1/.github/assets/terminator.png'
+          severity: ${{ steps.pr_metrics.outputs.severity }}
+          color: '#0099ff'
+          title: '👀 Pull request ready for review!'
+          description: |
+            **Branch:** `${{ github.head_ref }} ➡️ ${{ github.base_ref }}`
+            **Title:** `${{ github.event.pull_request.title }}`
+          details: |
+            ✨ **Changes:** +${{ steps.pr_metrics.outputs.additions }} / -${{ steps.pr_metrics.outputs.deletions }}
+            📁 **Files:** ${{ steps.pr_metrics.outputs.files }}
+            📝 **Commits:** ${{ steps.pr_metrics.outputs.commits }}
+            🔗 [View Pull Request #${{ github.event.pull_request.number }}](${{ github.event.pull_request.html_url }})
+          footer: "MagBridge CI • ${{ github.event.pull_request.created_at }}"
