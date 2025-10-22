@@ -58,6 +58,7 @@ jobs:
           color: "#0099ff"
           title: "👀 Pull request ready for review!"
           description: |
+            **Author:** ${{ github.event.pull_request.user.login }}
             **Branch:** `${{ github.head_ref }} ➡️ ${{ github.base_ref }}`
             **Title:** `${{ github.event.pull_request.title }}`
           details: |
