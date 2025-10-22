@@ -403,3 +403,4 @@ Numerous software packages have been developed to calculate the magnetic propert
 > 
 > <a id="ref1"></a>[8] [magnetisation units](https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://users.ox.ac.uk/~sjb/magnetism/units.pdf&ved=2ahUKEwiBt6DM85qQAxXwBBAIHZoEOE4QFnoECBgQAQ&usg=AOvVaw3Bn4ljFiHMbVIDNGro2GVU)
 
+
