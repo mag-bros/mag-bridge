@@ -132,19 +132,19 @@ It is important to note that, for most paramagnetic substances, Ï‡<sub>P</sub> â
 &nbsp;
 
 ## 3 Diamagnetic contribution <a id="diamagnetic-contribution"></a>
-### 3.1 **Example I** - `2-methylpropan-2-ol` <a id="example-i"></a>
-> Our first example of a compound for which we will determine the diamagnetic contribution is `2-methylpropan-2-ol`, an alcohol. To calculate the diamagnetic contribution, we use [Eq. (5)](#eq5). 
+### 3.1 **Example I** - `2-methylpropan-1-ol` <a id="example-i"></a>
+> Our first example of a compound for which we will determine the diamagnetic contribution is `2-methylpropan-1-ol`, an alcohol. To calculate the diamagnetic contribution, we use [Eq. (5)](#eq5). 
 
 &nbsp;
 <p align="center">
   <img src="https://github.com/user-attachments/assets/9783a0bc-fcfb-4c53-abe4-fe5b18ec0690" width="500" alt="Comound1">
 </p>
 <p align="center">
-  <b>Figure 1</b> Structure of 2-methylpropan-2-ol.
+  <b>Figure 1</b> Structure of 2-methylpropan-1-ol.
 </p>
 &nbsp;
 
-Figure 1 shows that 2-methylpropan-2-ol is a neutral molecule in which all atoms are covalently bonded into a branched chain structure. Therefore, expansion of the first sum in the equation is:
+Figure 1 shows that 2-methylpropan-1-ol is a neutral molecule in which all atoms are covalently bonded into a branched chain structure. Therefore, expansion of the first sum in the equation is:
 
 $$
 \sum_i \chi_{Di} = 4 \chi_{D(C)} + 10 \chi_{D(H)} + \chi_{D(O)}
