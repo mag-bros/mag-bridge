@@ -1,0 +1,70 @@
+{
+  "hash": "4f150c38",
+  "configHash": "c8aea1b3",
+  "lockfileHash": "4536f5a1",
+  "browserHash": "a078c84e",
+  "optimized": {
+    "@angular/cdk/bidi": {
+      "src": "../../../../../../node_modules/@angular/cdk/fesm2022/bidi.mjs",
+      "file": "@angular_cdk_bidi.js",
+      "fileHash": "749ebbda",
+      "needsInterop": false
+    },
+    "@angular/core": {
+      "src": "../../../../../../node_modules/@angular/core/fesm2022/core.mjs",
+      "file": "@angular_core.js",
+      "fileHash": "7dbe91e1",
+      "needsInterop": false
+    },
+    "@angular/material/button": {
+      "src": "../../../../../../node_modules/@angular/material/fesm2022/button.mjs",
+      "file": "@angular_material_button.js",
+      "fileHash": "3e4e1181",
+      "needsInterop": false
+    },
+    "@angular/material/slide-toggle": {
+      "src": "../../../../../../node_modules/@angular/material/fesm2022/slide-toggle.mjs",
+      "file": "@angular_material_slide-toggle.js",
+      "fileHash": "c51bce92",
+      "needsInterop": false
+    },
+    "@angular/platform-browser": {
+      "src": "../../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
+      "file": "@angular_platform-browser.js",
+      "fileHash": "fa8695b9",
+      "needsInterop": false
+    },
+    "@angular/router": {
+      "src": "../../../../../../node_modules/@angular/router/fesm2022/router.mjs",
+      "file": "@angular_router.js",
+      "fileHash": "4dc50361",
+      "needsInterop": false
+    },
+    "zone.js": {
+      "src": "../../../../../../node_modules/zone.js/fesm2015/zone.js",
+      "file": "zone__js.js",
+      "fileHash": "ae3b50ab",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-TXHC4DU3": {
+      "file": "chunk-TXHC4DU3.js"
+    },
+    "chunk-SGNCL6JM": {
+      "file": "chunk-SGNCL6JM.js"
+    },
+    "chunk-3VRPEBJE": {
+      "file": "chunk-3VRPEBJE.js"
+    },
+    "chunk-GU7Q72UK": {
+      "file": "chunk-GU7Q72UK.js"
+    },
+    "chunk-I43IMPFX": {
+      "file": "chunk-I43IMPFX.js"
+    },
+    "chunk-WDMUDEB6": {
+      "file": "chunk-WDMUDEB6.js"
+    }
+  }
+}
