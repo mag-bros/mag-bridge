@@ -7,21 +7,24 @@ from src.core.atom import MBAtom
 
 
 class MBMolecule:
+    """Wrapper around RDKit Atom providing additional computed attributes."""
+
     def __init__(self, mol: Mol):
-        """Initialize from an RDKit Atom and precompute derived fields."""
+        """Make a molecule object from an RDKit Mol."""
         if not isinstance(mol, Mol):
-            raise TypeError(f"Expected rdkit.Chem.rdchem.Atom, got {type(mol)}")
-        self._mol: Mol = mol
+            raise TypeError(f"Expected rdkit.Chem.rdchem.Mol, got {type(mol)}")
+        self._mol: Mol = mol  # Actual RDKit object
         self._atoms: list[MBAtom] = [MBAtom(a) for a in mol.GetAtoms()]
-        self.atom_charge = ...  # TODO::
 
     def preprocess(self) -> None:
+        """Modify this molecule in place (adds oxidation numbers and hydrogens)."""
         rdmd.CalcOxidationNumbers(self._mol)
         self._mol = AddHs(self._mol)
 
     def GetAtoms(self) -> list[MBAtom]:
+        """Return list of wrapped atom objects."""
         return self._atoms
 
     def __getattr__(self, name) -> Any:
-        """Delegate unknown attribute access to the wrapped RDKit Atom."""
-        return getattr(self._atom, name)
+        """Pass any unknown function call to the RDKit Mol object."""
+        return getattr(self._mol, name)
