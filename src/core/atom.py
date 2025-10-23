@@ -57,6 +57,32 @@ class MBAtom:
         symbols = [n.GetSymbol() for n in self._atom.GetNeighbors()]
         return ", ".join(symbols) if as_string else symbols
 
+    def __str__(self) -> str:
+        """Return a one-line, column-aligned summary of atom properties."""
+        # TODO:: Use constructor fields for all variables instead.
+        # TODO:: Filter actually relevant fields - remove these that we don't want to track
+        #   Expected: self.symbol
+        #   Wrong:    self.GetSymbol()
+        return (
+            f"Symbol: {self.GetSymbol():<3} | "
+            f"Ring: {str(self.IsInRing()):<5} | "
+            f"Deg: {self.GetTotalDegree():<2} | "
+            f"FChg: {self.GetFormalCharge():<2} | "
+            f"SChg: {str(self.GetCharge()):<5} | "
+            f"Ox: {str(self.ox_state):<4} | "
+            f"id: {self.GetIdx():<2} | "
+            f"neighbors: {self.GetNeighborSymbols(as_string=True)}"
+        )
+
+    def __getattr__(self, name) -> Any:
+        """Delegate unknown attribute access to the wrapped RDKit Atom."""
+        return getattr(self._atom, name)
+
+    def __repr__(self) -> str:
+        """Return a concise developer-oriented identifier string."""
+        return f"<MBAtom {self.GetSymbol()} idx={self.GetIdx()}>"
+
+    # Below section is used for linting purposes only
     # Expose key RDKit Atom methods for IDE autocompletion and navigation.
     def GetSymbol(self) -> str:
         """Return the atom's chemical symbol."""
@@ -81,28 +107,3 @@ class MBAtom:
     def GetProp(self, key: str) -> Any:
         """Return property value by key."""
         return self._atom.GetProp(key=key)
-
-    def __getattr__(self, name) -> Any:
-        """Delegate unknown attribute access to the wrapped RDKit Atom."""
-        return getattr(self._atom, name)
-
-    def __repr__(self) -> str:
-        """Return a concise developer-oriented identifier string."""
-        return f"<MBAtom {self.GetSymbol()} idx={self.GetIdx()}>"
-
-    def __str__(self) -> str:
-        """Return a one-line, column-aligned summary of atom properties."""
-        # TODO:: Use constructor fields for all variables instead.
-        # TODO:: Filter actually relevant fields - remove these that we don't want to track
-        #   Expected: self.symbol
-        #   Wrong:    self.GetSymbol()
-        return (
-            f"{self.GetSymbol():<3} | "
-            f"Ring: {str(self.IsInRing()):<5} | "
-            f"Deg: {self.GetTotalDegree():<2} | "
-            f"FChg: {self.GetFormalCharge():<2} | "
-            f"SChg: {str(self.GetCharge()):<5} | "
-            f"Ox: {str(self.ox_state):<4} | "
-            f"id: {self.GetIdx():<2} | "
-            f"neighbors: {self.GetNeighborSymbols(as_string=True)}"
-        )
