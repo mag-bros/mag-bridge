@@ -2,33 +2,141 @@ SHELL := /bin/sh
 .ONESHELL:
 .SILENT:
 
-BACKEND_APP_NAME   := backend_app
+##### ============
+##### Core knobs (env-overridable): set via `make VAR=value` or export in shell
+##### ============
 
-.PHONY: build-backend build-frontend
+# Project root (auto-detected to the directory containing this Makefile)
+ROOT_DIR ?= $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+
+# Source directories
+BACKEND_SRC ?= $(ROOT_DIR)/backend
+FRONTEND_SRC ?= $(ROOT_DIR)/frontend
+
+# Build output directories
+BUILD ?= $(ROOT_DIR)/build
+BACKEND_DIST := $(BUILD)/backend
+FRONTEND_DIST := $(BUILD)/frontend
+APP_DIST := $(BUILD)/app
+
+# Backend packaging
+BACKEND_APP_NAME ?= backend_app
+BACKEND_ENTRY ?= $(BACKEND_SRC)/main.py
+PYINSTALLER_OPTS ?= --onefile
+
+# Frontend build
+NPM ?= npm
+NPX ?= npx
+ELECTRON_BUILDER ?= $(NPX) electron-builder
+# Target platform for electron-builder (override to --win, --linux, etc.)
+EB_PLATFORM ?= --mac
+
+# Logs
+HOME_DIR ?= $(HOME)
+LOG_DIR ?= $(HOME_DIR)/.magbridge/logs
+LOG_FILE ?= $(LOG_DIR)/magbridge.log
+
+# Runtime (packaged app) paths
+APP_NAME ?= Mag Bridge
+MAC_APP_BIN := $(APP_DIST)/mac-arm64/$(APP_NAME).app/Contents/MacOS/$(APP_NAME)
+
+# Python (optionally point at your venv)
+PYTHON ?= python3
+
+# OS detection (GNU Make on Windows sets OS=Windows_NT)
+ifeq ($(OS),Windows_NT)
+  # Windows/MSYS/MinGW/WSL nuances
+  RM := rm -rf
+  MKDIR := mkdir -p
+  PATH_SEP := ;
+  EB_PLATFORM ?= --win
+  PYTHON ?= python
+else
+  RM := rm -rf
+  MKDIR := mkdir -p
+  PATH_SEP := :
+endif
+
+##### ============
+##### Phonies
+##### ============
+
+.PHONY: all clean build-backend build-frontend dev run logs show-vars
 
 all: build-backend build-frontend
 
+show-vars:
+	@echo "ROOT_DIR        = $(ROOT_DIR)"
+	@echo "BACKEND_SRC     = $(BACKEND_SRC)"
+	@echo "FRONTEND_SRC    = $(FRONTEND_SRC)"
+	@echo "BUILD           = $(BUILD)"
+	@echo "BACKEND_APP_NAME= $(BACKEND_APP_NAME)"
+	@echo "BACKEND_ENTRY   = $(BACKEND_ENTRY)"
+	@echo "BACKEND_DIST    = $(BACKEND_DIST)"
+	@echo "FRONTEND_DIST   = $(FRONTEND_DIST)"
+	@echo "APP_DIST        = $(APP_DIST)"
+	@echo "LOG_FILE        = $(LOG_FILE)"
+	@echo "PYTHON          = $(PYTHON)"
+	@echo "EB_PLATFORM     = $(EB_PLATFORM)"
+
+##### ============
+##### Backend (PyInstaller)
+##### ============
+
 build-backend:
-	@rm -rf build/backend
-	@pyinstaller --onefile \
-              --name $(BACKEND_APP_NAME) \
-              --paths backend \
-              --distpath build/backend \
-              --workpath build/backend/.pyi-work \
-              --specpath build/backend/.pyi-specs \
-              --noconfirm backend/main.py
+	$(RM) "$(BACKEND_DIST)"
+	$(MKDIR) "$(BACKEND_DIST)" "$(BACKEND_DIST)/.pyi-work" "$(BACKEND_DIST)/.pyi-specs"
+	@echo "⧗ Building backend with PyInstaller → $(BACKEND_DIST)"
+	pyinstaller $(PYINSTALLER_OPTS) \
+	  --name "$(BACKEND_APP_NAME)" \
+	  --paths "$(BACKEND_SRC)" \
+	  --distpath "$(BACKEND_DIST)" \
+	  --workpath "$(BACKEND_DIST)/.pyi-work" \
+	  --specpath "$(BACKEND_DIST)/.pyi-specs" \
+	  --noconfirm "$(BACKEND_ENTRY)"
+	@echo "✓ Backend built: $(BACKEND_DIST)/$(BACKEND_APP_NAME) (or .exe on Windows)"
+
+##### ============
+##### Frontend (Angular + Electron)
+##### ============
 
 build-frontend:
-	@rm -rf build/frontend build/app
-	@npm ci --prefix frontend
-	@npm run build-angular --prefix frontend
-	@cd frontend && npx electron-builder --mac
+	$(RM) "$(FRONTEND_DIST)" "$(APP_DIST)"
+	@echo "⧗ Installing frontend deps"
+	$(NPM) ci --prefix "$(FRONTEND_SRC)"
+	@echo "⧗ Building Angular"
+	$(NPM) run build-angular --prefix "$(FRONTEND_SRC)"
+	@echo "⧗ Packaging Electron ($(EB_PLATFORM))"
+	cd "$(FRONTEND_SRC)" && $(ELECTRON_BUILDER) $(EB_PLATFORM)
+	@echo "✓ Frontend packaged under $(APP_DIST)"
 
+##### ============
+##### Dev & Run
+##### ============
+
+# Dev: start front-end dev stack (your package.json 'dev' script). Keeps your current behavior.
 dev:
-	@npm run dev --prefix frontend
+	$(MKDIR) "$(LOG_DIR)"
+	@rm $(LOG_FILE)
+	@echo "⧗ Starting frontend dev (logs: $(LOG_FILE))"
+	$(NPM) run dev --prefix "$(FRONTEND_SRC)"
 
+# Run packaged app (mac default). Override MAC_APP_BIN or EB_PLATFORM as needed.
 run:
-	@"build/app/mac-arm64/Mag Bridge.app/Contents/MacOS/Mag Bridge"
+	$(MKDIR) "$(LOG_DIR)"
+	@rm $(LOG_FILE)
+	@echo "⧗ Running packaged app: $(MAC_APP_BIN)"
+	"$(MAC_APP_BIN)"
 
 logs:
-	@tail -f ~/magbridge_runtime.log
+	$(MKDIR) "$(LOG_DIR)"
+	@echo "⧗ Tailing logs at: $(LOG_FILE)"
+	tail -f "$(LOG_FILE)"
+
+##### ============
+##### Clean
+##### ============
+
+clean:
+	@echo "⧗ Cleaning build outputs"
+	$(RM) "$(BACKEND_DIST)" "$(FRONTEND_DIST)" "$(APP_DIST)"

@@ -30,10 +30,13 @@
         "from": "../build",
         "to": "build",
         "filter": [
-          "frontend/**/*"
+          "frontend/**/*",
+          "backend/**/*"
         ]
       },
       "main.js",
+      "preload.js",
+      "logging.js",
       "package.json"
     ],
     "extraResources": [
