@@ -9,7 +9,8 @@
     "oderwat.indent-rainbow",
     "ionutvmi.path-autocomplete",
     "mechatroner.rainbow-csv",
-    "tamasfe.even-better-toml"
+    "ms-vscode.vscode-typescript-next",
+    "postman.postman-for-vscode"
   ],
   "unwantedRecommendations": []
 }
