@@ -1,5 +1,14 @@
 {
+  "editor.defaultFormatter": "trunk.io",
+  "editor.largeFileOptimizations": false,
+  "editor.unicodeHighlight.ambiguousCharacters": false,
+  "editor.minimap.enabled": false,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
   "[python]": {
+    "editor.defaultFormatter": "trunk.io",
     "editor.formatOnSave": true,
     "editor.tabSize": 4,
     "editor.formatOnType": true,
@@ -8,12 +17,8 @@
       "source.fixAll.ruff": "explicit"
     }
   },
-  "[jupyter-notebook]": {
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": "explicit"
-    }
-  },
+  "jupyter.notebookFileRoot": "${workspaceFolder}",
+  "jupyter.askForKernelRestart": false,
   "[javascript]": {
     "editor.formatOnSave": true
   },
@@ -45,20 +50,18 @@
   "[yaml]": {
     "editor.formatOnSave": true
   },
-  "notebook.codeActionsOnSave": {
-    "notebook.source.organizeImports": "explicit"
+  "[typescript]": {
+    "editor.formatOnSave": true
+  },
+  "[scss]": {
+    "editor.formatOnSave": true
+  },
+  "[dotenv]": {
+    "editor.formatOnSave": true
   },
   "files.associations": {
     "*.sh": "shellscript"
   },
-  "editor.defaultFormatter": "trunk.io",
-  "editor.largeFileOptimizations": false,
-  "editor.unicodeHighlight.ambiguousCharacters": false,
-  "editor.minimap.enabled": false,
-  "editor.tabSize": 2,
-  "editor.insertSpaces": true,
-  "editor.detectIndentation": false,
-  "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
   "files.exclude": {},
   "files.watcherExclude": {},
   "files.autoSave": "onFocusChange",
@@ -67,9 +70,6 @@
   "python.testing.unittestEnabled": false,
   "git.openRepositoryInParentFolders": "never",
   "git.defaultBranchName": "master",
-  "jupyter.notebookFileRoot": "${workspaceFolder}",
-  "jupyter.askForKernelRestart": false,
-  "notebook.formatOnSave.enabled": true,
   "latex-workshop.view.pdf.viewer": "tab",
   "gitlens.graph.layout": "editor",
   "explorer.confirmDelete": false,
