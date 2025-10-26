@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
-import { Form } from './form/form/form';
+import { Form } from './components/form/form';
 
 @Component({
   selector: 'app-root',
