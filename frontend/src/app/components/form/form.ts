@@ -12,6 +12,7 @@ import { RestService } from '../../core/services/rest.service';
 })
 export class Form {
   constructor(private restService: RestService) {}
+  response: string | undefined;
 
   @ViewChild('number', { read: ElementRef }) number!: ElementRef<HTMLElement>;
 
@@ -25,7 +26,7 @@ export class Form {
     }
 
     this.restService.post(this.restService.endpoints.math.divideByTwo(number), {}).subscribe({
-      next: (res) => console.log('Result:', res),
+      next: (res) => (this.response = JSON.stringify(res)),
       error: (err) => console.error('Error:', err),
     });
   }
