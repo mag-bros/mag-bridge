@@ -18,6 +18,7 @@ runtimes:
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
   enabled:
+    # - pyright@1.1.407
     - actionlint@1.7.8
     - bandit@1.8.6
     - black@25.9.0

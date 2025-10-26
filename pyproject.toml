@@ -1,0 +1,11 @@
+[tool.pyright]
+include = ["backend", "src"]
+venvPath = "."
+venv = ".venv"
+reportMissingImports = false
+reportMissingModuleSource = false
+typeCheckingMode = "basic"
+
+[tool.ruff.lint]
+select = ["I"]
+fixable = ["I"]
