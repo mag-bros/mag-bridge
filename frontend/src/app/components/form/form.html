@@ -1,13 +1,7 @@
-<div class="form-container">
-  <form (submit)="$event.preventDefault()">
-    <mat-form-field>
-      <mat-label>Number to divide by 2</mat-label>
-      <input matInput #number />
-    </mat-form-field>
-    <button matButton="elevated" (click)="submitButtonClicked()">Submit</button>
-  </form>
-
-  @if (response) {
-    <div>{{ response }}</div>
-  }
-</div>
+<form (submit)="$event.preventDefault()">
+  <mat-form-field>
+    <mat-label>Number to divide by 2</mat-label>
+    <input matInput #number>
+  </mat-form-field>
+  <button matButton="elevated" (click)="submitButtonClicked()">Submit</button>
+</form>
