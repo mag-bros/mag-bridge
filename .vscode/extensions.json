@@ -13,7 +13,8 @@
         "james-yu.latex-workshop",
         "oderwat.indent-rainbow",
         "ionutvmi.path-autocomplete",
-        "mechatroner.rainbow-csv"
+        "mechatroner.rainbow-csv",
+        "james-yu.latex-workshop"
     ],
     "unwantedRecommendations": []
 }

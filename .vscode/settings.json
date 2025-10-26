@@ -73,7 +73,6 @@
     "explorer.confirmDelete": false,
     "explorer.confirmDragAndDrop": false,
     "terminal.integrated.enableMultiLinePasteWarning": "never",
-    "redhat.telemetry.enabled": false,
     "editor.largeFileOptimizations": false,
     "editor.unicodeHighlight.ambiguousCharacters": false,
     "editor.minimap.enabled": false,
