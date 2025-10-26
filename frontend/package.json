@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "install-dependencies": "npm i",
+    "format-code": "prettier --write \"src/**/*.{html,ts,js,scss}\"",
     "ng": "ng",
     "serve-angular-hmr": "ng serve --hmr --port 4200",
     "build-angular": "ng build --base-href ./",
@@ -89,6 +90,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "prettier": "^3.6.2",
     "typescript": "~5.9.2",
     "wait-on": "^9.0.1"
   }

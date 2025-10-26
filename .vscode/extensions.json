@@ -8,7 +8,9 @@
     "james-yu.latex-workshop",
     "oderwat.indent-rainbow",
     "ionutvmi.path-autocomplete",
-    "mechatroner.rainbow-csv"
+    "mechatroner.rainbow-csv",
+    "ms-vscode.vscode-typescript-next",
+    "postman.postman-for-vscode"
   ],
   "unwantedRecommendations": []
 }

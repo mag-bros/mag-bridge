@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -18,7 +18,9 @@ function createWindow() {
     width: 1000,
     height: 800,
     webPreferences: {
-      nodeIntegration: true,
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
     },
   });
 
@@ -38,4 +40,30 @@ app.on('activate', () => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+ipcMain.handle('api-request', async (event, { url, method = 'GET', body = null }) => {
+  try {
+    const options = {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+    };
+
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error('Error in api-request handler:', err);
+    throw err;
+  }
 });
