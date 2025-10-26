@@ -1,81 +1,101 @@
 {
-  "editor.defaultFormatter": "trunk.io",
-  "editor.largeFileOptimizations": false,
-  "editor.unicodeHighlight.ambiguousCharacters": false,
-  "editor.minimap.enabled": false,
-  "editor.tabSize": 2,
-  "editor.insertSpaces": true,
-  "editor.detectIndentation": false,
-  "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
-  "[python]": {
+    "[python]": {
+        "editor.formatOnType": true,
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+    "[jupyter-notebook]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        },
+    },
+    "jupyter.notebookFileRoot": "${workspaceFolder}",
+    "notebook.formatOnSave.enabled": true,
+    "notebook.codeActionsOnSave": {
+        "notebook.source.organizeImports": "explicit"
+    },
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "ruff.enable": true,
+    "[javascript]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "Wscats.eno"
+    },
+    "[html]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "Wscats.eno"
+    },
+    "[css]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "Wscats.eno"
+    },
+    "[jsonc]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[json]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[toml]": {
+        "editor.defaultFormatter": "tamasfe.even-better-toml",
+        "editor.formatOnSave": true,
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true
+    },
+    "[markdown]": {
+        "editor.defaultFormatter": "trunk.io",
+        "editor.formatOnSave": true,
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true
+    },
+    "[shellscript]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "trunk.io"
+    },
+    "[yaml]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "trunk.io"
+    },
     "editor.defaultFormatter": "trunk.io",
-    "editor.formatOnSave": true,
+    "trunk.addToolsToPath": true,
+    "latex-workshop.view.pdf.viewer": "tab",
+    "git.openRepositoryInParentFolders": "never",
+    "gitlens.graph.layout": "editor",
+    "git.defaultBranchName": "master",
+    "explorer.confirmDelete": false,
+    "explorer.confirmDragAndDrop": false,
+    "terminal.integrated.enableMultiLinePasteWarning": false,
+    "redhat.telemetry.enabled": false,
+    "editor.largeFileOptimizations": false,
+    "editor.unicodeHighlight.ambiguousCharacters": false,
+    "editor.minimap.enabled": false,
     "editor.tabSize": 4,
-    "editor.formatOnType": true,
-    "editor.codeActionsOnSave": {
-      "source.organizeImports.ruff": "explicit",
-      "source.fixAll.ruff": "explicit"
-    }
-  },
-  "jupyter.notebookFileRoot": "${workspaceFolder}",
-  "jupyter.askForKernelRestart": false,
-  "[javascript]": {
-    "editor.formatOnSave": true
-  },
-  "[html]": {
-    "editor.formatOnSave": true
-  },
-  "[css]": {
-    "editor.formatOnSave": true
-  },
-  "[jsonc]": {
-    "editor.formatOnSave": true
-  },
-  "[json]": {
-    "editor.formatOnSave": true
-  },
-  "[toml]": {
-    "editor.formatOnSave": true,
-    "editor.tabSize": 4,
-    "editor.insertSpaces": true
-  },
-  "[markdown]": {
-    "editor.formatOnSave": true,
-    "editor.tabSize": 4,
-    "editor.insertSpaces": true
-  },
-  "[shellscript]": {
-    "editor.formatOnSave": true
-  },
-  "[yaml]": {
-    "editor.formatOnSave": true
-  },
-  "[typescript]": {
-    "editor.formatOnSave": true
-  },
-  "[scss]": {
-    "editor.formatOnSave": true
-  },
-  "[dotenv]": {
-    "editor.formatOnSave": true
-  },
-  "files.associations": {
-    "*.sh": "shellscript"
-  },
-  "files.exclude": {},
-  "files.watcherExclude": {},
-  "files.autoSave": "onFocusChange",
-  "python.analysis.typeCheckingMode": "standard",
-  "python.testing.pytestEnabled": true,
-  "python.testing.unittestEnabled": false,
-  "git.openRepositoryInParentFolders": "never",
-  "git.defaultBranchName": "master",
-  "latex-workshop.view.pdf.viewer": "tab",
-  "gitlens.graph.layout": "editor",
-  "explorer.confirmDelete": false,
-  "explorer.confirmDragAndDrop": false,
-  "terminal.integrated.enableMultiLinePasteWarning": "never",
-  "workbench.colorCustomizations": {},
-  "workbench.startupEditor": "none",
-  "workbench.secondarySideBar.defaultVisibility": "hidden"
+    "editor.detectIndentation": false,
+    "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+    "workbench.colorCustomizations": {},
+    "workbench.startupEditor": "none",
+    "workbench.secondarySideBar.defaultVisibility": "hidden",
+    "files.exclude": {
+        "**/.trunk/*actions/": true,
+        "**/.trunk/*logs/": true,
+        "**/.trunk/*notifications/": true,
+        "**/.trunk/*out/": true,
+        "**/.trunk/*plugins/": true
+    },
+    "files.watcherExclude": {
+        "**/.trunk/*actions/": true,
+        "**/.trunk/*logs/": true,
+        "**/.trunk/*notifications/": true,
+        "**/.trunk/*out/": true,
+        "**/.trunk/*plugins/": true
+    },
+    "files.autoSave": "onFocusChange",
+    "trunk.inlineDecorators": false,
+    "jupyter.askForKernelRestart": false,
 }

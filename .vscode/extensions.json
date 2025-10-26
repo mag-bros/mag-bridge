@@ -1,16 +1,16 @@
 {
-  "recommendations": [
-    "trunk.io",
-    "ms-python.python",
-    "ms-python.vscode-pylance",
-    "ms-toolsai.jupyter",
-    "eamodio.gitlens",
-    "james-yu.latex-workshop",
-    "oderwat.indent-rainbow",
-    "ionutvmi.path-autocomplete",
-    "mechatroner.rainbow-csv",
-    "ms-vscode.vscode-typescript-next",
-    "postman.postman-for-vscode"
-  ],
-  "unwantedRecommendations": []
+    "recommendations": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.isort",
+        "charliermarsh.ruff",
+        "ms-toolsai.jupyter",
+        "tamasfe.even-better-toml",
+        "trunk.io",
+        "wscats.eno",
+        "esbenp.prettier-vscode",
+        "eamodio.gitlens",
+        "james-yu.latex-workshop"
+    ],
+    "unwantedRecommendations": []
 }
