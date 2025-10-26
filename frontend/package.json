@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "install-dependencies": "npm i",
-    "format": "prettier --write \"src/**/*.{html,ts,js,scss}\"",
+    "format-code": "prettier --write \"src/**/*.{html,ts,js,scss}\"",
     "ng": "ng",
     "serve-angular-hmr": "ng serve --hmr --port 4200",
     "build-angular": "ng build --base-href ./ --output-path=../build/frontend",
