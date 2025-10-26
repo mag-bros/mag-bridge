@@ -1,5 +1,4 @@
-const { app, BrowserWindow } = require('electron');
-const { spawn } = require('child_process');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const pkg = require('./package.json');
@@ -36,7 +35,11 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1000,
     height: 800,
-    webPreferences: { nodeIntegration: true },
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
   });
 
   if (!isRelease) {
@@ -86,7 +89,28 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-app.on('will-quit', () => {
-  if (backendProcess) backendProcess.kill();
-  if (isRelease) log('App quitting.');
+ipcMain.handle('api-request', async (event, { url, method = 'GET', body = null }) => {
+  try {
+    const options = {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+    };
+
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error('Error in api-request handler:', err);
+    throw err;
+  }
 });
