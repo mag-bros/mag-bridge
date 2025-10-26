@@ -8,12 +8,12 @@
     "format-code": "prettier --write \"src/**/*.{html,ts,js,scss}\"",
     "ng": "ng",
     "serve-angular-hmr": "ng serve --hmr --port 4200",
-    "build-angular": "ng build --base-href ./",
+    "build-angular": "ng build --base-href ./ --output-path=../build/frontend",
     "test-angular": "ng test",
     "electron": "electron .",
     "electron-dev": "NODE_ENV=development electron .",
     "dev-frontend": "concurrently \"npm run serve-angular-hmr\" \"wait-on http://localhost:4200 && NODE_ENV=development electron .\"",
-    "dev-backend": "cd ../ && .venv/bin/python -m uvicorn backend.main:app --reload",
+    "dev-backend": "cd ../ && .venv/bin/python -m uvicorn backend:app --reload",
     "dev": "concurrently \"npm run dev-backend\" \"npm run dev-frontend\"",
     "build:win": "npm run build-angular && electron-builder --win",
     "build:mac": "npm run build-angular && electron-builder --mac",
@@ -23,15 +23,33 @@
     "appId": "com.github.bridge",
     "productName": "Mag Bridge",
     "directories": {
-      "output": "dist/electron"
+      "output": "../build/app"
     },
     "files": [
-      "dist/**/*",
+      {
+        "from": "../build",
+        "to": "build",
+        "filter": [
+          "frontend/**/*",
+          "backend/**/*"
+        ]
+      },
       "main.js",
+      "preload.js",
+      "logging.js",
       "package.json"
     ],
+    "extraResources": [
+      {
+        "from": "../build/backend/",
+        "to": "backend"
+      }
+    ],
     "extraMetadata": {
-      "main": "main.js"
+      "main": "main.js",
+      "env": {
+        "NODE_ENV": "release"
+      }
     },
     "win": {
       "target": [
