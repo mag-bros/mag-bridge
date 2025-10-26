@@ -19,22 +19,22 @@ $border: 1px solid $border-color;
 // Spacing (Padding & Margin)
 // --------------------------------------
 $spacing-xxs: 0.25rem; // 4px
-$spacing-xs: 0.5rem; // 8px
-$spacing-sm: 1rem; // 16px
-$spacing-md: 1.5rem; // 24px
-$spacing-lg: 2rem; // 32px
-$spacing-xl: 3rem; // 48px
-$spacing-xxl: 4rem; // 64px
+$spacing-xs: 0.5rem;   // 8px
+$spacing-sm: 1rem;     // 16px
+$spacing-md: 1.5rem;   // 24px
+$spacing-lg: 2rem;     // 32px
+$spacing-xl: 3rem;     // 48px
+$spacing-xxl: 4rem;    // 64px
 
 // --------------------------------------
 // Font Sizes
 // --------------------------------------
-$font-size-xs: 0.75rem; // 12px
+$font-size-xs: 0.75rem;  // 12px
 $font-size-sm: 0.875rem; // 14px
-$font-size-md: 1rem; // 16px
-$font-size-lg: 1.25rem; // 20px
-$font-size-xl: 1.5rem; // 24px
-$font-size-xxl: 2rem; // 32px
+$font-size-md: 1rem;     // 16px
+$font-size-lg: 1.25rem;  // 20px
+$font-size-xl: 1.5rem;   // 24px
+$font-size-xxl: 2rem;    // 32px
 
 // --------------------------------------
 // Font Spacing (Letter & Line)
