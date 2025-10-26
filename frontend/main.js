@@ -1,11 +1,12 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow } = require('electron');
+const { spawn } = require('child_process');
 const path = require('path');
 
-const isDev = process.env.NODE_ENV === 'development';
+const isRelease = process.env.NODE_ENV === 'release';
+let backendProcess;
 
-if (isDev) {
+if (!isRelease) {
   const electronReload = require('electron-reload');
-
   electronReload(__dirname, {
     electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
     forceHardReset: true,
@@ -24,15 +25,22 @@ function createWindow() {
     },
   });
 
-  if (isDev) {
-    win.loadURL('http://localhost:4200'); // Angular dev server
+  if (!isRelease) {
+    win.loadURL('http://localhost:4200');
     win.webContents.openDevTools();
   } else {
-    win.loadFile(path.join(__dirname, 'dist/mag-bridge/browser/index.html'));
+    win.loadFile(path.join(__dirname, '../build/frontend/browser/index.html'));
   }
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  if (isRelease) {
+    const backendPath = path.join(process.resourcesPath, 'backend', 'backend_app');
+    backendProcess = spawn(backendPath, { stdio: 'inherit' });
+  }
+
+  setTimeout(createWindow, 100);
+});
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -42,28 +50,6 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-ipcMain.handle('api-request', async (event, { url, method = 'GET', body = null }) => {
-  try {
-    const options = {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-    };
-
-    if (body) {
-      options.body = JSON.stringify(body);
-    }
-
-    const response = await fetch(url, options);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (err) {
-    console.error('Error in api-request handler:', err);
-    throw err;
-  }
+app.on('will-quit', () => {
+  if (backendProcess) backendProcess.kill();
 });

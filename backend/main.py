@@ -12,9 +12,9 @@ def runserver(host: str, port: int, reload: bool, workers: int):
     """Run FastAPI using Uvicorn with CLI options."""
     import uvicorn
 
-    running_frozen = getattr(sys, "frozen", False)
+    is_release = getattr(sys, "frozen", False)
 
-    if running_frozen:  # frozen user build
+    if is_release:  # frozen user build
         from backend import app
 
         uvicorn.run(
