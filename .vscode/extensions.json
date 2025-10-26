@@ -6,7 +6,6 @@
         "charliermarsh.ruff",
         "ms-toolsai.jupyter",
         "tamasfe.even-better-toml",
-        "trunk.io",
         "wscats.eno",
         "esbenp.prettier-vscode",
         "eamodio.gitlens",
@@ -14,7 +13,8 @@
         "oderwat.indent-rainbow",
         "ionutvmi.path-autocomplete",
         "mechatroner.rainbow-csv",
-        "james-yu.latex-workshop"
+        "james-yu.latex-workshop",
+        "foxundermoon.shell-format"
     ],
     "unwantedRecommendations": []
 }
