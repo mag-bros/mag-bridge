@@ -4,12 +4,6 @@ SHELL := /bin/sh
 
 BACKEND_APP_NAME   := backend_app
 
-ifeq ($(OS),Windows_NT)
-  EXE := build/backend/$(BACKEND_APP_NAME).exe
-else
-  EXE := build/backend/$(BACKEND_APP_NAME)
-endif
-
 .PHONY: build-backend build-frontend
 
 all: build-backend build-frontend
@@ -23,10 +17,18 @@ build-backend:
               --workpath build/backend/.pyi-work \
               --specpath build/backend/.pyi-specs \
               --noconfirm backend/main.py
-	@[ -f "$(EXE)" ] && echo "Built: $(EXE)" || (echo "Build failed"; exit 1)
 
 build-frontend:
 	@rm -rf build/frontend build/app
 	@npm ci --prefix frontend
 	@npm run build-angular --prefix frontend
-	@cd frontend && NODE_ENV=release npx electron-builder --mac
+	@cd frontend && npx electron-builder --mac
+
+dev:
+	@npm run dev --prefix frontend
+
+run:
+	@"build/app/mac-arm64/Mag Bridge.app/Contents/MacOS/Mag Bridge"
+
+logs:
+	@tail -f ~/magbridge_runtime.log

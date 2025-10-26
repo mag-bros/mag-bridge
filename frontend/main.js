@@ -1,9 +1,27 @@
 const { app, BrowserWindow } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
+const fs = require('fs');
+const pkg = require('./package.json');
 
-const isRelease = process.env.NODE_ENV === 'release';
+const isRelease = (process.env.NODE_ENV || pkg.env?.NODE_ENV) === 'release';
+console.log(`🔧 NODE_ENV = ${process.env.NODE_ENV || '(undefined)'}`);
+console.log(`🔧 PKG_ENV = ${pkg.env?.NODE_ENV || '(undefined)'}`);
+console.log(`📦 isRelease = ${isRelease}`);
+
 let backendProcess;
+let log = () => {}; // no-op by default
+
+if (isRelease) {
+  const logPath = path.join(process.env.HOME || process.env.USERPROFILE, 'magbridge_runtime.log');
+  const log = (msg) => {
+    const line = `[${new Date().toISOString()}] ${msg}\n`;
+    fs.appendFileSync(logPath, line);
+    console.log(line);
+  };
+  global.log = log;
+  log('--- App start ---');
+}
 
 if (!isRelease) {
   const electronReload = require('electron-reload');
@@ -18,25 +36,43 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1000,
     height: 800,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      nodeIntegration: false,
-      contextIsolation: true,
-    },
+    webPreferences: { nodeIntegration: true },
   });
 
   if (!isRelease) {
     win.loadURL('http://localhost:4200');
     win.webContents.openDevTools();
   } else {
-    win.loadFile(path.join(__dirname, '../build/frontend/browser/index.html'));
+    win.loadFile(path.join(__dirname, 'build/frontend/browser/index.html'));
   }
 }
 
 app.whenReady().then(() => {
   if (isRelease) {
-    const backendPath = path.join(process.resourcesPath, 'backend', 'backend_app');
-    backendProcess = spawn(backendPath, { stdio: 'inherit' });
+    // start backend
+    const backendPath = path.join(process.resourcesPath, 'backend', 'backend_app'); // windows will need .exe
+    log(`Spawning backend from: ${backendPath}`);
+
+    try {
+      backendProcess = spawn(backendPath, { stdio: ['ignore', 'pipe', 'pipe'] });
+
+      backendProcess.stdout.on('data', (d) => {
+        const msg = `[backend] ${d.toString()}`;
+        process.stdout.write(msg);
+        log(msg);
+      });
+
+      backendProcess.stderr.on('data', (d) => {
+        const msg = `[backend-err] ${d.toString()}`;
+        process.stderr.write(msg);
+        log(msg);
+      });
+
+      backendProcess.on('exit', (c) => log(`Backend exited with code ${c}`));
+      backendProcess.on('error', (err) => log(`[backend-error] ${err.message}`));
+    } catch (err) {
+      log(`[backend-spawn-error] ${err.message}`);
+    }
   }
 
   setTimeout(createWindow, 100);
@@ -52,4 +88,5 @@ app.on('window-all-closed', () => {
 
 app.on('will-quit', () => {
   if (backendProcess) backendProcess.kill();
+  if (isRelease) log('App quitting.');
 });

@@ -26,7 +26,13 @@
       "output": "../build/app"
     },
     "files": [
-      "../build/frontend/**/*",
+      {
+        "from": "../build",
+        "to": "build",
+        "filter": [
+          "frontend/**/*"
+        ]
+      },
       "main.js",
       "package.json"
     ],
@@ -37,7 +43,10 @@
       }
     ],
     "extraMetadata": {
-      "main": "main.js"
+      "main": "main.js",
+      "env": {
+        "NODE_ENV": "release"
+      }
     },
     "win": {
       "target": [
