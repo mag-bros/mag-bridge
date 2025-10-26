@@ -1,20 +1,14 @@
 {
     "recommendations": [
+        "trunk.io",
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "ms-python.isort",
-        "charliermarsh.ruff",
         "ms-toolsai.jupyter",
-        "tamasfe.even-better-toml",
-        "wscats.eno",
-        "esbenp.prettier-vscode",
         "eamodio.gitlens",
         "james-yu.latex-workshop",
         "oderwat.indent-rainbow",
         "ionutvmi.path-autocomplete",
         "mechatroner.rainbow-csv",
-        "james-yu.latex-workshop",
-        "foxundermoon.shell-format"
     ],
     "unwantedRecommendations": []
 }
