@@ -1,4 +1,5 @@
 @use '@angular/material' as mat;
+@use './styles/theme-constants' as *;
 
 html {
   @include mat.theme((
