@@ -1,10 +1,12 @@
 {
+    "python.analysis.typeCheckingMode": "standard",
     "[python]": {
+        "editor.formatOnSave": true,
         "editor.formatOnType": true,
         "editor.defaultFormatter": "charliermarsh.ruff",
-        "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
-            "source.organizeImports": "explicit"
+            "source.organizeImports.ruff": "explicit",
+            "source.fixAll.ruff": "explicit"
         }
     },
     "[jupyter-notebook]": {
@@ -40,7 +42,7 @@
     },
     "[json]": {
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
+        "editor.defaultFormatter": "vscode.json-language-features"
     },
     "[toml]": {
         "editor.defaultFormatter": "tamasfe.even-better-toml",
@@ -70,7 +72,7 @@
     "git.defaultBranchName": "master",
     "explorer.confirmDelete": false,
     "explorer.confirmDragAndDrop": false,
-    "terminal.integrated.enableMultiLinePasteWarning": false,
+    "terminal.integrated.enableMultiLinePasteWarning": "never",
     "redhat.telemetry.enabled": false,
     "editor.largeFileOptimizations": false,
     "editor.unicodeHighlight.ambiguousCharacters": false,

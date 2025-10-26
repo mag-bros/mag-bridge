@@ -10,7 +10,10 @@
         "wscats.eno",
         "esbenp.prettier-vscode",
         "eamodio.gitlens",
-        "james-yu.latex-workshop"
+        "james-yu.latex-workshop",
+        "oderwat.indent-rainbow",
+        "ionutvmi.path-autocomplete",
+        "mechatroner.rainbow-csv"
     ],
     "unwantedRecommendations": []
 }
