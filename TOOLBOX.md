@@ -139,8 +139,14 @@ git pull
 
 # Git Branches
 ### 1. check available branches
+
+**LOCAL BRANCHES:**
 ```
 git branch
+```
+**REMOTE BRANCHES:**
+```
+git branch -r
 ```
 ### 2. Change branch
 ```

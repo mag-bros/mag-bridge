@@ -15,21 +15,22 @@ class MBAtom:
         if not isinstance(atom, Atom):
             raise TypeError(f"Expected rdkit.Chem.rdchem.Atom, got {type(atom)}")
         self._atom: Atom = atom  # Actual RDKit object
-
-        # TODO:: Set class fields for other functions
-        #       Goal --> easy API user access, e.g. from notebook
         self.symbol: str = self.GetSymbol()  # example
         self.in_ring: bool = self.IsInRing(relevant_ring_atoms=RELEVANT_RING_ATOMS)
-        self.ox_state: int | None = ...
-        self.charge: int | None = ...
-        self.has_covalent_bond: bool = ...
+        self.ox_state: int | None = self.GetOxidationState(
+            relevant_symbols=RELEVANT_OX_STATE_CONST
+        )
+        self.charge: int | None = self.GetCharge()
+        self.has_covalent_bond: bool = self.HasCovalentBond()
 
     def IsInRing(self, relevant_ring_atoms: list[str] = None) -> bool | None:
         """Return True if atom is part of a ring."""
-        # TODO:: This function is not finished
-        # 1. if symbol is NOT ring relevant, then return None object
-        # 2. in all other cases, let RDKit decide if it's in ring.
-        return self._atom.IsInRing()  # Default to RDKit
+        if self._atom.GetSymbol() not in relevant_ring_atoms:
+            return None
+        else:
+            return self._atom.IsInRing()
+
+    """TODO: FIX FUNCTION. For As the oxidation state is None. Probably the self._atom.HasProp("OxidationNumber") is not executed properly."""
 
     def GetOxidationState(self, relevant_symbols: set[str]) -> int | None:
         """Return oxidation number if applicable."""
@@ -39,7 +40,8 @@ class MBAtom:
             and self._atom.GetTotalDegree() > 0
         ):
             return self._atom.GetIntProp("OxidationNumber")
-        return None
+        else:
+            return None
 
     def HasCovalentBond(self) -> bool:
         """Return True if atom has at least one covalent bond."""
@@ -47,6 +49,9 @@ class MBAtom:
 
     def GetCharge(self) -> int | None:
         """Return formal charge only for atoms without covalent bonds."""
+        # I checked if the formal charge is calculated by RDKit or taken directly from the SDF file. The latter is true.
+        # I comfirmed it by changing intentionally the charge value of one of the sodium ions in the chalconatronate.sdf file
+        # > when I run the rdkit-sandbox-kpwydra the new charge was updated for this ion.
         if not self.HasCovalentBond:
             self._atom.GetFormalCharge()
         else:
@@ -59,19 +64,15 @@ class MBAtom:
 
     def __str__(self) -> str:
         """Return a one-line, column-aligned summary of atom properties."""
-        # TODO:: Use constructor fields for all variables instead.
-        # TODO:: Filter actually relevant fields - remove these that we don't want to track
-        #   Expected: self.symbol
-        #   Wrong:    self.GetSymbol()
         return (
-            f"Symbol: {self.GetSymbol():<3} | "
-            f"Ring: {str(self.IsInRing()):<5} | "
-            f"Deg: {self.GetTotalDegree():<2} | "
-            f"FChg: {self.GetFormalCharge():<2} | "
-            f"SChg: {str(self.GetCharge()):<5} | "
-            f"Ox: {str(self.ox_state):<4} | "
+            f"Symbol: {self.symbol:<3} | "
+            f"Ring: {str(self.IsInRing()):<5} | "  # It may be omitted if we will be able to generate image of molecular structure with indexed atoms.
+            f"Ring_Relevent: {str(self.in_ring):<5} | "
+            f"Valence: {self.GetTotalDegree():<2} | "  # "Valence" is the property that describes number of bonds formed by the given atom.
+            f"Chg: {str(self.charge):<5} | "  # Must be stated somewhere for user that this only refers to single-atom ions (like Na+) but NOT multiatomic ions ( like NO3(-) )
+            f"Ox_Relevent: {str(self.ox_state):<4} | "  # Must be stated for user that oxidation state is provided only for relevent atoms"
             f"id: {self.GetIdx():<2} | "
-            f"neighbors: {self.GetNeighborSymbols(as_string=True)}"
+            f"neighbors: {self.GetNeighborSymbols(as_string=True)}"  # It may be omitted if we will be able to generate image of molecular structure with indexed atoms.
         )
 
     def __getattr__(self, name) -> Any:
