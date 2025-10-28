@@ -18,8 +18,8 @@ class Colors(Enum):
     FOREST      = "#228B22"
     TEAL        = "#008080"
     CYAN        = "#00FFFF"
-    SKY         = "#D4EEF3"
-    LOFI_SKY    = "#D5E0F5"
+    SKY         = "#E6FCFF"
+    LOFI_SKY    = "#EFF5FF"
     BLUE        = "#007AFF"
     DEEP_BLUE   = "#1946A0"
     NAVY        = "#001F3F"
@@ -39,6 +39,7 @@ class Colors(Enum):
     SLATE       = "#708090"
     BROWN       = "#8B4513"
     OLIVE       = "#808000"
+    DARK_PURPLE = "#380458"
 
     # === Extended functional ===
     ERROR       = "#D32F2F"
@@ -91,7 +92,7 @@ Theme.White = Theme(
 )
 
 Theme.LoFi = Theme(
-    Background=Colors.BLACK.rgb(),              # Rich deep base
+    Background=Colors.DARK_PURPLE.rgb(),              # Rich deep base
     Surface=Colors.LOFI_SKY.rgb(),             # Raised surface under molecules
     Primary=Colors.PURPLE.rgb(),                # Signature magenta-purple tone
     Secondary=Colors.ACCENT_PURPLE.rgb(),       # Slightly darker version
