@@ -34,15 +34,14 @@ class MBAtom:
 
     def GetOxidationState(self, relevant_symbols: set[str]) -> int | None:
         """Return oxidation number if applicable."""
-        # if (
-        #     self._atom.HasProp("OxidationNumber")
-        #     and self._atom.GetSymbol() in relevant_symbols
-        #     and self._atom.GetTotalDegree() > 0
-        # ):
-        if self._atom.HasProp("OxidationNumber"):
+        if (
+            self._atom.HasProp("OxidationNumber")
+            and self._atom.GetSymbol() in relevant_symbols
+            and self._atom.GetTotalDegree() > 0
+        ):
             return self._atom.GetIntProp("OxidationNumber")
-        # else:
-        # return None
+        else:
+            return None
 
     def HasCovalentBond(self) -> bool:
         """Return True if atom has at least one covalent bond."""

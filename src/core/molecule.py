@@ -20,6 +20,7 @@ class MBMolecule:
         """Modify this molecule in place (adds oxidation numbers and hydrogens)."""
         self._mol = AddHs(self._mol)
         rdmd.CalcOxidationNumbers(self._mol)
+        self._atoms: list[MBAtom] = [MBAtom(a) for a in self._mol.GetAtoms()]
 
     def GetAtoms(self) -> list[MBAtom]:
         """Return list of wrapped atom objects."""
