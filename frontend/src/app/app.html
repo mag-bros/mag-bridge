@@ -1,1 +1,5 @@
-<app-form></app-form>
+@if (isLoading) {
+  <app-splash-screen></app-splash-screen>
+} @else {
+  <app-form></app-form>
+}
