@@ -8,7 +8,7 @@ from tests.unit.test_data import MOLECULES_DATA_DEPRECATED, SDF_TEST_DATA
 @pytest.mark.parametrize("testcase", SDF_TEST_DATA)
 def test_calc_diamag_contr(testcase):
     """Verifies diamagnetic calculations are correct using RDKit underneath."""
-    mols: list[MBMolecule] = SDFLoader.load(testcase['sdf_file'])
+    mols: list[MBMolecule] = SDFLoader.Load(testcase['sdf_file'])
     for mol in mols:
         result = mol.CalcDiamagContr()
         assert round(result, 2) == testcase["expected_diamag"]
