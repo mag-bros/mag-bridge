@@ -16,24 +16,24 @@ class MBAtom:
         
         # Pre-compute fields used for diamag calcs, for easy access
         self.symbol: str = self.GetSymbol()
-        self.is_ring_relevant: bool = self.IsRingRelevant(relevant_ring_atoms=ConstProvider.GetRelevantRingAtoms())
-        self.ox_state: int | None = self.GetOxidationState(relevant_symbols=ConstProvider.GetRelevantOxidationAtoms())
+        self.is_ring_relevant: bool = self.IsRingRelevant()
+        self.ox_state: int | None = self.GetOxidationState()
         self.has_covalent_bond: bool = self.HasCovalentBond()
         self.total_degree: int = self.GetTotalDegree()
         self.charge: int | None = self.GetCharge()
 
-    def IsRingRelevant(self, relevant_ring_atoms: list[str]) -> bool:
+    def IsRingRelevant(self) -> bool:
         """Return True if atom is part of a ring."""
-        if self._atom.GetSymbol() in relevant_ring_atoms:
+        if self._atom.GetSymbol() in ConstProvider.GetRelevantRingAtoms():
             return self._atom.IsInRing()
         else:
             return False
 
-    def GetOxidationState(self, relevant_symbols: set[str]) -> int | None:
+    def GetOxidationState(self) -> int | None:
         """Return oxidation number only for relevant atoms"""
         if (
             self._atom.HasProp("OxidationNumber")
-            and self._atom.GetSymbol() in relevant_symbols
+            and self._atom.GetSymbol() in ConstProvider.GetRelevantOxidationAtoms()
             and self._atom.GetTotalDegree() > 0
         ):
             return self._atom.GetIntProp("OxidationNumber")
