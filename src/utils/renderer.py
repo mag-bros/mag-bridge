@@ -44,7 +44,7 @@ class Renderer:
         mols = [m for m in mols if m.GetNumAtoms() > 0]
         for m in mols:
             Compute2DCoords(m)
-        legends = [f"{m.GetProp('_MolIndex')}: {MolToSmiles(m)}" if m else "" for m in mols]
+        legends = [f"Mol {m.GetProp('_MolIndex')}: {MolToSmiles(m)}" if m else "" for m in mols]
 
         # --- Render grid directly with themed background ---
         img = MolsToGridImage(
