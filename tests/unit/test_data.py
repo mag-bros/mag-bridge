@@ -1,6 +1,18 @@
 from element import Element
 
-MOLECULES_DATA = [
+SDF_TEST_DATA = [
+    {
+        'sdf_file': 'chlorobenzene.sdf',
+        'expected_diamag': -72.19
+    },
+    # {
+    #     'sdf_file': 'chalconatronate.sdf',
+    #     'expected_diamag': -313.4
+    # },
+]
+
+
+MOLECULES_DATA_DEPRECATED = [
     {
         "formula": "C20H25NCl",
         "elements": [

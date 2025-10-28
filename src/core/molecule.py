@@ -5,22 +5,28 @@ from rdkit.Chem import rdMolDescriptors as rdmd
 
 from src.constants import ConstProvider
 from src.core.atom import MBAtom
-from PIL import Image
-from rdkit.Chem import Draw
+from rdkit.Chem import MolToSmiles
 
 class MBMolecule:
     """Wrapper around RDKit Atom providing additional computed attributes."""
 
-    def __init__(self, mol: Mol):
+    def __init__(self, mol: Mol, source_file: str, mol_index: int):
         """Make a molecule object from an RDKit Mol."""
-        assert isinstance(mol, Mol), f"Expected rdkit.Chem.rdchem.Mol, got {type(mol)}"
-        self._mol: Mol = self._preprocess(mol)  # Actual RDKit object
+        if not isinstance(mol, Mol):
+            raise TypeError(f"Expected rdkit.Chem.rdchem.Mol, got {type(mol)}")
+        self._mol: Mol = mol
         self._atoms: list[MBAtom] = [MBAtom(a) for a in self._mol.GetAtoms()]
+        self.smiles = MolToSmiles(self._mol)
+        self.source_file = source_file
+        self.mol_index = mol_index
 
     def CalcDiamagContr(self, verbose=False) -> float:
         """Calculate the molecule's total diamagnetic contribution.  
         Uses Pascal constants for ring, open-chain, oxidation state, and charge terms."""
-        contr = 0
+        mol_dia_contr = 0
+
+        if verbose:
+            print(f'- {repr(self)}')
         
         # Iterate over all atoms within this molecule
         for atom in self._atoms:
@@ -32,44 +38,60 @@ class MBMolecule:
 
             # Add ring constant for N and C atoms located within a ring
             if atom.is_ring_relevant:
-                contr += pascal_values.get('ring', 0)
+                mol_dia_contr += pascal_values.get('ring', 0)
             
             # Add open-chain constant for C or N atoms in chain fragments 
             # or when no ring constant is defined for the atom type
             elif 'ring' not in pascal_values:
-                contr += pascal_values.get('open_chain', 0)
+                mol_dia_contr += pascal_values.get('open_chain', 0)
 
             # Add oxidation-state constant when neither ring nor open-chain constants apply
             if (all(key not in pascal_values for key in ["ring", "open_chain"])):
-                contr += pascal_values.get('ox_state', 0)
+                mol_dia_contr += pascal_values.get('ox_state', 0)
 
             # Add charge constant for isolated ions (monoatomic species with net charge)
-            contr += pascal_values.get('charge', 0)
+            mol_dia_contr += pascal_values.get('charge', 0)
         
         if verbose:
-            print(f"Diamagnetic contribution: {contr:.4f} cm^3 mol^(-1)")
+            print(f"Diamag: {mol_dia_contr:.4f} cm^3 mol^(-1) - {repr(self)}")
         
-        return contr
+        return mol_dia_contr
 
-    def GetImage(self, size=(300, 300)) -> Image:
-        """Display 2D depiction of the molecule."""
-        from rdkit.Chem.Draw import MolToImage
-        from rdkit.Chem.rdDepictor import Compute2DCoords
-        
-        mol2d = Mol(self._mol)
-        Compute2DCoords(mol2d)
-        return MolToImage(mol2d, size=size)
+    def ToRDKit(self) -> Mol:
+        """Return the underlying RDKit Mol object."""
+        return self._mol
 
-    def GetAtoms(self) -> list[MBAtom]:
-        """Return list of wrapped atom objects."""
-        return self._atoms
+    def __str__(self):
+        return f"{self.source_file}:{self.mol_index} ({self.smiles})"
 
-    def _preprocess(self, mol: Mol) -> None:
-        """Adds oxidation numbers from SDF file. Also adds hydrogens to RDKit object """
-        mol = AddHs(mol)
-        rdmd.CalcOxidationNumbers(mol)
-        return mol
+    def __repr__(self):
+        return f"MBMolecule(source_file='{self.source_file}', mol_index={self.mol_index}, smiles='{self.smiles}')"
 
-    def __getattr__(self, name) -> Any:
-        """Pass any unknown function call to the RDKit Mol object."""
-        return getattr(self._mol, name)
+    """Centralized constructor for MBMolecule objects.
+    Takes raw RDKit Mol inputs and returns fully prepared MBMolecule instances."""
+
+
+class MBMoleculeFactory:
+    @staticmethod
+    def create(
+        mol: Mol,
+        source_file: str,
+        mol_index: int,
+        *,
+        add_hydrogens: bool = True,
+        set_oxidation_states: bool = True,
+        set_props: bool = True,
+    ) -> MBMolecule:
+        """Create and prepare an MBMolecule with optional preprocessing steps."""
+
+        if add_hydrogens:
+            mol = AddHs(mol)  # Adds hydrogens to RDKit object
+
+        if set_props:
+            mol.SetProp("_SourceFile", source_file)
+            mol.SetProp("_MolIndex", str(mol_index))
+
+        if set_oxidation_states:
+            rdmd.CalcOxidationNumbers(mol)
+
+        return MBMolecule(mol=mol, source_file=source_file, mol_index=mol_index)

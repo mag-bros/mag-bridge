@@ -10,7 +10,8 @@ class MBAtom:
 
     def __init__(self, atom: Atom) -> None:
         """Initialize from an RDKit Atom and precompute derived fields."""
-        assert isinstance(atom, Atom), f"Expected rdkit.Chem.rdchem.Atom, got {type(atom)}"
+        if not isinstance(atom, Atom):
+            raise TypeError(f"Expected rdkit.Chem.rdchem.Atom, got {type(atom)}")
         self._atom: Atom = atom  # Actual RDKit object
         
         # Pre-compute fields used for diamag calcs, for easy access
