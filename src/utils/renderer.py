@@ -11,9 +11,9 @@ from src.utils.ui import Theme
 class Renderer:
     """Stateful RDKit renderer configured with a persistent scientific theme."""
 
-    def __init__(self, theme: Theme = None):
+    def __init__(self, theme = Theme.Sea):
         """Initialize renderer with a given Theme (defaults to Theme.White)."""
-        self.theme = theme or Theme.White
+        self.theme = theme
 
     # === Single molecule ===
     def GetMoleculeImg(self, mol: Mol, size=(200, 200)) -> Image:
