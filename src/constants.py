@@ -1,34 +1,45 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.core.atom import MBAtom
+
+
 class ConstProvider:
     @staticmethod
-    def GetOpenChainValue(symbol: str) -> float | None:
-        return PASCAL_CONST.get(symbol, {}).get("covalent", {}).get("open_chain")
+    def GetPascalValues(atom: 'MBAtom') -> dict[str, float]:
+        covalent = PASCAL_CONST.get(atom.symbol, {}).get("covalent", {})
+        ionic = PASCAL_CONST.get(atom.symbol, {}).get("ionic", {})
+
+        values = {
+            "open_chain": covalent.get("open_chain"),
+            "ring": covalent.get("ring"),
+            "ox_state": covalent.get("ox_state", {}).get(atom.ox_state),
+            "charge": ionic.get("charge", {}).get(atom.charge),
+        }
+
+        # Keep only non-None entries
+        return {k: v for k, v in values.items() if v is not None}
 
     @staticmethod
-    def GetRingValue(symbol: str) -> float | None:
-        return PASCAL_CONST.get(symbol, {}).get("covalent", {}).get("ring")
+    def GetRelevantRingAtoms() -> list[str]:
+        return RELEVANT_RING_ATOMS
 
     @staticmethod
-    def GetOxStateValue(symbol: str, ox_state: int) -> float | None:
-        return PASCAL_CONST.get(symbol, {}).get("covalent", {}).get("ox_state", {}).get(ox_state, 0)
-    
-    @staticmethod
-    def GetChargeValue(symbol: str, charge: int) -> float | None:
-        return PASCAL_CONST.get(symbol, {}).get("ionic", {}).get("charge", {}).get(charge, 0)
-    
+    def GetRelevantOxidationAtoms() -> list[str]:
+        return RELEVANT_OXIDATION_ATOMS
+
 
 """Lists of atoms for which it was specified that the atom may be part of a ring or has a defined oxidation state, according to 10.1021/ed085p532 (DOI)"""
-
-RELEVANT_OX_STATE_CONST = ["As", "Hg", "Pb"]
+RELEVANT_OXIDATION_ATOMS = ["As", "Hg", "Pb"]
 RELEVANT_RING_ATOMS = ["N", "C"]
 
 
 """
 unit: 10^(-6) cm^3/mol
 Reference (DOI): 10.1021/ed085p532
-This dictionary represents the diamagnetic constants for elements in
+This dictionary represents the diamagnetic values for elements in
 different bonding/oxidation_state/ionic_charge scenarios. Here's a breakdown of the values:
 """
-
 PASCAL_CONST = {
     "C": {
         "covalent": {

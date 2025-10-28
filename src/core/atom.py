@@ -2,7 +2,7 @@ from typing import Any
 
 from rdkit.Chem import Atom
 
-from src.constants import RELEVANT_OX_STATE_CONST, RELEVANT_RING_ATOMS
+from src.constants import ConstProvider
 
 
 class MBAtom:
@@ -15,8 +15,8 @@ class MBAtom:
         
         # Pre-compute fields used for diamag calcs, for easy access
         self.symbol: str = self.GetSymbol()
-        self.is_ring_relevant: bool = self.IsRingRelevant(relevant_ring_atoms=RELEVANT_RING_ATOMS)
-        self.ox_state: int | None = self.GetOxidationState(relevant_symbols=RELEVANT_OX_STATE_CONST)
+        self.is_ring_relevant: bool = self.IsRingRelevant(relevant_ring_atoms=ConstProvider.GetRelevantRingAtoms())
+        self.ox_state: int | None = self.GetOxidationState(relevant_symbols=ConstProvider.GetRelevantOxidationAtoms())
         self.has_covalent_bond: bool = self.HasCovalentBond()
         self.total_degree: int = self.GetTotalDegree()
         self.charge: int | None = self.GetCharge()
