@@ -19,7 +19,7 @@ class Colors(Enum):
     TEAL        = "#008080"
     CYAN        = "#00FFFF"
     SKY         = "#D4EEF3"
-    LOFI_SKY    = "#E9ECF2"
+    LOFI_SKY    = "#D5E0F5"
     BLUE        = "#007AFF"
     DEEP_BLUE   = "#1946A0"
     NAVY        = "#001F3F"
