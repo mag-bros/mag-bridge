@@ -24,6 +24,3 @@ class SDFLoader:
         assert all(mol is not None for mol in mols), (
             f"Some molecules in '{path}' failed to parse — check syntax or atom types."
         )
-
-
-mols = SDFLoader.load("As-benzene-arsenic acid.sdf")

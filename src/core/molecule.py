@@ -18,8 +18,8 @@ class MBMolecule:
 
     def preprocess(self) -> None:
         """Modify this molecule in place (adds oxidation numbers and hydrogens)."""
-        rdmd.CalcOxidationNumbers(self._mol)
         self._mol = AddHs(self._mol)
+        rdmd.CalcOxidationNumbers(self._mol)
 
     def GetAtoms(self) -> list[MBAtom]:
         """Return list of wrapped atom objects."""

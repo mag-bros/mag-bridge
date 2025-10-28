@@ -23,25 +23,26 @@ class MBAtom:
         self.charge: int | None = self.GetCharge()
         self.has_covalent_bond: bool = self.HasCovalentBond()
 
-    def IsInRing(self, relevant_ring_atoms: list[str] = None) -> bool | None:
+    def IsInRing(self, relevant_ring_atoms: list[str]) -> bool | None:
         """Return True if atom is part of a ring."""
-        if self._atom.GetSymbol() not in relevant_ring_atoms:
-            return None
-        else:
+        if self._atom.GetSymbol() in relevant_ring_atoms:
             return self._atom.IsInRing()
+        else:
+            return None
 
     """TODO: FIX FUNCTION. For As the oxidation state is None. Probably the self._atom.HasProp("OxidationNumber") is not executed properly."""
 
     def GetOxidationState(self, relevant_symbols: set[str]) -> int | None:
         """Return oxidation number if applicable."""
-        if (
-            self._atom.HasProp("OxidationNumber")
-            and self._atom.GetSymbol() in relevant_symbols
-            and self._atom.GetTotalDegree() > 0
-        ):
+        # if (
+        #     self._atom.HasProp("OxidationNumber")
+        #     and self._atom.GetSymbol() in relevant_symbols
+        #     and self._atom.GetTotalDegree() > 0
+        # ):
+        if self._atom.HasProp("OxidationNumber"):
             return self._atom.GetIntProp("OxidationNumber")
-        else:
-            return None
+        # else:
+        # return None
 
     def HasCovalentBond(self) -> bool:
         """Return True if atom has at least one covalent bond."""
@@ -66,7 +67,7 @@ class MBAtom:
         """Return a one-line, column-aligned summary of atom properties."""
         return (
             f"Symbol: {self.symbol:<3} | "
-            f"Ring: {str(self.IsInRing()):<5} | "  # It may be omitted if we will be able to generate image of molecular structure with indexed atoms.
+            # f"Ring: {str(self.IsInRing()):<5} | "  # It may be omitted if we will be able to generate image of molecular structure with indexed atoms.
             f"Ring_Relevent: {str(self.in_ring):<5} | "
             f"Valence: {self.GetTotalDegree():<2} | "  # "Valence" is the property that describes number of bonds formed by the given atom.
             f"Chg: {str(self.charge):<5} | "  # Must be stated somewhere for user that this only refers to single-atom ions (like Na+) but NOT multiatomic ions ( like NO3(-) )
