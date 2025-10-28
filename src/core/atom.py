@@ -2,9 +2,7 @@ from typing import Any
 
 from rdkit.Chem import Atom
 
-# TODO: Not sure if we should move this to constants?
-RELEVANT_OX_STATE_CONST = ["As", "Hg", "Pb"]
-RELEVANT_RING_ATOMS = ["N", "C"]
+from src.constants import RELEVANT_OX_STATE_CONST, RELEVANT_RING_ATOMS
 
 
 class MBAtom:
@@ -52,8 +50,8 @@ class MBAtom:
         # I checked if the formal charge is calculated by RDKit or taken directly from the SDF file. The latter is true.
         # I comfirmed it by changing intentionally the charge value of one of the sodium ions in the chalconatronate.sdf file
         # > when I run the rdkit-sandbox-kpwydra the new charge was updated for this ion.
-        if not self.HasCovalentBond:
-            self._atom.GetFormalCharge()
+        if not self.HasCovalentBond():
+            return self._atom.GetFormalCharge()
         else:
             return None
 

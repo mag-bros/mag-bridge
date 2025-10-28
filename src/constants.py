@@ -1,3 +1,9 @@
+"""Lists of atoms for which it was specified that the atom may be part of a ring or has a defined oxidation state, according to 10.1021/ed085p532 (DOI)"""
+
+RELEVANT_OX_STATE_CONST = ["As", "Hg", "Pb"]
+RELEVANT_RING_ATOMS = ["N", "C"]
+
+
 """
 unit: 10^(-6) cm^3/mol
 Reference (DOI): 10.1021/ed085p532
@@ -13,10 +19,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+4": -0.1,
+                4: -0.1,
             },
         },
     },
@@ -27,11 +31,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+1": 0,
-                "-1": -5.7,
+                1: 0,
+                -1: -5.7,
             },
         },
     },
@@ -42,10 +44,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+5": -0.1,
+                5: -0.1,
             },
         },
     },
@@ -56,11 +56,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+1": -28,
-                "+2": -24,  # uncetrain value according to the article (DOI: 10.1021/ed085p532)
+                1: -28,
+                2: -24,  # uncetrain value according to the article (DOI: 10.1021/ed085p532)
             },
         },
     },
@@ -71,10 +69,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -2,
+                3: -2,
             },
         },
     },
@@ -83,16 +79,14 @@ PASCAL_CONST = {
             "ring": None,
             "open_chain": None,
             "ox_state": {
-                "(III)": -20.9,
-                "(V)": -43.0,
+                3: -20.9,
+                5: -43.0,
             },
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -9,  # uncetrain value according to the article (DOI: 10.1021/ed085p532)
-                "+5": -6,
+                3: -9,  # uncetrain value according to the article (DOI: 10.1021/ed085p532)
+                5: -6,
             },
         },
     },
@@ -103,11 +97,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+1": -40,  # uncetrain value according to the article (DOI: 10.1021/ed085p532)
-                "+3": -32,
+                1: -40,  # uncetrain value according to the article (DOI: 10.1021/ed085p532)
+                3: -32,
             },
         },
     },
@@ -118,10 +110,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -0.2,
+                3: -0.2,
             },
         },
     },
@@ -132,10 +122,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -26.5,
+                2: -26.5,
             },
         },
     },
@@ -146,10 +134,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -0.4,
+                2: -0.4,
             },
         },
     },
@@ -160,11 +146,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -25,  # uncetrain value according to the article (DOI: 10.1021/ed085p532)
-                "+5": -23,
+                3: -25,  # uncetrain value according to the article (DOI: 10.1021/ed085p532)
+                5: -23,
             },
         },
     },
@@ -175,11 +159,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "-1": -34.6,
-                "+5": -6,
+                -1: -34.6,
+                5: -6,
             },
         },
     },
@@ -190,10 +172,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -10.4,
+                2: -10.4,
             },
         },
     },
@@ -204,10 +184,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -24,
+                2: -24,
             },
         },
     },
@@ -218,11 +196,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -20,
-                "+4": -17,
+                3: -20,
+                4: -17,
             },
         },
     },
@@ -233,11 +209,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "-1": -23.4,
-                "+5": -2,
+                -1: -23.4,
+                5: -2,
             },
         },
     },
@@ -248,11 +222,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -12,
-                "+3": -10,
+                2: -12,
+                3: -10,
             },
         },
     },
@@ -263,14 +235,12 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -15,
-                "+3": -11,
-                "+4": -8,
-                "+5": -5,
-                "+6": -3,
+                2: -15,
+                3: -11,
+                4: -8,
+                5: -5,
+                6: -3,
             },
         },
     },
@@ -281,10 +251,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+1": -35.0,
+                1: -35.0,
             },
         },
     },
@@ -295,11 +263,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+1": -12,
-                "+2": -11,
+                1: -12,
+                2: -11,
             },
         },
     },
@@ -310,10 +276,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -19,
+                3: -19,
             },
         },
     },
@@ -324,10 +288,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -18,
+                3: -18,
             },
         },
     },
@@ -338,11 +300,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -22,
-                "+3": -20,
+                2: -22,
+                3: -20,
             },
         },
     },
@@ -353,10 +313,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "-1": -9.1,
+                -1: -9.1,
             },
         },
     },
@@ -367,11 +325,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -13,
-                "+3": -10,
+                2: -13,
+                3: -10,
             },
         },
     },
@@ -382,10 +338,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -8,
+                3: -8,
             },
         },
     },
@@ -396,10 +350,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+4": -7,
+                4: -7,
             },
         },
     },
@@ -410,10 +362,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -20,
+                3: -20,
             },
         },
     },
@@ -424,10 +374,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+4": -16,
+                4: -16,
             },
         },
     },
@@ -436,14 +384,12 @@ PASCAL_CONST = {
             "ring": None,
             "open_chain": None,
             "ox_state": {
-                "(II)": -33.0,
+                2: -33.0,
             },
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -40.0,
+                2: -40.0,
             },
         },
     },
@@ -454,10 +400,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -19,
+                3: -19,
             },
         },
     },
@@ -468,12 +412,10 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "-1": -50.6,
-                "+5": -12,
-                "+7": -10,
+                -1: -50.6,
+                5: -12,
+                7: -10,
             },
         },
     },
@@ -484,10 +426,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -19,
+                3: -19,
             },
         },
     },
@@ -498,14 +438,12 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+1": -50,
-                "+2": -42,
-                "+3": -35,
-                "+4": -29,
-                "+5": -20,
+                1: -50,
+                2: -42,
+                3: -35,
+                4: -29,
+                5: -20,
             },
         },
     },
@@ -516,10 +454,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+1": -14.9,
+                1: -14.9,
             },
         },
     },
@@ -530,10 +466,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -20,
+                3: -20,
             },
         },
     },
@@ -544,10 +478,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+1": -1.0,
+                1: -1.0,
             },
         },
     },
@@ -558,10 +490,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -17,
+                3: -17,
             },
         },
     },
@@ -572,10 +502,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -5.0,
+                2: -5.0,
             },
         },
     },
@@ -586,14 +514,12 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -14,
-                "+3": -10,
-                "+4": -8,
-                "+6": -4,
-                "+7": -3,
+                2: -14,
+                3: -10,
+                4: -8,
+                6: -4,
+                7: -3,
             },
         },
     },
@@ -604,14 +530,12 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -31,
-                "+3": -23,
-                "+4": -17,
-                "+5": -12,
-                "+6": -7,
+                2: -31,
+                3: -23,
+                4: -17,
+                5: -12,
+                6: -7,
             },
         },
     },
@@ -622,10 +546,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+1": -6.8,
+                1: -6.8,
             },
         },
     },
@@ -636,10 +558,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+5": -9,
+                5: -9,
             },
         },
     },
@@ -650,10 +570,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -20,
+                3: -20,
             },
         },
     },
@@ -664,10 +582,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -12,
+                2: -12,
             },
         },
     },
@@ -678,10 +594,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "-2": -12.0,  # The value of χDi for O2– is reported as –6.0 in some sources
+                -2: -12.0,  # The value of χDi for O2– is reported as –6.0 in some sources
             },
         },
     },
@@ -692,14 +606,12 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -44,
-                "+3": -36,
-                "+4": -29,
-                "+6": -18,
-                "+8": -11,
+                2: -44,
+                3: -36,
+                4: -29,
+                6: -18,
+                8: -11,
             },
         },
     },
@@ -710,11 +622,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -4,
-                "+5": -1,
+                3: -4,
+                5: -1,
             },
         },
     },
@@ -723,15 +633,13 @@ PASCAL_CONST = {
             "ring": None,
             "open_chain": None,
             "ox_state": {
-                "(II)": -46.0,
+                2: -46.0,
             },
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -32.0,
-                "+4": -26,
+                2: -32.0,
+                4: -26,
             },
         },
     },
@@ -742,11 +650,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -25,
-                "+4": -18,
+                2: -25,
+                4: -18,
             },
         },
     },
@@ -757,10 +663,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -27,
+                3: -27,
             },
         },
     },
@@ -771,11 +675,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -20,
-                "+4": -18,
+                3: -20,
+                4: -18,
             },
         },
     },
@@ -786,12 +688,10 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -40,
-                "+3": -33,
-                "+4": -28,
+                2: -40,
+                3: -33,
+                4: -28,
             },
         },
     },
@@ -802,10 +702,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+1": -22.5,
+                1: -22.5,
             },
         },
     },
@@ -816,13 +714,11 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -36,
-                "+4": -28,
-                "+6": -16,
-                "+7": -12,
+                3: -36,
+                4: -28,
+                6: -16,
+                7: -12,
             },
         },
     },
@@ -833,11 +729,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -22,
-                "+4": -18,
+                3: -22,
+                4: -18,
             },
         },
     },
@@ -848,11 +742,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -23,
-                "+4": -18,
+                3: -23,
+                4: -18,
             },
         },
     },
@@ -863,12 +755,10 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "-2": -30,
-                "+4": -3,
-                "+6": -1,
+                -2: -30,
+                4: -3,
+                6: -1,
             },
         },
     },
@@ -877,15 +767,13 @@ PASCAL_CONST = {
             "ring": None,
             "open_chain": None,
             "ox_state": {
-                "(III)": -74.0,
+                3: -74.0,
             },
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -17,
-                "+5": -14,
+                3: -17,
+                5: -14,
             },
         },
     },
@@ -896,10 +784,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -6,
+                3: -6,
             },
         },
     },
@@ -910,12 +796,10 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "-2": -48,  # This value is uncertain
-                "+4": -8,
-                "+6": -5,
+                -2: -48,  # This value is uncertain
+                4: -8,
+                6: -5,
             },
         },
     },
@@ -926,10 +810,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+4": -1,
+                4: -1,
             },
         },
     },
@@ -940,11 +822,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -23,
-                "+3": -20,
+                2: -23,
+                3: -20,
             },
         },
     },
@@ -953,15 +833,13 @@ PASCAL_CONST = {
             "ring": None,
             "open_chain": None,
             "ox_state": {
-                "(IV)": -30,
+                4: -30,
             },
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -20,
-                "+4": -16,
+                2: -20,
+                4: -16,
             },
         },
     },
@@ -972,10 +850,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -19.0,
+                2: -19.0,
             },
         },
     },
@@ -986,10 +862,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+5": -14,
+                5: -14,
             },
         },
     },
@@ -1000,11 +874,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -19,
-                "+4": -17,
+                3: -19,
+                4: -17,
             },
         },
     },
@@ -1015,12 +887,10 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "-2": -70,
-                "+4": -14,
-                "+6": -12,
+                -2: -70,
+                4: -14,
+                6: -12,
             },
         },
     },
@@ -1031,10 +901,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+4": -23,
+                4: -23,
             },
         },
     },
@@ -1045,11 +913,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -9,
-                "+4": -5,
+                3: -9,
+                4: -5,
             },
         },
     },
@@ -1058,15 +924,13 @@ PASCAL_CONST = {
             "ring": None,
             "open_chain": None,
             "ox_state": {
-                "(I)": -40.0,
+                1: -40.0,
             },
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+1": -35.7,
-                "+3": -31,
+                1: -35.7,
+                3: -31,
             },
         },
     },
@@ -1077,10 +941,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -18,
+                3: -18,
             },
         },
     },
@@ -1091,13 +953,11 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -46,
-                "+4": -35,
-                "+5": -26,
-                "+6": -19,
+                3: -46,
+                4: -35,
+                5: -26,
+                6: -19,
             },
         },
     },
@@ -1108,13 +968,11 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -15,
-                "+3": -10,
-                "+4": -7,
-                "+5": -4,
+                2: -15,
+                3: -10,
+                4: -7,
+                5: -4,
             },
         },
     },
@@ -1125,14 +983,12 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -41,
-                "+3": -36,
-                "+4": -23,
-                "+5": -19,
-                "+6": -13,
+                2: -41,
+                3: -36,
+                4: -23,
+                5: -19,
+                6: -13,
             },
         },
     },
@@ -1143,10 +999,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+3": -12,
+                3: -12,
             },
         },
     },
@@ -1157,11 +1011,9 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -20,
-                "+3": -18,
+                2: -20,
+                3: -18,
             },
         },
     },
@@ -1172,10 +1024,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+2": -15.0,
+                2: -15.0,
             },
         },
     },
@@ -1186,10 +1036,8 @@ PASCAL_CONST = {
             "ox_state": {},
         },
         "ionic": {
-            "ring": None,
-            "open_chain": None,
             "charge": {
-                "+4": -10,
+                4: -10,
             },
         },
     },
