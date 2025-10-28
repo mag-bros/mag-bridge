@@ -1,3 +1,21 @@
+class ConstProvider:
+    @staticmethod
+    def GetOpenChainValue(symbol: str) -> float | None:
+        return PASCAL_CONST.get(symbol, {}).get("covalent", {}).get("open_chain")
+
+    @staticmethod
+    def GetRingValue(symbol: str) -> float | None:
+        return PASCAL_CONST.get(symbol, {}).get("covalent", {}).get("ring")
+
+    @staticmethod
+    def GetOxStateValue(symbol: str, ox_state: int) -> float | None:
+        return PASCAL_CONST.get(symbol, {}).get("covalent", {}).get("ox_state", {}).get(ox_state, 0)
+    
+    @staticmethod
+    def GetChargeValue(symbol: str, charge: int) -> float | None:
+        return PASCAL_CONST.get(symbol, {}).get("ionic", {}).get("charge", {}).get(charge, 0)
+    
+
 """Lists of atoms for which it was specified that the atom may be part of a ring or has a defined oxidation state, according to 10.1021/ed085p532 (DOI)"""
 
 RELEVANT_OX_STATE_CONST = ["As", "Hg", "Pb"]

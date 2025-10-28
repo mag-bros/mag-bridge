@@ -10,28 +10,26 @@ class MBAtom:
 
     def __init__(self, atom: Atom) -> None:
         """Initialize from an RDKit Atom and precompute derived fields."""
-        if not isinstance(atom, Atom):
-            raise TypeError(f"Expected rdkit.Chem.rdchem.Atom, got {type(atom)}")
+        assert isinstance(atom, Atom), f"Expected rdkit.Chem.rdchem.Atom, got {type(atom)}"
         self._atom: Atom = atom  # Actual RDKit object
-        self.symbol: str = self.GetSymbol()  # example
-        self.in_ring: bool = self.IsInRing(relevant_ring_atoms=RELEVANT_RING_ATOMS)
-        self.ox_state: int | None = self.GetOxidationState(
-            relevant_symbols=RELEVANT_OX_STATE_CONST
-        )
-        self.charge: int | None = self.GetCharge()
+        
+        # Pre-compute fields used for diamag calcs, for easy access
+        self.symbol: str = self.GetSymbol()
+        self.is_ring_relevant: bool = self.IsRingRelevant(relevant_ring_atoms=RELEVANT_RING_ATOMS)
+        self.ox_state: int | None = self.GetOxidationState(relevant_symbols=RELEVANT_OX_STATE_CONST)
         self.has_covalent_bond: bool = self.HasCovalentBond()
+        self.total_degree: int = self.GetTotalDegree()
+        self.charge: int | None = self.GetCharge()
 
-    def IsInRing(self, relevant_ring_atoms: list[str]) -> bool | None:
+    def IsRingRelevant(self, relevant_ring_atoms: list[str]) -> bool:
         """Return True if atom is part of a ring."""
         if self._atom.GetSymbol() in relevant_ring_atoms:
             return self._atom.IsInRing()
         else:
-            return None
-
-    """TODO: FIX FUNCTION. For As the oxidation state is None. Probably the self._atom.HasProp("OxidationNumber") is not executed properly."""
+            return False
 
     def GetOxidationState(self, relevant_symbols: set[str]) -> int | None:
-        """Return oxidation number if applicable."""
+        """Return oxidation number only for relevant atoms"""
         if (
             self._atom.HasProp("OxidationNumber")
             and self._atom.GetSymbol() in relevant_symbols
@@ -46,10 +44,9 @@ class MBAtom:
         return self._atom.GetTotalDegree() > 0
 
     def GetCharge(self) -> int | None:
-        """Return formal charge only for atoms without covalent bonds."""
-        # I checked if the formal charge is calculated by RDKit or taken directly from the SDF file. The latter is true.
-        # I comfirmed it by changing intentionally the charge value of one of the sodium ions in the chalconatronate.sdf file
-        # > when I run the rdkit-sandbox-kpwydra the new charge was updated for this ion.
+        """Return formal charge only for atoms without covalent bonds.
+            @note1: This only refers to single-atom ions (like Na+) but NOT multiatomic ions ( like NO3(-) )
+            @note2: The formal charge is taken directly from the SDF file. It is NOT calculated implicitly by RDKit.""" 
         if not self.HasCovalentBond():
             return self._atom.GetFormalCharge()
         else:
@@ -64,13 +61,12 @@ class MBAtom:
         """Return a one-line, column-aligned summary of atom properties."""
         return (
             f"Symbol: {self.symbol:<3} | "
-            # f"Ring: {str(self.IsInRing()):<5} | "  # It may be omitted if we will be able to generate image of molecular structure with indexed atoms.
-            f"Ring_Relevent: {str(self.in_ring):<5} | "
-            f"Valence: {self.GetTotalDegree():<2} | "  # "Valence" is the property that describes number of bonds formed by the given atom.
-            f"Chg: {str(self.charge):<5} | "  # Must be stated somewhere for user that this only refers to single-atom ions (like Na+) but NOT multiatomic ions ( like NO3(-) )
-            f"Ox_Relevent: {str(self.ox_state):<4} | "  # Must be stated for user that oxidation state is provided only for relevent atoms"
-            f"id: {self.GetIdx():<2} | "
-            f"neighbors: {self.GetNeighborSymbols(as_string=True)}"  # It may be omitted if we will be able to generate image of molecular structure with indexed atoms.
+            f"IsRingRelevant: {str(self.is_ring_relevant):<5} | "
+            f"TotalDegree: {self.total_degree:<2} | "
+            f"Charge: {str(self.charge):<5} | "
+            f"OxState: {str(self.ox_state):<4} | "
+            f"Id: {self.GetIdx():<2} | "
+            f"Neighbors: {self.GetNeighborSymbols(as_string=True)}"  # It may be omitted if we will be able to generate image of molecular structure with indexed atoms.
         )
 
     def __getattr__(self, name) -> Any:
@@ -79,7 +75,7 @@ class MBAtom:
 
     def __repr__(self) -> str:
         """Return a concise developer-oriented identifier string."""
-        return f"<MBAtom {self.GetSymbol()} idx={self.GetIdx()}>"
+        return f"<MBAtom {self.symbol} idx={self.GetIdx()}>"
 
     # Below section is used for linting purposes only
     # Expose key RDKit Atom methods for IDE autocompletion and navigation.
@@ -96,7 +92,7 @@ class MBAtom:
         return self._atom.GetFormalCharge()
 
     def GetTotalDegree(self) -> int:
-        """Return total number of bonds including implicit hydrogens."""
+        """Return total number of bonds formed by the given atom, including implicit hydrogens."""
         return self._atom.GetTotalDegree()
 
     def HasProp(self, key: str) -> bool:
