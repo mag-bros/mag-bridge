@@ -26,7 +26,7 @@ class Renderer:
     def GetMoleculesGridImg(
         self,
         mols: list[Mol],
-        size=(200, 200),
+        size=(170, 170),
         mols_per_row=4,
         label: str | None = None,
         label_height=28,
