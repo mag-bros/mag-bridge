@@ -79,6 +79,7 @@ class Renderer:
 
     # === Helper: Add label annotation below grid ===
     def _add_label(self, img, label, label_color, label_height):
+        """Draw label below image with subtle extra spacing for readability."""
         width, height = img.size
         annotated = Image.new("RGB", (width, height + label_height), self.theme.Background)
         annotated.paste(img, (0, 0))
@@ -86,19 +87,19 @@ class Renderer:
         draw_anno = ImageDraw.Draw(annotated)
         font = ImageFont.load_default()
 
-        try:
-            bbox = draw_anno.textbbox((0, 0), label, font=font)
-            text_w, text_h = bbox[2] - bbox[0], bbox[3] - bbox[1]
-        except AttributeError:
-            text_w, text_h = draw_anno.textsize(label, font=font)
+        # subtle spacing between letters
+        spacing = 1  
 
-        draw_anno.text(
-            ((width - text_w) // 2, height + (label_height - text_h) // 2),
-            label,
-            fill=label_color,
-            font=font,
-        )
+        text_w = sum(font.getlength(ch) + spacing for ch in label) - spacing
+        text_x = (width - text_w) // 2
+        text_y = height + (label_height - font.getbbox(label)[3]) // 2
+
+        for ch in label:
+            draw_anno.text((text_x, text_y), ch, fill=label_color, font=font)
+            text_x += font.getlength(ch) + spacing
+
         return annotated
+
 
     def _apply_theme_background(self, img: Image.Image, bg_color: tuple[int, int, int]) -> Image.Image:
         """Replace near-white areas in RDKit image with themed background."""

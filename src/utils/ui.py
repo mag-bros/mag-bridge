@@ -19,6 +19,7 @@ class Colors(Enum):
     TEAL        = "#008080"
     CYAN        = "#00FFFF"
     SKY         = "#C4EEF3"
+    LOFI_SKY    = "#E5D8FC"
     BLUE        = "#007AFF"
     DEEP_BLUE   = "#1946A0"
     NAVY        = "#001F3F"
@@ -91,7 +92,7 @@ Theme.White = Theme(
 
 Theme.LoFi = Theme(
     Background=Colors.BLACK.rgb(),              # Rich deep base
-    Surface=Colors.SKY.rgb(),             # Raised surface under molecules
+    Surface=Colors.LOFI_SKY.rgb(),             # Raised surface under molecules
     Primary=Colors.PURPLE.rgb(),                # Signature magenta-purple tone
     Secondary=Colors.ACCENT_PURPLE.rgb(),       # Slightly darker version
     Highlight=Colors.MAGENTA.rgb(),             # Pink/magenta accents
