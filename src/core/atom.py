@@ -13,7 +13,7 @@ class MBAtom:
         if not isinstance(atom, Atom):
             raise TypeError(f"Expected rdkit.Chem.rdchem.Atom, got {type(atom)}")
         self._atom: Atom = atom  # Actual RDKit object
-        
+
         # Pre-compute fields used for diamag calcs, for easy access
         self.symbol: str = self.GetSymbol()
         self.is_ring_relevant: bool = self.IsRingRelevant()
@@ -23,7 +23,7 @@ class MBAtom:
         self.charge: int | None = self.GetCharge()
 
     def IsRingRelevant(self) -> bool:
-        """Return True if atom is part of a ring."""
+        """Return True if C or N atom is part of a ring."""
         if self._atom.GetSymbol() in ConstProvider.GetRelevantRingAtoms():
             return self._atom.IsInRing()
         else:
@@ -46,8 +46,9 @@ class MBAtom:
 
     def GetCharge(self) -> int | None:
         """Return formal charge only for atoms without covalent bonds.
-            @note1: This only refers to single-atom ions (like Na+) but NOT multiatomic ions ( like NO3(-) )
-            @note2: The formal charge is taken directly from the SDF file. It is NOT calculated implicitly by RDKit.""" 
+        @note1: For monoatomic ions formal charge is ALWAYS equal to its electrical charge.
+        @note2: This only refers to monoatomic ions (like Na+) but NOT multiatomic ions ( like NO3(-) )
+        @note3: The formal charge is taken directly from the SDF file. It is NOT calculated implicitly by RDKit."""
         if not self.HasCovalentBond():
             return self._atom.GetFormalCharge()
         else:
@@ -63,9 +64,9 @@ class MBAtom:
         return (
             f"Symbol: {self.symbol:<3} | "
             f"IsRingRelevant: {str(self.is_ring_relevant):<5} | "
-            f"TotalDegree: {self.total_degree:<2} | "
-            f"Charge: {str(self.charge):<5} | "
-            f"OxState: {str(self.ox_state):<4} | "
+            f"TotalDegree: {self.total_degree:<2} | "  # As I mentioned earlier, TotalDegree naming may be confusing to chemists and Valence term should be used instead, which has the same meaning.
+            f"Charge: {str(self.charge):<5} | "  # I suggest different naming: MonoatomicIonCharge. It is wordy but full convey our code structure and does not confuse chemists.
+            f"OxState: {str(self.ox_state):<4} | "  # I suggest different naming: ReleventOxState
             f"Id: {self.GetIdx():<2} | "
             f"Neighbors: {self.GetNeighborSymbols(as_string=True)}"  # It may be omitted if we will be able to generate image of molecular structure with indexed atoms.
         )

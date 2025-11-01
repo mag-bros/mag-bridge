@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 
 class ConstProvider:
     @staticmethod
-    def GetPascalValues(atom: 'MBAtom') -> dict[str, float]:
+    def GetPascalValues(atom: "MBAtom") -> dict[str, float]:
         covalent = PASCAL_CONST.get(atom.symbol, {}).get("covalent", {})
         ionic = PASCAL_CONST.get(atom.symbol, {}).get("ionic", {})
 

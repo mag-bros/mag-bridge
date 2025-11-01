@@ -22,7 +22,9 @@ class SDFLoader:
             raise SDFFileNotFoundError(f"File not found: {path}")
 
         if path.suffix.lower() != ".sdf":
-            raise SDFLoaderError(f"Invalid file extension '{path.suffix}'. Expected .sdf")
+            raise SDFLoaderError(
+                f"Invalid file extension '{path.suffix}'. Expected .sdf"
+            )
 
         if not path.is_file() or not os.access(path, os.R_OK):
             raise SDFLoaderError(f"File is not readable: {path}")
@@ -32,15 +34,17 @@ class SDFLoader:
 
         with open(path, "rb") as f:
             if b"\x00" in f.read(256):
-                raise SDFLoaderError(f"File '{path}' appears to be binary, not SDF text.")
-
-        with open(path, "r", encoding="utf-8", errors="ignore") as f:
-            content = f.read(2048)
-            if not ("M  END" in content or "$$$$" in content):
                 raise SDFLoaderError(
-                    f"File '{path}' does not appear to contain valid SDF records "
-                    "(missing 'M  END' or '$$$$')."
+                    f"File '{path}' appears to be binary, not SDF text."
                 )
+
+        # with open(path, "r", encoding="utf-8", errors="ignore") as f:
+        #     content = f.read(2048)
+        #     if not ("M  END" in content or "$$$$" in content):
+        #         raise SDFLoaderError(
+        #             f"File '{path}' does not appear to contain valid SDF records "
+        #             "(missing 'M  END' or '$$$$')."
+        #         )
 
     @staticmethod
     def Load(files: str | list[str]) -> list[MBMolecule]:
@@ -67,7 +71,11 @@ class SDFLoader:
                     "Check the SDF syntax or atom typing."
                 )
 
-            mols = [MBMoleculeFactory.create(mol, file, i) for i, mol in enumerate(raw_mols) if mol]
+            mols = [
+                MBMoleculeFactory.create(mol, file, i)
+                for i, mol in enumerate(raw_mols)
+                if mol
+            ]
             all_mols.extend(mols)
 
         if not all_mols:

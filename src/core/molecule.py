@@ -1,11 +1,11 @@
 from typing import Any
 
-from rdkit.Chem import AddHs, Mol
+from rdkit.Chem import AddHs, Mol, MolToSmiles
 from rdkit.Chem import rdMolDescriptors as rdmd
 
 from src.constants import ConstProvider
 from src.core.atom import MBAtom
-from rdkit.Chem import MolToSmiles
+
 
 class MBMolecule:
     """Wrapper around RDKit Atom providing additional computed attributes."""
@@ -21,40 +21,52 @@ class MBMolecule:
         self.mol_index = mol_index
 
     def CalcDiamagContr(self, verbose=False) -> float:
-        """Calculate the molecule's total diamagnetic contribution.  
+        """Calculate the chemical compounds's total diamagnetic contribution.
         Uses Pascal constants for ring, open-chain, oxidation state, and charge terms."""
         mol_dia_contr = 0
 
         if verbose:
-            print(f'- {repr(self)}')
-        
+            print(f"- {repr(self)}")
+
         # Iterate over all atoms within this molecule
         for atom in self._atoms:
             if verbose:
                 print(atom)
-            
+
             # Retrieve Pascal constant data for this atom
             pascal_values: dict = ConstProvider.GetPascalValues(atom=atom)
 
-            # Add ring constant for N and C atoms located within a ring
-            if atom.is_ring_relevant:
-                mol_dia_contr += pascal_values.get('ring', 0)
-            
-            # Add open-chain constant for C or N atoms in chain fragments 
-            # or when no ring constant is defined for the atom type
-            elif 'ring' not in pascal_values:
-                mol_dia_contr += pascal_values.get('open_chain', 0)
+            # Add charge constant for isolated ions (monoatomic species with net charge)
+            mol_dia_contr += pascal_values.get("charge", 0)
 
             # Add oxidation-state constant when neither ring nor open-chain constants apply
-            if (all(key not in pascal_values for key in ["ring", "open_chain"])):
-                mol_dia_contr += pascal_values.get('ox_state', 0)
+            if atom.has_covalent_bond and all(
+                key not in pascal_values for key in ["ring", "open_chain"]
+            ):
+                mol_dia_contr += pascal_values.get("ox_state", 0)
 
-            # Add charge constant for isolated ions (monoatomic species with net charge)
-            mol_dia_contr += pascal_values.get('charge', 0)
-        
+            # Add ring constant for N and C atoms located within a ring
+            if (
+                atom.is_ring_relevant
+                and atom.ox_state is None
+                and atom.charge is None
+                and "ring" in pascal_values
+            ):
+                mol_dia_contr += pascal_values.get("ring", 0)
+
+            # Add open-chain constant for C or N atoms in chain fragments
+            # or when no ring constant is defined for the atom type
+            if (
+                not atom.is_ring_relevant
+                and atom.ox_state is None
+                and atom.charge is None
+                and "open_chain" in pascal_values
+            ):
+                mol_dia_contr += pascal_values.get("open_chain", 0)
+
         if verbose:
             print(f"Diamag: {mol_dia_contr:.4f} cm^3 mol^(-1) - {repr(self)}")
-        
+
         return mol_dia_contr
 
     def ToRDKit(self) -> Mol:
