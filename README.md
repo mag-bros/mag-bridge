@@ -1,5 +1,5 @@
 # About
-This project is an innovative cross-platform desktop app designed to fill key gaps in current molecular data processing workflows. Built around user experience and powered by the industry-standard RDKit library, using SDF file formats in a streamlined workflow that helps researchers focus on discovery.
+This project is an innovative cross-platform desktop app designed to fill key gaps in current magnetic data processing workflows. Built around user experience and powered by the industry-standard RDKit library, using SDF file formats in a streamlined workflow that helps researchers focus on discovery.
 
 ## Table of Contents
 1. [Document Goals](#document-goals)
