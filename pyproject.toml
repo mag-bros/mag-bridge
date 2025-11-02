@@ -4,7 +4,8 @@ venvPath = "."
 venv = ".venv"
 reportMissingImports = false
 reportMissingModuleSource = false
-typeCheckingMode = "basic"
+reportUndefinedVariable = false
+typeCheckingMode = "standard"
 
 [tool.ruff.lint]
 select = ["I"]

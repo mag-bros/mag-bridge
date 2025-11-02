@@ -9,9 +9,6 @@ images/
 # Electron node modules
 frontend/node_modules
 
-# MacOS folder metadata
-.ds_store
-
 # Distribution / packaging
 .Python
 build/

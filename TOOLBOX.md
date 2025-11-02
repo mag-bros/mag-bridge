@@ -1,76 +1,28 @@
 <details>
   <summary>Project Development Roadmap</summary>
 
----
 # Project Development Roadmap
-<details>
-  <summary>🚀 Phase 1 — χD Calculator (Q1 2025)</summary>
+
+### 🚀 Phase 1 — χD Calculator (Q1 2025)
+ 
+>  **Goal:** Convert structural data (SDF file) into diamagnetic susceptibility.
  
 
- **Goal:** Convert structural data (SDF file) into diamagnetic susceptibility.
- 
+### 🔬 Phase 2 — DC Magnetic Data Tool (Q2 2026)
 
-**Tasks:**
-  -  Create Pascal's constants dictionary
-  -  Write basic introduction and usage examples   
-  -  Connect RDKit library with the dictionary  
-  -  Implement testing and error handling  
-  -  Develop user-friendly frontend interface  
-
----
-</details>
-
-<details>
-  <summary>🔬 Phase 2 — DC Magnetic Data Tool (Q2 2026)</summary>
+> **Goal:** Develop a module for processing and visualizing DC magnetic data.
 
 
-**Goal:** Develop a module for processing and visualizing DC magnetic data.
+
+### 🔬Phase 3 — AC Magnetic Data Tool (Q3 2026)
+
+> **Goal:** Develop a module for analyzing and visualizing AC magnetic susceptibility data.
 
 
-**Tasks:**
-  -  Create standard input format for magnetic data  
-  -  Develop core data-processing functions  
-  -  Implement testing and error handling  
-  -  Build frontend and visualization components
+### 💻 Phase 4 — Desktop Application & Local Software (Q4 2026)
 
----
-</details>
+> **Goal:** Develop a cross-platform desktop application that integrates χD, DC, and AC magnetic data tools, providing a user-friendly interface for data input, processing, visualization, and export.
 
- <details>
-  <summary>📦🔬Phase 3 — AC Magnetic Data Tool (Q3 2026)</summary>
-
-
-**Goal:** Develop a module for analyzing and visualizing AC magnetic susceptibility data.
-
-**Tasks:**
-  -  Create standard input format for magnetic data
-  -  Develop core data-processing functions
-  -  Implement testing and error handling
-  -  Build frontend and visualization components
-
----
-</details>
-
-
-<details>
-  <summary>💻 Phase 4 — Desktop Application & Local Software (Q4 2026)</summary>
-
-
-**Goal:** Develop a cross-platform desktop application that integrates χD, DC, and AC magnetic data tools, providing a user-friendly interface for data input, processing, visualization, and export.
-
-
-**Tasks:**
-- [ ] Connect χD, DC, and AC modules.  
-- [ ] Implement GUI for seamless workflow (data input → processing → results visualization)  
-- [ ] Add robust testing, error handling, and validation for desktop use  
-- [ ] Prepare installers for Windows, macOS, and Linux  
-- [ ] Write comprehensive user documentation and usage examples  
-- [ ] Optional: Add export features (CSV, PDF, plots) and advanced visualization tools  
-
----
-</details>
-
----
 </details>
 
 
@@ -89,12 +41,14 @@
 
 ---
 # Create Python Virtual Environment (only once at project start)
+
 > [!IMPORTANT]
 > Must know, allows to isolate projects' dependencies
 ```
 python -m venv .venv
 ```
 ## Install requirements
+
 > [!IMPORTANT]
 > Make sure that `which python` command returns the venv path, restart the terminal to load venv
 ```
@@ -105,6 +59,7 @@ pip install -r requirements-dev.txt
 # How to push local changes to repository?
 ## 1. how to fix merge conflicts
 ### 1.1 make sure your branch is up to date
+
 > [!NOTE]
 > you should have all files commited
 ```bash
@@ -112,6 +67,7 @@ git checkout <YOUR_BRANCH>
 git status
 ```
 ### 1.2 be sure that local master is up to date
+
 > [!NOTE]
 > make sure master is clean and up to date with remote
 ```bash
@@ -119,6 +75,7 @@ git checkout master
 git pull
 ```
 ### 1.3 go back to your branch
+
 > [!NOTE]
 > we are going to merge master into `<YOUR_BRANCH>`
 ```bash
@@ -126,6 +83,7 @@ git checkout <YOUR_BRANCH>
 git status
 ```
 ### 1.4 merge master
+
 > [!NOTE]
 > be sure you are on your branch (master -> `<YOUR_BRANCH>`)
 ```bash
@@ -133,6 +91,7 @@ git merge master
 git commit -m 'updated from master'
 ```
 ### 1.5 conflict after merge 
+
 > [!IMPORTANT]
 > in each file the conflict must be solved
 
@@ -146,9 +105,11 @@ ask your question in IRC.
  >>>>>>> branch-a
 ```
 ### 1.6 make a decision
+
 > [!NOTE]
 > choose version.
 ### 1.7 add version to change
+
 > [!NOTE]
 > solve in VS Code merge editor
 ```bash
@@ -178,8 +139,14 @@ git pull
 
 # Git Branches
 ### 1. check available branches
+
+**LOCAL BRANCHES:**
 ```
 git branch
+```
+**REMOTE BRANCHES:**
+```
+git branch -r
 ```
 ### 2. Change branch
 ```
