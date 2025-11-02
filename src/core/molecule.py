@@ -50,7 +50,6 @@ class MBMolecule:
                 atom.is_ring_relevant
                 and atom.ox_state is None
                 and atom.charge is None
-                and "ring" in pascal_values
             ):
                 mol_dia_contr += pascal_values.get("ring", 0)
 
@@ -60,7 +59,6 @@ class MBMolecule:
                 not atom.is_ring_relevant
                 and atom.ox_state is None
                 and atom.charge is None
-                and "open_chain" in pascal_values
             ):
                 mol_dia_contr += pascal_values.get("open_chain", 0)
 
