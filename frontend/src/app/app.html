@@ -1,1 +1,5 @@
-<mat-slide-toggle>Toggle me!</mat-slide-toggle>
+@if (isLoading) {
+  <app-splash-screen></app-splash-screen>
+} @else {
+  <app-form></app-form>
+}
