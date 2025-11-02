@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from rdkit.Chem import SDMolSupplier
 
+from core.compound import MBCompound
 from src import SDF_DIR
 from src.core.molecule import MBMolecule, MBMoleculeFactory
 from src.utils.exceptions import (
@@ -13,7 +14,39 @@ from src.utils.exceptions import (
 
 
 class SDFLoader:
-    """Utility for loading and validating SDF molecule files."""
+    """Utility for loading and validating SDF files."""
+
+    @staticmethod
+    def Load(source_file: str) -> MBCompound:
+        """Loads an SDF file and return a MBCompound object containing a list of molecules"""
+
+        sdf_path = SDF_DIR.joinpath(source_file)
+        SDFLoader.CheckFile(sdf_path)
+
+        raw_mols = list(SDMolSupplier(str(sdf_path), sanitize=True, removeHs=False))
+
+        if not raw_mols:
+            raise SDFEmptyFileError(f"No molecules found in file: {sdf_path}")
+
+        failed = sum(1 for mol in raw_mols if mol is None)
+        if failed:
+            raise SDFMalformedRecordError(
+                f"{failed} molecule(s) failed to parse in file '{sdf_path}'. "
+                "Check the SDF syntax or atom typing."
+            )
+
+        loaded_mols = [
+            MBMoleculeFactory.create(mol, source_file, i)
+            for i, mol in enumerate(raw_mols)
+            if mol
+        ]
+
+        if not loaded_mols:
+            raise SDFEmptyFileError("No valid molecules loaded from any file.")
+    
+        compound = MBCompound(mols=loaded_mols, source_file=source_file)
+
+        return compound
 
     @staticmethod
     def CheckFile(path: Path) -> None:
@@ -38,47 +71,10 @@ class SDFLoader:
                     f"File '{path}' appears to be binary, not SDF text."
                 )
 
-        # with open(path, "r", encoding="utf-8", errors="ignore") as f:
-        #     content = f.read(2048)
-        #     if not ("M  END" in content or "$$$$" in content):
-        #         raise SDFLoaderError(
-        #             f"File '{path}' does not appear to contain valid SDF records "
-        #             "(missing 'M  END' or '$$$$')."
-        #         )
-
-    @staticmethod
-    def Load(files: str | list[str]) -> list[MBMolecule]:
-        """Load one or multiple SDF files and return a flat list of MBMolecule objects."""
-        if isinstance(files, str):
-            files = [files]
-
-        all_mols: list[MBMolecule] = []
-
-        for file in files:
-            sdf_path = SDF_DIR.joinpath(file)
-            SDFLoader.CheckFile(sdf_path)
-
-            supplier = SDMolSupplier(str(sdf_path), sanitize=True, removeHs=False)
-            raw_mols = list(supplier)
-
-            if not raw_mols:
-                raise SDFEmptyFileError(f"No molecules found in file: {sdf_path}")
-
-            failed = sum(1 for mol in raw_mols if mol is None)
-            if failed:
-                raise SDFMalformedRecordError(
-                    f"{failed} molecule(s) failed to parse in file '{sdf_path}'. "
-                    "Check the SDF syntax or atom typing."
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            content = f.read()
+            if not ("M  END" in content or "$$$$" in content):
+                raise SDFLoaderError(
+                    f"File '{path}' does not appear to contain valid SDF records "
+                    "(missing 'M  END' or '$$$$')."
                 )
-
-            mols = [
-                MBMoleculeFactory.create(mol, file, i)
-                for i, mol in enumerate(raw_mols)
-                if mol
-            ]
-            all_mols.extend(mols)
-
-        if not all_mols:
-            raise SDFEmptyFileError("No valid molecules loaded from any file.")
-
-        return all_mols

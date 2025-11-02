@@ -48,7 +48,8 @@ class MBAtom:
         """Return formal charge only for atoms without covalent bonds.
         @note1: For monoatomic ions formal charge is ALWAYS equal to its electrical charge.
         @note2: This only refers to monoatomic ions (like Na+) but NOT multiatomic ions ( like NO3(-) )
-        @note3: The formal charge is taken directly from the SDF file. It is NOT calculated implicitly by RDKit."""
+        @note3: The formal charge is taken directly from the SDF file. It is NOT calculated implicitly by RDKit.
+        """
         if not self.HasCovalentBond():
             return self._atom.GetFormalCharge()
         else:
@@ -97,7 +98,7 @@ class MBAtom:
         """Return total number of bonds formed by the given atom, including implicit hydrogens."""
         return self._atom.GetTotalDegree()
 
-    def HasProp(self, key: str) -> bool:
+    def HasProp(self, key: str) -> int:
         """Return True if the atom has a property with the given key."""
         return self._atom.HasProp(key=key)
 
