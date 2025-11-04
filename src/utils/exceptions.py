@@ -1,5 +1,3 @@
-
-
 class SDFLoaderError(Exception):
     """Base class for SDF loading errors."""
 

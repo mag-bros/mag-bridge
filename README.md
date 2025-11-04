@@ -1,10 +1,5 @@
-## 1 Document Goals <a id="document-goals"></a>
- - This document provides a basic introduction to molecular magnetism, outlining the physical quantities and their units, types of magnetic measurements, and computational procedures relevant to the use of the software.
- - Chapter 2 presents the theoretical foundations of the topic. Chapter 3 demonstrates step-by-step calculations of the diamagnetic contribution using several example of chemical compounds. Chapter 4 focuses on the processing and analysis of DC and AC magnetic data.
-
-<!-- ## Document Structure -->
-<!-- Not sure if this section is really necessary. From my perspective it introduces noise. We still can have this information, in each section instead. I would rather keep the header simple and stick to Document Goals -->
- <!-- - The section is divided into several chapters. The first chapter briefly explains the concept of diamagnetic susceptibility. The subsequent chapters discuss several examples of chemical compounds for which the diamagnetic contribution has been calculated. To illustrate these computations, we will start with the simplest example and gradually increase the level of difficulty in the following chapters. -->
+# About
+This project is an innovative cross-platform desktop app designed to fill key gaps in current magnetic data processing workflows. Built around user experience and powered by the industry-standard RDKit library, using SDF file formats in a streamlined workflow that helps researchers focus on discovery.
 
 ## Table of Contents
 1. [Document Goals](#document-goals)
@@ -18,6 +13,10 @@
     1. [DC magnetic data](#dc-magnetic-data)
 6. [Literature references](#literature-references)
 
+
+## 1 Document Goals <a id="document-goals"></a>
+ - This document provides a basic introduction to molecular magnetism, outlining the physical quantities and their units, types of magnetic measurements, and computational procedures relevant to the use of the software.
+ - Chapter 2 presents the theoretical foundations of the topic. Chapter 3 demonstrates step-by-step calculations of the diamagnetic contribution using several example of chemical compounds. Chapter 4 focuses on the processing and analysis of DC and AC magnetic data.
 
 ## 2 Introduction <a id="introduction"></a>
 

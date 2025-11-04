@@ -22,7 +22,8 @@ class MBMolecule:
 
     def CalcDiamagContr(self, verbose=False) -> float:
         """Calculate the chemical compounds's total diamagnetic contribution.
-        Uses Pascal constants for ring, open-chain, oxidation state, and charge terms."""
+        Uses Pascal constants for ring, open-chain, oxidation state, and charge terms.
+        """
         mol_dia_contr = 0
 
         if verbose:
@@ -46,12 +47,7 @@ class MBMolecule:
                 mol_dia_contr += pascal_values.get("ox_state", 0)
 
             # Add ring constant for N and C atoms located within a ring
-            if (
-                atom.is_ring_relevant
-                and atom.ox_state is None
-                and atom.charge is None
-                and "ring" in pascal_values
-            ):
+            if atom.is_ring_relevant and atom.ox_state is None and atom.charge is None:
                 mol_dia_contr += pascal_values.get("ring", 0)
 
             # Add open-chain constant for C or N atoms in chain fragments
@@ -60,7 +56,6 @@ class MBMolecule:
                 not atom.is_ring_relevant
                 and atom.ox_state is None
                 and atom.charge is None
-                and "open_chain" in pascal_values
             ):
                 mol_dia_contr += pascal_values.get("open_chain", 0)
 

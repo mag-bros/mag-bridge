@@ -7,6 +7,7 @@ if TYPE_CHECKING:
 class ConstProvider:
     @staticmethod
     def GetPascalValues(atom: "MBAtom") -> dict[str, float]:
+        """Looks up relevant Pascal Constant data for given atom."""
         covalent = PASCAL_CONST.get(atom.symbol, {}).get("covalent", {})
         ionic = PASCAL_CONST.get(atom.symbol, {}).get("ionic", {})
 
@@ -17,7 +18,7 @@ class ConstProvider:
             "charge": ionic.get("charge", {}).get(atom.charge),
         }
 
-        # Keep only non-None entries
+        # Remove keys that are not present. Missing key means that no data was found for given atom.
         return {k: v for k, v in values.items() if v is not None}
 
     @staticmethod
