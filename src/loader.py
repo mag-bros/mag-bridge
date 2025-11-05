@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+
 from rdkit.Chem import SDMolSupplier
 
 from core.compound import MBCompound
@@ -43,7 +44,7 @@ class SDFLoader:
 
         if not loaded_mols:
             raise SDFEmptyFileError("No valid molecules loaded from any file.")
-    
+
         compound = MBCompound(mols=loaded_mols, source_file=source_file)
 
         return compound
