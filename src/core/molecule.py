@@ -1,10 +1,11 @@
 from typing import Any
 
-from rdkit.Chem import AddHs, Mol, MolToSmiles
+from rdkit.Chem import AddHs, Atom, GetMolFrags, Mol, MolToSmiles, RWMol
 from rdkit.Chem import rdMolDescriptors as rdmd
 
 from src.constants import ConstProvider
 from src.core.atom import MBAtom
+from src.forbidden_bonds import METAL_CATIONS
 
 
 class MBMolecule:
@@ -102,4 +103,27 @@ class MBMoleculeFactory:
         if set_oxidation_states:
             rdmd.CalcOxidationNumbers(mol)
 
+        if remove_coord_bonds:
+            mol = MBMoleculeFactory._remove_coord_bonds(mol)
+
         return MBMolecule(mol=mol, source_file=source_file, mol_index=mol_index)
+
+    @staticmethod
+    def _remove_coord_bonds(mol: Mol) -> Mol:
+        rwmol = RWMol(mol)
+
+        atoms: list[Atom] = [Atom(a) for a in rwmol.GetAtoms()]
+
+        metal_idxs = [
+            atom.GetIdx() for atom in atoms if atom.GetSymbol() in METAL_CATIONS
+        ]
+
+        for midx in sorted(metal_idxs, reverse=True):
+            atom = rwmol.GetAtomWithIdx(midx)
+            for nbr in list(atom.GetNeighbors()):
+                nbr = atom.GetIdx()
+                rwmol.RemoveBond(midx, nbr)
+
+        fragments = GetMolFrags(rwmol.GetMol(), asMols=True, sanitizeFrags=True)
+
+        return list(fragments)
