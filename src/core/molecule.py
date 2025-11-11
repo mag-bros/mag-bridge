@@ -90,11 +90,34 @@ class MBMoleculeFactory:
         add_hydrogens: bool = True,
         set_oxidation_states: bool = True,
         set_props: bool = True,
-    ) -> MBMolecule:
+        remove_coord_bonds: bool = True,
+    ) -> MBMolecule | list[MBMolecule]:
         """Create and prepare an MBMolecule with optional preprocessing steps."""
-
+        """ Returns either a single MBMolecule or a list[MBMolecule] if decomposition occurs."""
         if add_hydrogens:
             mol = AddHs(mol)  # Adds hydrogens to RDKit object
+
+        if remove_coord_bonds:
+            fragments = MBMoleculeFactory._remove_coord_bonds(mol)
+            if len(fragments) == 1:
+                mol = fragments[0]
+            else:
+                mbmols: list[MBMolecule] = []
+                for i, frag in enumerate(fragments):
+                    if add_hydrogens:
+                        frag = AddHs(frag)
+                    if set_oxidation_states:
+                        rdmd.CalcOxidationNumbers(frag)
+                    if set_props:
+                        frag.SetProp("_SourceFile", source_file)
+                        frag.SetProp("_MolIndex", str(mol_index + i))
+
+                    mbmols.append(
+                        MBMolecule(
+                            mol=frag, source_file=source_file, mol_index=mol_index + i
+                        )
+                    )
+                return mbmols
 
         if set_props:
             mol.SetProp("_SourceFile", source_file)
@@ -103,13 +126,10 @@ class MBMoleculeFactory:
         if set_oxidation_states:
             rdmd.CalcOxidationNumbers(mol)
 
-        if remove_coord_bonds:
-            mol = MBMoleculeFactory._remove_coord_bonds(mol)
-
         return MBMolecule(mol=mol, source_file=source_file, mol_index=mol_index)
 
     @staticmethod
-    def _remove_coord_bonds(mol: Mol) -> Mol:
+    def _remove_coord_bonds(mol: Mol) -> list[Mol]:
         rwmol = RWMol(mol)
 
         atoms: list[Atom] = [Atom(a) for a in rwmol.GetAtoms()]
@@ -118,12 +138,15 @@ class MBMoleculeFactory:
             atom.GetIdx() for atom in atoms if atom.GetSymbol() in METAL_CATIONS
         ]
 
+        """TODO: Line 145 is a point where _remove_coord_bonds is not working. nbr get the same idx as metal atoms and no coord bond is removed. Fix is neccessary."""
         for midx in sorted(metal_idxs, reverse=True):
             atom = rwmol.GetAtomWithIdx(midx)
             for nbr in list(atom.GetNeighbors()):
                 nbr = atom.GetIdx()
                 rwmol.RemoveBond(midx, nbr)
 
-        fragments = GetMolFrags(rwmol.GetMol(), asMols=True, sanitizeFrags=True)
+        fragments: tuple[Mol] = GetMolFrags(
+            rwmol.GetMol(), asMols=True, sanitizeFrags=True
+        )
 
         return list(fragments)
