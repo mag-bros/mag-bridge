@@ -2,7 +2,7 @@ from typing import Any
 
 from rdkit.Chem import Atom
 
-from src.constants import ConstProvider
+from src.constants import METAL_CATIONS, ConstProvider
 
 
 class MBAtom:
@@ -18,7 +18,7 @@ class MBAtom:
         self.symbol: str = self.GetSymbol()
         self.is_ring_relevant: bool = self.IsRingRelevant()
         self.ox_state: int | None = self.GetOxidationState()
-        self.has_covalent_bond: bool = self.HasCovalentBond()
+        self.has_covalent_bond: bool = self._HasCovalentBond()
         self.total_degree: int = self.GetTotalDegree()
         self.charge: int | None = self.GetCharge()
 
@@ -49,17 +49,15 @@ class MBAtom:
         else:
             return None
 
-    def HasCovalentBond(self) -> bool:
-        """Return True if atom has at least one covalent bond."""
-        return self._atom.GetTotalDegree() > 0
-
     def GetCharge(self) -> int | None:
         """Return formal charge only for atoms without covalent bonds.
         @note1: For monoatomic ions formal charge is ALWAYS equal to its electrical charge.
         @note2: This only refers to monoatomic ions (like Na+) but NOT multiatomic ions ( like NO3(-) )
         @note3: The formal charge is taken directly from the SDF file. It is NOT calculated implicitly by RDKit.
         """
-        if not self.HasCovalentBond():
+        if (not self.has_covalent_bond and self.symbol not in METAL_CATIONS) or (
+            self.symbol in METAL_CATIONS
+        ):
             return self._atom.GetFormalCharge()
         else:
             return None
@@ -68,6 +66,10 @@ class MBAtom:
         """Return neighbor atom symbols as a list or comma-separated string."""
         symbols = [n.GetSymbol() for n in self._atom.GetNeighbors()]
         return ", ".join(symbols) if as_string else symbols
+
+    def _HasCovalentBond(self) -> bool:
+        """Return True if atom has at least one covalent bond."""
+        return self._atom.GetTotalDegree() > 0
 
     def _IsInRing(self) -> bool:
         """Return True if the atom is in a ring consisting of 3 to 8 atoms.
