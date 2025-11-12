@@ -13,7 +13,7 @@ SDF_TEST_COMPOUNDS = [
     {"sdf_file": "joint-ring-system.sdf", "expected_diamag": -169.88},
     {"sdf_file": "azabicycle_9_5.sdf", "expected_diamag": -116.92},
     {"sdf_file": "macrocycle_with_rings.sdf", "expected_diamag": -519.24},
-    # {"sdf_file": "Be(CH3)2.sdf", "expected_diamag": -29.98},
+    {"sdf_file": "Be(CH3)2.sdf", "expected_diamag": -29.98},
     # TODO: This test will not pass because Be-C bonds have to be omitted. To resolve it, error for user must be provided
     #       or additional function that delates certain coordination bonds and updates raw SDF file.#
 ]
