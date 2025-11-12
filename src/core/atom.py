@@ -55,9 +55,7 @@ class MBAtom:
         @note2: This only refers to monoatomic ions (like Na+) but NOT multiatomic ions ( like NO3(-) )
         @note3: The formal charge is taken directly from the SDF file. It is NOT calculated implicitly by RDKit.
         """
-        if (not self.has_covalent_bond and self.symbol not in METAL_CATIONS) or (
-            self.symbol in METAL_CATIONS
-        ):
+        if not self.has_covalent_bond:
             return self._atom.GetFormalCharge()
         else:
             return None
