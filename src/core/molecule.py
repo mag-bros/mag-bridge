@@ -1,5 +1,3 @@
-from typing import Any
-
 from rdkit.Chem import AddHs, Atom, GetMolFrags, Mol, MolToSmiles, RWMol
 from rdkit.Chem import rdMolDescriptors as rdmd
 
@@ -41,8 +39,7 @@ class MBMolecule:
             # Add charge constant for isolated ions (monoatomic species with net charge)
             mol_dia_contr += pascal_values.get("charge", 0)
 
-            # Add oxidation-state constant for covalently bonded atom
-            # when neither ring nor open-chain constants apply
+            # Add ox-state constant for covalently bonded atom when neither ring nor open-chain constants apply
             if atom.has_covalent_bond and all(
                 key not in pascal_values for key in ["ring", "open_chain"]
             ):

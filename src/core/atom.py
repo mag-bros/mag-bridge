@@ -32,7 +32,7 @@ class MBAtom:
         """Return True if C or N atom is part of a ring."""
         if (
             self._atom.GetSymbol() in ConstProvider.GetRelevantRingAtoms()
-            and self.IsRing()
+            and self._IsInRing()
         ):
             return self._atom.IsInRing()
         else:
@@ -69,13 +69,19 @@ class MBAtom:
         symbols = [n.GetSymbol() for n in self._atom.GetNeighbors()]
         return ", ".join(symbols) if as_string else symbols
 
+    def _IsInRing(self) -> bool:
+        """Return True if the atom is in a ring consisting of 3 to 8 atoms.
+        Rings with more atoms are treated as macrocycles."""
+        is_ring_size: list[bool] = [self._atom.IsInRingSize(n) for n in range(3, 9)]
+        return any(is_ring_size)
+
     def __str__(self) -> str:
         """Return a one-line, column-aligned summary of atom properties."""
         return (
             f"Symbol: {self.symbol:<3} | "
             f"IsRing {str(self.IsRing()):<5} | "
             f"IsRingRelevant: {str(self.is_ring_relevant):<5} | "
-            f"Valence: {self.total_degree:<2} | "
+            f"TotalDegree: {self.total_degree:<2} | "
             f"Charge: {str(self.charge):<5} | "
             f"OxState: {str(self.ox_state):<4} | "
             f"Id: {self.GetIdx():<2} | "
