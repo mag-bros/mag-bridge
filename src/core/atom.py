@@ -2,7 +2,7 @@ from typing import Any
 
 from rdkit.Chem import Atom
 
-from src.constants import ConstProvider
+from src.constants import METAL_CATIONS, ConstProvider
 
 
 class MBAtom:
@@ -18,9 +18,15 @@ class MBAtom:
         self.symbol: str = self.GetSymbol()
         self.is_ring_relevant: bool = self.IsRingRelevant()
         self.ox_state: int | None = self.GetOxidationState()
-        self.has_covalent_bond: bool = self.HasCovalentBond()
+        self.has_covalent_bond: bool = self._HasCovalentBond()
         self.total_degree: int = self.GetTotalDegree()
         self.charge: int | None = self.GetCharge()
+
+    def IsRing(self) -> bool:
+        """Return True if the atom is in a ring consisting of 3 to 8 atoms.
+        Rings with more atoms are treated as macrocycles."""
+        is_ring_size: list[bool] = [self._atom.IsInRingSize(n) for n in range(3, 9)]
+        return any(is_ring_size)
 
     def IsRingRelevant(self) -> bool:
         """Return True if C or N atom is part of a ring."""
@@ -43,17 +49,13 @@ class MBAtom:
         else:
             return None
 
-    def HasCovalentBond(self) -> bool:
-        """Return True if atom has at least one covalent bond."""
-        return self._atom.GetTotalDegree() > 0
-
     def GetCharge(self) -> int | None:
         """Return formal charge only for atoms without covalent bonds.
         @note1: For monoatomic ions formal charge is ALWAYS equal to its electrical charge.
         @note2: This only refers to monoatomic ions (like Na+) but NOT multiatomic ions ( like NO3(-) )
         @note3: The formal charge is taken directly from the SDF file. It is NOT calculated implicitly by RDKit.
         """
-        if not self.HasCovalentBond():
+        if not self.has_covalent_bond:
             return self._atom.GetFormalCharge()
         else:
             return None
@@ -62,6 +64,10 @@ class MBAtom:
         """Return neighbor atom symbols as a list or comma-separated string."""
         symbols = [n.GetSymbol() for n in self._atom.GetNeighbors()]
         return ", ".join(symbols) if as_string else symbols
+
+    def _HasCovalentBond(self) -> bool:
+        """Return True if atom has at least one covalent bond."""
+        return self._atom.GetTotalDegree() > 0
 
     def _IsInRing(self) -> bool:
         """Return True if the atom is in a ring consisting of 3 to 8 atoms.
@@ -73,6 +79,7 @@ class MBAtom:
         """Return a one-line, column-aligned summary of atom properties."""
         return (
             f"Symbol: {self.symbol:<3} | "
+            f"IsRing {str(self.IsRing()):<5} | "
             f"IsRingRelevant: {str(self.is_ring_relevant):<5} | "
             f"TotalDegree: {self.total_degree:<2} | "
             f"Charge: {str(self.charge):<5} | "
