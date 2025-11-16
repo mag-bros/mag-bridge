@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
 
 concurrency:
-  group: pr-${{ github.event.pull_request.head.ref }}
+  group: pr-tests-${{ github.event.pull_request.head.ref }}
   cancel-in-progress: true
 
 jobs:
