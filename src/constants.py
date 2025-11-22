@@ -37,7 +37,7 @@ RELEVANT_RING_ATOMS = ["N", "C"]
 
 """
 unit: 10^(-6) cm^3/mol
-Reference (DOI): 10.1021/ed085p532
+Reference (DOI): 10.1021/ed085p532 (TABLES 1 and 6, and some anions from TABLE 3)
 This dictionary represents the diamagnetic values for elements in
 different bonding/oxidation_state/ionic_charge scenarios. Here's a breakdown of the values:
 """
