@@ -33,8 +33,8 @@ EB_PLATFORM ?= --mac
 
 # Logs
 HOME_DIR ?= $(HOME)
-LOG_DIR ?= $(HOME_DIR)/.magbridge/logs
-LOG_FILE ?= $(LOG_DIR)/magbridge.log
+LOG_DIR ?= $(HOME_DIR)/magbridge
+LOG_FILE ?= $(LOG_DIR)/app.log
 
 # Runtime (packaged app) paths
 APP_NAME ?= Mag Bridge

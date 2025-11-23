@@ -6,6 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { getAppConfig } = require('./app-config');
 
 // ANSI utilities
 const ANSI_RE = /\x1B\[[0-9;]*[A-Za-z]/g;
@@ -34,8 +35,16 @@ function colorFor(level) {
   }
 }
 
-function ensureDir(p) {
-  if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
+function ensureFile(filePath) {
+  const dir = path.dirname(filePath);
+
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, '');
+  }
 }
 
 // Normalize backend (uvicorn/gunicorn) style lines, stripping redundant prefixes
@@ -85,16 +94,13 @@ function formatLine(rec) {
 }
 
 function createLogger({
-  appName = 'magbridge',
-  baseDir = path.join(os.homedir(), '.magbridge', 'logs'),
-  fileName = 'magbridge.log',
   writeToFile = true,
   consoleColors = true,
   cloneConsole = true,
   captureConsole = false,
 } = {}) {
-  ensureDir(baseDir);
-  const filePath = path.join(baseDir, fileName);
+  const cfg = getAppConfig();
+  ensureFile(cfg.logFile);
 
   const originalConsole = {
     log: console.log.bind(console),
@@ -124,7 +130,7 @@ function createLogger({
     // File (strip ANSI)
     if (writeToFile) {
       try {
-        fs.appendFileSync(filePath, formatLine({ ...record, msg: stripAnsi(record.msg) }));
+        fs.appendFileSync(cfg.logFile, formatLine({ ...record, msg: stripAnsi(record.msg) }));
       } catch (_) {}
     }
 
@@ -215,7 +221,7 @@ function createLogger({
       );
     },
 
-    paths: { file: filePath, dir: baseDir },
+    paths: { file: cfg.logFile },
   };
 
   if (captureConsole) api.captureConsole();

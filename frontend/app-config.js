@@ -1,79 +1,26 @@
-// frontend/app-config.js
-const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const pkg = require('./package.json');
 
-/**
- * PathResolver – helper do rozwiązywania ścieżek w dev/release
- */
 const PathResolver = {
-  repoRoot() {
-    // katalog wyżej niż frontend/
-    return path.resolve(__dirname, '..');
-  },
-
-  releaseRoot() {
-    // priorytet: zmienna środowiskowa → katalog zasobów aplikacji → repoRoot
-    if (process.env.MAGBRIDGE_DATA_DIR) {
-      return process.env.MAGBRIDGE_DATA_DIR;
-    }
-    if (process.resourcesPath) {
-      return path.join(process.resourcesPath, 'magbridge');
-    }
-    return PathResolver.repoRoot();
-  },
-
   baseDir(isRelease) {
-    return isRelease ? PathResolver.releaseRoot() : PathResolver.repoRoot();
+    return path.join(os.homedir(), isRelease ? 'magbridge' : 'magbridge-dev');
   },
 
-  /**
-   * Zwraca pełną ścieżkę do katalogu SDF:
-   * - central.sdf_dir może być absolutne → używane 1:1
-   * - albo względne → liczone względem baseDir (dev/release)
-   * - fallback, jeśli brak: 'sdf' pod baseDir
-   */
-  userSdfDir(isRelease, central) {
-    const rawSdfDir = (central && central.sdf_dir) || 'sdf';
-    const baseDir = PathResolver.baseDir(isRelease);
+  userSdfDir(isRelease) {
+    return path.join(this.baseDir(isRelease), 'userdata', 'sdf');
+  },
 
-    if (path.isAbsolute(rawSdfDir)) {
-      return rawSdfDir;
-    }
-    return path.resolve(baseDir, rawSdfDir);
+  logFile(isRelease) {
+    return path.join(this.baseDir(isRelease), 'app.log');
   },
 };
 
-function loadCentralConfig(isRelease) {
-  try {
-    // tryb release: plik siedzi wewnątrz asara → build/frontend/browser/magbridge-config.json
-    const releasePath = path.join(
-      __dirname,
-      'build',
-      'frontend',
-      'browser',
-      'magbridge-config.json',
-    );
-
-    // tryb dev: plik w repo root (katalog wyżej niż frontend/)
-    const devPath = path.join(__dirname, '..', 'magbridge-config.json');
-
-    const cfgPath = isRelease ? releasePath : devPath;
-
-    const raw = fs.readFileSync(cfgPath, 'utf-8');
-    return JSON.parse(raw);
-  } catch (err) {
-    console.error(`Failed to load magbridge-config.json: ${err.message}`);
-    return {};
-  }
-}
-
 function getAppConfig() {
   const isRelease = (process.env.NODE_ENV || pkg.env?.NODE_ENV) === 'release';
-  const central = loadCentralConfig(isRelease);
 
   return {
-    isRelease,
+    isRelease: isRelease,
     nodeEnv: process.env.NODE_ENV || '(undefined)',
     pkgEnv: pkg.env?.NODE_ENV || '(undefined)',
 
@@ -97,8 +44,8 @@ function getAppConfig() {
 
     importTime: process.env.BACKEND_IMPORTTIME === '1',
 
-    userSdfDir: PathResolver.userSdfDir(isRelease, central),
-    themes: central.themes || {},
+    userSdfDir: PathResolver.userSdfDir(isRelease),
+    logFile: PathResolver.logFile(isRelease),
   };
 }
 
