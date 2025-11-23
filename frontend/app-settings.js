@@ -1,4 +1,4 @@
-// frontend/app-config.js
+// frontend/app-settings.js
 const fs = require('fs');
 const path = require('path');
 const pkg = require('./package.json');
@@ -54,13 +54,10 @@ function loadCentralConfig(isRelease) {
       'browser',
       'magbridge-config.json',
     );
-
-    // tryb dev: plik w repo root (katalog wyżej niż frontend/)
     const devPath = path.join(__dirname, '..', 'magbridge-config.json');
-
     const cfgPath = isRelease ? releasePath : devPath;
-
     const raw = fs.readFileSync(cfgPath, 'utf-8');
+
     return JSON.parse(raw);
   } catch (err) {
     console.error(`Failed to load magbridge-config.json: ${err.message}`);
@@ -68,12 +65,12 @@ function loadCentralConfig(isRelease) {
   }
 }
 
-function getAppConfig() {
+function getAppSettings() {
   const isRelease = (process.env.NODE_ENV || pkg.env?.NODE_ENV) === 'release';
   const central = loadCentralConfig(isRelease);
 
   return {
-    isRelease,
+    isRelease: isRelease,
     nodeEnv: process.env.NODE_ENV || '(undefined)',
     pkgEnv: pkg.env?.NODE_ENV || '(undefined)',
 
@@ -96,7 +93,6 @@ function getAppConfig() {
     },
 
     importTime: process.env.BACKEND_IMPORTTIME === '1',
-
     userSdfDir: PathResolver.userSdfDir(isRelease, central),
     themes: central.themes || {},
   };
@@ -110,4 +106,4 @@ function configToString(cfg) {
   }
 }
 
-module.exports = { getAppConfig, configToString, PathResolver };
+module.exports = { getAppSettings, configToString, PathResolver };

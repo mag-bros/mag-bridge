@@ -1,2 +1,2 @@
 # trunk-ignore(ruff/F401)
-from .example import example_router
+from .math import math_router

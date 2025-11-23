@@ -24,10 +24,14 @@ export class AppComponent {
 
   backendReadyCheck() {
     this.backendCheckSubscription = interval(500).subscribe(() => {
-      this.restService.get(this.restService.endpoints.general.home).subscribe({
-        next: () => {
+      this.restService.get<any>(this.restService.endpoints.general.health).subscribe({
+        next: (res) => {
+          console.log('Backend health OK:', res);
           this.isLoading = false;
           this.backendCheckSubscription.unsubscribe();
+        },
+        error: (err) => {
+          console.error('Backend not yet ready (healthcheck failed):', err);
         },
       });
     });
