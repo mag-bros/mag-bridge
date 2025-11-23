@@ -8,7 +8,7 @@
     "format-code": "prettier --write \"src/**/*.{html,ts,js,scss}\"",
     "ng": "ng",
     "serve-angular-hmr": "ng serve --hmr --port 4200",
-    "build-angular": "ng build --base-href ./ --output-path=../build/frontend",
+    "build-angular": "ng build --base-href ./ --output-path=build/frontend",
     "test-angular": "ng test",
     "electron": "electron .",
     "electron-dev": "NODE_ENV=development electron .",
@@ -23,11 +23,11 @@
     "appId": "com.github.bridge",
     "productName": "Mag Bridge",
     "directories": {
-      "output": "../build/app"
+      "output": "build/app"
     },
     "files": [
       {
-        "from": "../build",
+        "from": "build",
         "to": "build",
         "filter": [
           "frontend/**/*",
@@ -41,7 +41,7 @@
     ],
     "extraResources": [
       {
-        "from": "../build/backend/",
+        "from": "build/backend/",
         "to": "backend"
       }
     ],
