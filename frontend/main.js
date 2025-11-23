@@ -2,26 +2,13 @@
 const { spawn } = require('child_process');
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const pkg = require('./package.json');
+
 const { createLogger } = require('./logging');
-const { getAppConfig } = require('./app-config');
-
+const { getAppConfig, configToString } = require('./app-config');
 cfg = getAppConfig();
+const log = createLogger();
 
-const isRelease = (process.env.NODE_ENV || pkg.env?.NODE_ENV) === 'release';
-
-const log = createLogger({
-  isRelease,
-  writeToFile: true, // also write in dev
-  consoleColors: true,
-  cloneConsole: true,
-  captureConsole: false,
-});
-
-console.log('Log file:', (log.paths && (log.paths.file || log.paths.json)) || '(unknown)');
-console.log(`🔧 NODE_ENV = ${process.env.NODE_ENV || '(undefined)'}`);
-console.log(`🔧 PKG_ENV = ${pkg.env?.NODE_ENV || '(undefined)'}`);
-console.log(`📦 isRelease = ${isRelease}`);
+log.info(`=== MagBridge configuration ===\n${configToString(cfg)}`);
 
 let backendProcess;
 
@@ -38,7 +25,7 @@ function createWindow() {
 
   log.bindWindow(win, 'main');
 
-  if (!isRelease) {
+  if (!cfg.isRelease) {
     win.loadURL('http://localhost:4200');
     win.webContents.openDevTools();
   } else {
@@ -49,7 +36,7 @@ function createWindow() {
 app.whenReady().then(() => {
   try {
     if (cfg.manageBackend) {
-      if (isRelease) {
+      if (cfg.isRelease) {
         // Packaged backend binary
         const backendPath = path.join(
           process.resourcesPath,

@@ -37,6 +37,7 @@
       "main.js",
       "preload.js",
       "logging.js",
+      "app-config.js",
       "package.json"
     ],
     "extraResources": [

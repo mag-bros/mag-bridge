@@ -92,7 +92,6 @@ function createLogger({
   consoleColors = true,
   cloneConsole = true,
   captureConsole = false,
-  isRelease = false,
 } = {}) {
   ensureDir(baseDir);
   const filePath = path.join(baseDir, fileName);
@@ -220,11 +219,6 @@ function createLogger({
   };
 
   if (captureConsole) api.captureConsole();
-
-  api.info('--- logger initialized ---', {
-    file: filePath,
-    mode: isRelease ? 'release' : 'dev',
-  });
 
   return api;
 }

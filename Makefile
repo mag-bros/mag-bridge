@@ -61,7 +61,7 @@ endif
 ##### Phonies
 ##### ============
 
-.PHONY: all clean build-backend build-frontend dev run logs show-vars
+.PHONY: all clean build-backend build-app dev run logs show-vars
 
 all: build-backend build-frontend
 
