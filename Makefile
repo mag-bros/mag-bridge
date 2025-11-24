@@ -14,9 +14,9 @@ BACKEND_SRC ?= $(ROOT_DIR)/backend
 FRONTEND_SRC ?= $(ROOT_DIR)/frontend
 
 # Build output directories
-BUILD ?= $(ROOT_DIR)/build
-BACKEND_DIST := $(BUILD)/backend
+BUILD ?= $(ROOT_DIR)/frontend/build
 FRONTEND_DIST := $(BUILD)/frontend
+BACKEND_DIST := $(BUILD)/backend
 APP_DIST := $(BUILD)/app
 
 # Backend packaging
@@ -33,8 +33,8 @@ EB_PLATFORM ?= --mac
 
 # Logs
 HOME_DIR ?= $(HOME)
-LOG_DIR ?= $(HOME_DIR)/.magbridge/logs
-LOG_FILE ?= $(LOG_DIR)/magbridge.log
+LOG_DIR ?= $(HOME_DIR)/magbridge
+LOG_FILE ?= $(LOG_DIR)/app.log
 
 # Runtime (packaged app) paths
 APP_NAME ?= Mag Bridge
@@ -61,27 +61,9 @@ endif
 ##### Phonies
 ##### ============
 
-.PHONY: all clean build-backend build-frontend dev run logs show-vars
+.PHONY: all clean build-backend build-app dev run logs show-vars
 
 all: build-backend build-frontend
-
-show-vars:
-	@echo "ROOT_DIR        = $(ROOT_DIR)"
-	@echo "BACKEND_SRC     = $(BACKEND_SRC)"
-	@echo "FRONTEND_SRC    = $(FRONTEND_SRC)"
-	@echo "BUILD           = $(BUILD)"
-	@echo "BACKEND_APP_NAME= $(BACKEND_APP_NAME)"
-	@echo "BACKEND_ENTRY   = $(BACKEND_ENTRY)"
-	@echo "BACKEND_DIST    = $(BACKEND_DIST)"
-	@echo "FRONTEND_DIST   = $(FRONTEND_DIST)"
-	@echo "APP_DIST        = $(APP_DIST)"
-	@echo "LOG_FILE        = $(LOG_FILE)"
-	@echo "PYTHON          = $(PYTHON)"
-	@echo "EB_PLATFORM     = $(EB_PLATFORM)"
-
-##### ============
-##### Backend (PyInstaller)
-##### ============
 
 build-backend:
 	$(RM) "$(BACKEND_DIST)"
@@ -96,18 +78,14 @@ build-backend:
 	  --noconfirm "$(BACKEND_ENTRY)"
 	@echo "✓ Backend built: $(BACKEND_DIST)/$(BACKEND_APP_NAME) (or .exe on Windows)"
 
-##### ============
-##### Frontend (Angular + Electron)
-##### ============
-
-build-frontend:
+build-app: build-backend
 	$(RM) "$(FRONTEND_DIST)" "$(APP_DIST)"
 	@echo "⧗ Installing frontend deps"
 	$(NPM) ci --prefix "$(FRONTEND_SRC)"
 	@echo "⧗ Building Angular"
 	$(NPM) run build-angular --prefix "$(FRONTEND_SRC)"
 	@echo "⧗ Packaging Electron ($(EB_PLATFORM))"
-	cd "$(FRONTEND_SRC)" && $(ELECTRON_BUILDER) $(EB_PLATFORM)
+	cd "$(FRONTEND_SRC)" && $(NPX) electron-builder $(EB_PLATFORM)
 	@echo "✓ Frontend packaged under $(APP_DIST)"
 
 ##### ============
@@ -132,6 +110,20 @@ logs:
 	$(MKDIR) "$(LOG_DIR)"
 	@echo "⧗ Tailing logs at: $(LOG_FILE)"
 	tail -f "$(LOG_FILE)"
+
+show-vars:
+	@echo "ROOT_DIR        = $(ROOT_DIR)"
+	@echo "BACKEND_SRC     = $(BACKEND_SRC)"
+	@echo "FRONTEND_SRC    = $(FRONTEND_SRC)"
+	@echo "BUILD           = $(BUILD)"
+	@echo "BACKEND_APP_NAME= $(BACKEND_APP_NAME)"
+	@echo "BACKEND_ENTRY   = $(BACKEND_ENTRY)"
+	@echo "BACKEND_DIST    = $(BACKEND_DIST)"
+	@echo "FRONTEND_DIST   = $(FRONTEND_DIST)"
+	@echo "APP_DIST        = $(APP_DIST)"
+	@echo "LOG_FILE        = $(LOG_FILE)"
+	@echo "PYTHON          = $(PYTHON)"
+	@echo "EB_PLATFORM     = $(EB_PLATFORM)"
 
 ##### ============
 ##### Clean

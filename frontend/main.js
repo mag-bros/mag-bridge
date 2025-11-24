@@ -2,46 +2,13 @@
 const { spawn } = require('child_process');
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const pkg = require('./package.json');
+
 const { createLogger } = require('./logging');
+const { getAppConfig, configToString } = require('./app-config');
+cfg = getAppConfig();
+const log = createLogger();
 
-const isRelease = (process.env.NODE_ENV || pkg.env?.NODE_ENV) === 'release';
-
-const log = createLogger({
-  isRelease,
-  writeToFile: true, // also write in dev
-  consoleColors: true,
-  cloneConsole: true,
-  captureConsole: false,
-});
-
-// ---- Backend/Uvicorn config (ENV overrides) ----
-const cfg = {
-  manageBackend: process.env.BACKEND_EXTERNAL !== '1',
-
-  python: process.env.BACKEND_CMD || (process.platform === 'win32' ? 'python' : 'python3'),
-
-  cwd: process.env.BACKEND_CWD || path.join(__dirname, '..'), // project root so "backend.main:app" imports
-
-  uvicorn: {
-    app: process.env.UVICORN_APP || 'backend:app',
-    host: process.env.UVICORN_HOST || '127.0.0.1',
-    port: Number(process.env.UVICORN_PORT || 8000),
-    logLevel: process.env.UVICORN_LOG_LEVEL || 'info',
-    accessLog: (process.env.UVICORN_ACCESS_LOG ?? '1') !== '0',
-    reload: process.env.UVICORN_RELOAD === '1',
-    useUvloop: process.env.UVICORN_UVLOOP === '1',
-    useHttptools: process.env.UVICORN_HTTPTOOLS === '1',
-    lifespanOff: process.env.UVICORN_LIFESPAN_OFF === '1',
-  },
-
-  importTime: process.env.BACKEND_IMPORTTIME === '1', // adds: -X importtime
-};
-
-console.log('Log file:', (log.paths && (log.paths.file || log.paths.json)) || '(unknown)');
-console.log(`🔧 NODE_ENV = ${process.env.NODE_ENV || '(undefined)'}`);
-console.log(`🔧 PKG_ENV = ${pkg.env?.NODE_ENV || '(undefined)'}`);
-console.log(`📦 isRelease = ${isRelease}`);
+log.info(`=== MagBridge configuration ===\n${configToString(cfg)}`);
 
 let backendProcess;
 
@@ -58,7 +25,7 @@ function createWindow() {
 
   log.bindWindow(win, 'main');
 
-  if (!isRelease) {
+  if (!cfg.isRelease) {
     win.loadURL('http://localhost:4200');
     win.webContents.openDevTools();
   } else {
@@ -69,7 +36,7 @@ function createWindow() {
 app.whenReady().then(() => {
   try {
     if (cfg.manageBackend) {
-      if (isRelease) {
+      if (cfg.isRelease) {
         // Packaged backend binary
         const backendPath = path.join(
           process.resourcesPath,

@@ -1,14 +1,9 @@
 from fastapi import APIRouter, HTTPException, Request
 
-example_router = APIRouter()
+math_router = APIRouter()
 
 
-@example_router.get("/")
-async def home():
-    return {"message": "FastAPI backend is running!"}
-
-
-@example_router.post("/divideByTwo")
+@math_router.post("/divideByTwo")
 async def divide_by_two(request: Request):
     try:
         number = request.query_params.get("number")
