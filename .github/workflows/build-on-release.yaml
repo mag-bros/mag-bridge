@@ -85,13 +85,17 @@ jobs:
             powershell -Command "Compress-Archive -Path 'release_artifacts\\*' -DestinationPath 'magbridge-${{ matrix.label }}.zip'"
           fi
 
-      - name: Upload artifacts to GitHub Release
+      - name: Upload installers to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            magbridge-${{ matrix.label }}.tar.gz
-            magbridge-${{ matrix.label }}.zip
-            release_artifacts/**/*
+            frontend/build/app/**/*.dmg
+            frontend/build/app/**/*.zip
+            frontend/build/app/**/*.exe
+            frontend/build/app/**/*.AppImage
+            frontend/build/app/**/*.deb
+            frontend/build/app/**/*.rpm
+            frontend/build/app/**/*.tar.gz
           fail_on_unmatched_files: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
