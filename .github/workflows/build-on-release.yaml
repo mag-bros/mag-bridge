@@ -12,23 +12,53 @@ jobs:
     name: Build & publish ${{ matrix.label }} zip
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: 6
       matrix:
         include:
+          # Linux x64
           - os: ubuntu-latest
-            label: linux
+            label: linux-x64
+            arch: x64
             eb_platform: --linux
             python_version: "3.13"
             node_version: "20"
 
+          # Linux arm64
+          - os: ubuntu-24.04-arm
+            label: linux-arm64
+            arch: arm64
+            eb_platform: --linux
+            python_version: "3.13"
+            node_version: "20"
+
+          # Windows x64
           - os: windows-latest
-            label: windows
+            label: windows-x64
+            arch: x64
             eb_platform: --win
             python_version: "3.13"
             node_version: "20"
 
+          # Windows arm64
+          - os: windows-11-arm
+            label: windows-arm64
+            arch: arm64
+            eb_platform: --win
+            python_version: "3.13"
+            node_version: "20"
+
+          # macOS Intel (x64)
+          - os: macos-13
+            label: macos-x64
+            arch: x64
+            eb_platform: --mac
+            python_version: "3.13"
+            node_version: "20"
+
+          # macOS Apple Silicon (arm64)
           - os: macos-latest
-            label: macos
+            label: macos-arm64
+            arch: arm64
             eb_platform: --mac
             python_version: "3.13"
             node_version: "20"
@@ -36,6 +66,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       EB_PLATFORM: ${{ matrix.eb_platform }}
+      ARCH: ${{ matrix.arch }}
       PYTHONUNBUFFERED: "1"
 
     steps:
@@ -88,6 +119,7 @@ jobs:
       - name: Build backend & Electron app
         shell: bash
         run: |
+          # ARCH and EB_PLATFORM available via env
           make build-app \
             EB_PLATFORM="${{ matrix.eb_platform }}" \
             EB_EXTRA="--publish never -c.extraMetadata.version=${APP_VERSION}"
@@ -97,20 +129,16 @@ jobs:
         run: |
           set -euo pipefail
 
-          # We'll look only in the electron-builder output dir
           DIST_DIR="frontend/build/app"
 
           case "$RUNNER_OS" in
             "Linux")
-              # Prefer AppImage, else any .deb
               installer=$(find "$DIST_DIR" -maxdepth 3 -type f \( -name "*.AppImage" -o -name "*.deb" \) | head -n 1)
               ;;
             "macOS")
-              # You currently build dmg only
               installer=$(find "$DIST_DIR" -maxdepth 3 -type f -name "*.dmg" | head -n 1)
               ;;
             "Windows")
-              # electron-builder NSIS installer: pick the *Setup*.exe, ignore backend_app.exe, elevate.exe
               installer=$(find "$DIST_DIR" -maxdepth 3 -type f -name "*Setup*.exe" | head -n 1)
               ;;
           esac
@@ -122,6 +150,7 @@ jobs:
 
           echo "⧗ Found installer: $installer"
 
+          # label already includes arch (e.g. linux-arm64, macos-x64)
           zip_name="magbridge-${{ matrix.label }}.zip"
 
           if [ "$RUNNER_OS" = "Windows" ]; then
