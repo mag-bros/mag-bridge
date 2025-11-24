@@ -88,7 +88,9 @@ jobs:
       - name: Build backend & Electron app
         shell: bash
         run: |
-          make build-app EB_PLATFORM="${{ matrix.eb_platform }}" EB_EXTRA="-c.extraMetadata.version=${APP_VERSION}"
+          make build-app \
+            EB_PLATFORM="${{ matrix.eb_platform }}" \
+            EB_EXTRA="--publish never -c.extraMetadata.version=${APP_VERSION}"
 
       - name: Package installer into single zip
         shell: bash

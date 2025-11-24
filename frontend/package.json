@@ -3,6 +3,19 @@
   "version": "0.0.0",
   "main": "main.js",
   "private": true,
+  "homepage": "https://github.com/mag-bros/mag-bridge/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mag-bros/mag-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mag-bros/mag-bridge/issues"
+  },
+  "author": {
+    "name": "Mag Bros",
+    "email": "dev@magbros.com"
+  },
+  "contributors": [],
   "scripts": {
     "install-dependencies": "npm i",
     "format-code": "prettier --write \"src/**/*.{html,ts,js,scss}\"",
@@ -22,6 +35,7 @@
   "build": {
     "appId": "com.github.bridge",
     "productName": "Mag Bridge",
+    "copyright": "Copyright © 2025 Mag Bros",
     "directories": {
       "output": "build/app"
     },

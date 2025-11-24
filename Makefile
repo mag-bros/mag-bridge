@@ -43,6 +43,7 @@ PYTHON ?= python3
 
 # OS detection (GNU Make on Windows sets OS=Windows_NT)
 EB_PLATFORM ?= --mac
+EB_EXTRA ?=
 
 ifeq ($(OS),Windows_NT)
   RM := rm -rf
@@ -83,9 +84,9 @@ build-app: build-backend
 	$(NPM) ci --prefix "$(FRONTEND_SRC)"
 	@echo "⧗ Building Angular"
 	$(NPM) run build-angular --prefix "$(FRONTEND_SRC)"
-	@echo "⧗ Packaging Electron ($(EB_PLATFORM))"
-	cd "$(FRONTEND_SRC)" && $(NPX) $(ELECTRON_BUILDER) $(EB_PLATFORM) $(EB_EXTRA)
-	@echo "✓ Frontend packaged under $(APP_DIST)"
+	@echo "⧗ Packaging Electron ($(EB_PLATFORM) $(EB_EXTRA))"
+	cd "$(FRONTEND_SRC)" && $(NPX) electron-builder $(EB_PLATFORM) $(EB_EXTRA) && \
+	  echo "✓ Frontend packaged under $(APP_DIST)"
 
 ##### ============
 ##### Dev & Run
