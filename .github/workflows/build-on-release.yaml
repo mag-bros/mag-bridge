@@ -1,0 +1,110 @@
+name: Build & Publish Desktop Releases
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-publish:
+    name: Build & publish ${{ matrix.label }} artifacts
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # --- Linux desktop builds (AppImage, deb, tar.gz, etc.) ---
+          - os: ubuntu-latest
+            label: linux
+            eb_platform: --linux
+            python_version: "3.13"
+            node_version: "20"
+
+          # --- Windows builds (.exe, NSIS installer, etc.) ---
+          - os: windows-latest
+            label: windows
+            eb_platform: --win
+            python_version: "3.13"
+            node_version: "20"
+
+          # --- macOS builds (.dmg, .zip, etc.) ---
+          - os: macos-latest
+            label: macos
+            eb_platform: --mac
+            python_version: "3.13"
+            node_version: "20"
+
+    runs-on: ${{ matrix.os }}
+    env:
+      # This drives your Makefile → electron-builder
+      EB_PLATFORM: ${{ matrix.eb_platform }}
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node_version }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python_version }}
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install make (Windows only)
+        if: runner.os == 'Windows'
+        run: choco install make -y
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          # In case PyInstaller is not in requirements
+          pip install pyinstaller
+        shell: bash
+
+      # This uses your Makefile:
+      #   - build-backend (PyInstaller)
+      #   - build Angular
+      #   - run electron-builder with EB_PLATFORM
+      - name: Build backend & Electron app
+        run: make build-app
+        shell: bash
+
+      # OPTIONAL: bundle all per-platform outputs into a single archive
+      # This is where “8–40 artifacts” typically come from:
+      # - multiple installer formats per OS (dmg, zip, AppImage, deb, nsis, portable, etc.)
+      # - you can decide what to zip vs upload raw
+      - name: Package artifacts for this platform
+        run: |
+          mkdir -p release_artifacts
+          # Assuming APP_DIST = frontend/build/app (from your Makefile)
+          cp -R frontend/build/app/* release_artifacts/
+
+          # Optional: make one compressed file per platform
+          # Linux/macOS:
+          if [ "$RUNNER_OS" != "Windows" ]; then
+            tar czf magbridge-${{ matrix.label }}.tar.gz -C release_artifacts .
+          else
+            powershell -Command "Compress-Archive -Path 'release_artifacts\\*' -DestinationPath 'magbridge-${{ matrix.label }}.zip'"
+          fi
+        shell: bash
+
+      # Attach platform artifacts directly to the GitHub Release that triggered this workflow
+      - name: Upload artifacts to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            magbridge-${{ matrix.label }}.tar.gz
+            magbridge-${{ matrix.label }}.zip
+            release_artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
