@@ -11,21 +11,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # --- Linux desktop builds (AppImage, deb, tar.gz, etc.) ---
           - os: ubuntu-latest
             label: linux
             eb_platform: --linux
             python_version: "3.13"
             node_version: "20"
 
-          # --- Windows builds (.exe, NSIS installer, etc.) ---
           - os: windows-latest
             label: windows
             eb_platform: --win
             python_version: "3.13"
             node_version: "20"
 
-          # --- macOS builds (.dmg, .zip, etc.) ---
           - os: macos-latest
             label: macos
             eb_platform: --mac
@@ -34,7 +31,6 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     env:
-      # This drives your Makefile → electron-builder
       EB_PLATFORM: ${{ matrix.eb_platform }}
       PYTHONUNBUFFERED: "1"
 
@@ -58,47 +54,34 @@ jobs:
             requirements.txt
             requirements-dev.txt
 
-      - name: Install make (Windows only)
-        if: runner.os == 'Windows'
-        run: choco install make -y
-
       - name: Install backend dependencies
+        shell: bash
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
-          # In case PyInstaller is not in requirements
-          pip install pyinstaller
-        shell: bash
 
-      # This uses your Makefile:
-      #   - build-backend (PyInstaller)
-      #   - build Angular
-      #   - run electron-builder with EB_PLATFORM
+      - name: Install make (Windows only)
+        if: runner.os == 'Windows'
+        run: choco install make -y
+
       - name: Build backend & Electron app
-        run: make build-app
         shell: bash
+        run: |
+          make build-app
 
-      # OPTIONAL: bundle all per-platform outputs into a single archive
-      # This is where “8–40 artifacts” typically come from:
-      # - multiple installer formats per OS (dmg, zip, AppImage, deb, nsis, portable, etc.)
-      # - you can decide what to zip vs upload raw
       - name: Package artifacts for this platform
+        shell: bash
         run: |
           mkdir -p release_artifacts
-          # Assuming APP_DIST = frontend/build/app (from your Makefile)
           cp -R frontend/build/app/* release_artifacts/
 
-          # Optional: make one compressed file per platform
-          # Linux/macOS:
           if [ "$RUNNER_OS" != "Windows" ]; then
             tar czf magbridge-${{ matrix.label }}.tar.gz -C release_artifacts .
           else
             powershell -Command "Compress-Archive -Path 'release_artifacts\\*' -DestinationPath 'magbridge-${{ matrix.label }}.zip'"
           fi
-        shell: bash
 
-      # Attach platform artifacts directly to the GitHub Release that triggered this workflow
       - name: Upload artifacts to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
