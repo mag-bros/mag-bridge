@@ -12,6 +12,7 @@ jobs:
     name: Build & publish ${{ matrix.label }} zip
     strategy:
       fail-fast: false
+      max-parallel: 4
       matrix:
         include:
           - os: ubuntu-latest
@@ -19,11 +20,13 @@ jobs:
             eb_platform: --linux
             python_version: "3.13"
             node_version: "20"
+
           - os: windows-latest
             label: windows
             eb_platform: --win
             python_version: "3.13"
             node_version: "20"
+
           - os: macos-latest
             label: macos
             eb_platform: --mac
