@@ -10,3 +10,7 @@ typeCheckingMode = "standard"
 [tool.ruff.lint]
 select = ["I"]
 fixable = ["I"]
+
+[tool.yamllint.rules]
+line-length = { max = 200 }
+quoted-strings = "disable"
