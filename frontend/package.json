@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "main": "main.js",
   "private": true,
-  "homepage": "https://github.com/mag-bros/mag-bridge/",
+  "homepage": "https://github.com/mag-bros/mag-bridge.git",
   "repository": {
     "type": "git",
     "url": "https://github.com/mag-bros/mag-bridge.git"
