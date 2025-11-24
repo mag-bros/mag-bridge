@@ -1,0 +1,7 @@
+name: Build & Publish Desktop Releases
+
+on:
+  release:
+    types: [published]
+
+jobs:
