@@ -28,8 +28,6 @@ PYINSTALLER_OPTS ?= --onefile
 NPM ?= npm
 NPX ?= npx
 ELECTRON_BUILDER ?= $(NPX) electron-builder
-# Target platform for electron-builder (override to --win, --linux, etc.)
-EB_PLATFORM ?= --mac
 
 # Logs
 HOME_DIR ?= $(HOME)
@@ -44,12 +42,13 @@ MAC_APP_BIN := $(APP_DIST)/mac-arm64/$(APP_NAME).app/Contents/MacOS/$(APP_NAME)
 PYTHON ?= python3
 
 # OS detection (GNU Make on Windows sets OS=Windows_NT)
+EB_PLATFORM ?= --mac
+
 ifeq ($(OS),Windows_NT)
-  # Windows/MSYS/MinGW/WSL nuances
   RM := rm -rf
   MKDIR := mkdir -p
   PATH_SEP := ;
-  EB_PLATFORM ?= --win
+  EB_PLATFORM = --win
   PYTHON ?= python
 else
   RM := rm -rf
@@ -69,7 +68,7 @@ build-backend:
 	$(RM) "$(BACKEND_DIST)"
 	$(MKDIR) "$(BACKEND_DIST)" "$(BACKEND_DIST)/.pyi-work" "$(BACKEND_DIST)/.pyi-specs"
 	@echo "⧗ Building backend with PyInstaller → $(BACKEND_DIST)"
-	pyinstaller $(PYINSTALLER_OPTS) \
+	$(PYTHON) -m PyInstaller $(PYINSTALLER_OPTS) \
 	  --name "$(BACKEND_APP_NAME)" \
 	  --paths "$(BACKEND_SRC)" \
 	  --distpath "$(BACKEND_DIST)" \
@@ -85,24 +84,22 @@ build-app: build-backend
 	@echo "⧗ Building Angular"
 	$(NPM) run build-angular --prefix "$(FRONTEND_SRC)"
 	@echo "⧗ Packaging Electron ($(EB_PLATFORM))"
-	cd "$(FRONTEND_SRC)" && $(NPX) electron-builder $(EB_PLATFORM)
+	cd "$(FRONTEND_SRC)" && $(NPX) $(ELECTRON_BUILDER) $(EB_PLATFORM) $(EB_EXTRA)
 	@echo "✓ Frontend packaged under $(APP_DIST)"
 
 ##### ============
 ##### Dev & Run
 ##### ============
 
-# Dev: start front-end dev stack (your package.json 'dev' script). Keeps your current behavior.
 dev:
 	$(MKDIR) "$(LOG_DIR)"
-	@rm $(LOG_FILE)
+	-rm -f "$(LOG_FILE)"
 	@echo "⧗ Starting frontend dev (logs: $(LOG_FILE))"
 	$(NPM) run dev --prefix "$(FRONTEND_SRC)"
 
-# Run packaged app (mac default). Override MAC_APP_BIN or EB_PLATFORM as needed.
 run:
 	$(MKDIR) "$(LOG_DIR)"
-	@rm $(LOG_FILE)
+	-rm -f "$(LOG_FILE)"
 	@echo "⧗ Running packaged app: $(MAC_APP_BIN)"
 	"$(MAC_APP_BIN)"
 

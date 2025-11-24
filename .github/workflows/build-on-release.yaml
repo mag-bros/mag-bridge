@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   build-and-publish:
-    name: Build & publish ${{ matrix.label }} artifacts
+    name: Build & publish ${{ matrix.label }} zip
     strategy:
       fail-fast: false
       matrix:
@@ -19,13 +19,11 @@ jobs:
             eb_platform: --linux
             python_version: "3.13"
             node_version: "20"
-
           - os: windows-latest
             label: windows
             eb_platform: --win
             python_version: "3.13"
             node_version: "20"
-
           - os: macos-latest
             label: macos
             eb_platform: --mac
@@ -40,6 +38,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Derive app version from tag
+        shell: bash
+        run: |
+          RAW="${GITHUB_REF_NAME}"
+
+          # Extract first semantic version from string
+          VERSION=$(echo "$RAW" | sed -E 's/.*[^0-9]([0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9._-]+)?).*/\1/')
+
+          if [ -z "$VERSION" ]; then
+            echo "❌ Could not extract version from '$RAW'"
+            exit 1
+          fi
+
+          echo "⧗ Derived version: $VERSION"
+          echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -71,31 +85,51 @@ jobs:
       - name: Build backend & Electron app
         shell: bash
         run: |
-          make build-app
+          make build-app EB_PLATFORM="${{ matrix.eb_platform }}" EB_EXTRA="-c.extraMetadata.version=${APP_VERSION}"
 
-      - name: Package artifacts for this platform
+      - name: Package installer into single zip
         shell: bash
         run: |
-          mkdir -p release_artifacts
-          cp -R frontend/build/app/* release_artifacts/
+          set -euo pipefail
 
-          if [ "$RUNNER_OS" != "Windows" ]; then
-            tar czf magbridge-${{ matrix.label }}.tar.gz -C release_artifacts .
-          else
-            powershell -Command "Compress-Archive -Path 'release_artifacts\\*' -DestinationPath 'magbridge-${{ matrix.label }}.zip'"
+          # We'll look only in the electron-builder output dir
+          DIST_DIR="frontend/build/app"
+
+          case "$RUNNER_OS" in
+            "Linux")
+              # Prefer AppImage, else any .deb
+              installer=$(find "$DIST_DIR" -maxdepth 3 -type f \( -name "*.AppImage" -o -name "*.deb" \) | head -n 1)
+              ;;
+            "macOS")
+              # You currently build dmg only
+              installer=$(find "$DIST_DIR" -maxdepth 3 -type f -name "*.dmg" | head -n 1)
+              ;;
+            "Windows")
+              # electron-builder NSIS installer: pick the *Setup*.exe, ignore backend_app.exe, elevate.exe
+              installer=$(find "$DIST_DIR" -maxdepth 3 -type f -name "*Setup*.exe" | head -n 1)
+              ;;
+          esac
+
+          if [ -z "${installer:-}" ]; then
+            echo "❌ No installer found in $DIST_DIR for $RUNNER_OS"
+            exit 1
           fi
 
-      - name: Upload installers to GitHub Release
+          echo "⧗ Found installer: $installer"
+
+          zip_name="magbridge-${{ matrix.label }}.zip"
+
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            powershell -Command "Compress-Archive -Path \"${installer}\" -DestinationPath \"${zip_name}\""
+          else
+            zip -j "$zip_name" "$installer"
+          fi
+
+          echo "⧗ Created $zip_name"
+
+      - name: Upload zip to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            frontend/build/app/**/*.dmg
-            frontend/build/app/**/*.zip
-            frontend/build/app/**/*.exe
-            frontend/build/app/**/*.AppImage
-            frontend/build/app/**/*.deb
-            frontend/build/app/**/*.rpm
-            frontend/build/app/**/*.tar.gz
-          fail_on_unmatched_files: false
+          files: magbridge-${{ matrix.label }}.zip
         env:
           GITHUB_TOKEN: ${{ github.token }}
