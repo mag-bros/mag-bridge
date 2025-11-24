@@ -4,6 +4,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 jobs:
   build-and-publish:
     name: Build & publish ${{ matrix.label }} artifacts
@@ -89,5 +92,6 @@ jobs:
             magbridge-${{ matrix.label }}.tar.gz
             magbridge-${{ matrix.label }}.zip
             release_artifacts/**/*
+          fail_on_unmatched_files: false
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
