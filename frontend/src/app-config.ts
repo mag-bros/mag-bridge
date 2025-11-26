@@ -1,5 +1,3 @@
-// src/app/app-config.ts
-
 export interface AppConfigShape {
   isRelease: boolean;
   config: {
