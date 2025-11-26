@@ -18,10 +18,10 @@ class SDFLoader:
     """Utility for loading and validating SDF files."""
 
     @staticmethod
-    def Load(source_file: str) -> MBCompound:
+    def Load(source_file: str, sdf_sub_dir=".") -> MBCompound:
         """Loads an SDF file and return a MBCompound object containing a list of molecules"""
 
-        sdf_path = SDF_DIR.joinpath(source_file)
+        sdf_path = SDF_DIR.joinpath(sdf_sub_dir).joinpath(source_file)
         SDFLoader.CheckFile(sdf_path)
 
         raw_mols = list(SDMolSupplier(str(sdf_path), sanitize=True, removeHs=False))

@@ -1,4 +1,6 @@
-from rdkit.Chem import AddHs, Atom, GetMolFrags, Mol, MolToSmiles, RWMol
+from typing import Any
+
+from rdkit.Chem import AddHs, Atom, GetMolFrags, Mol, MolToSmiles, RemoveHs, RWMol
 from rdkit.Chem import rdMolDescriptors as rdmd
 
 from src.constants import ConstProvider
@@ -66,8 +68,16 @@ class MBMolecule:
         """Return the underlying RDKit Mol object."""
         return self._mol
 
+    def ToSmiles(self) -> str:
+        """Returns canonical SMILES notation"""
+        return MolToSmiles(RemoveHs(self._mol))
+
     def __str__(self):
         return f"{self.source_file}:{self.mol_index} ({self.smiles})"
+
+    def __getattr__(self, name) -> Any:
+        """Delegate unknown attribute access to the wrapped RDKit Molecule."""
+        return getattr(self._mol, name)
 
     def __repr__(self):
         return f"MBMolecule(source_file='{self.source_file}', mol_index={self.mol_index}, smiles='{self.smiles}')"

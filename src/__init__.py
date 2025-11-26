@@ -7,3 +7,4 @@ ROOT_DIR: Path = next(
 IMAGES_DIR: Path = ROOT_DIR.joinpath("images")
 IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 SDF_DIR: Path = ROOT_DIR.joinpath("data/sdf")
+SDF_TEST_DIR: Path = ROOT_DIR.joinpath("data/sdf/tests")
