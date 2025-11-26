@@ -1,0 +1,177 @@
+name: Build & Publish Desktop Releases
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    name: Build & publish ${{ matrix.label }} zip
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        include:
+          # Linux x64
+          - os: ubuntu-latest
+            label: linux-x86_64
+            arch: x86_64
+            eb_platform: --linux
+            python_version: "3.13"
+            node_version: "20"
+
+          # Linux arm64
+          - os: ubuntu-24.04-arm
+            label: linux-arm64
+            arch: arm64
+            eb_platform: --linux
+            python_version: "3.13"
+            node_version: "20"
+
+          # Windows x86_64
+          - os: windows-latest
+            label: windows-x86_64
+            arch: x86_64
+            eb_platform: --win
+            python_version: "3.13"
+            node_version: "20"
+
+          # On PyPI, the latest published rdkit version is 2024.9.4, not 2025.3.6.
+          # # Windows arm64
+          # - os: windows-11-arm
+          #   label: windows-arm64
+          #   arch: arm64
+          #   eb_platform: --win
+          #   python_version: "3.13"
+          #   node_version: "20"
+
+          # macOS Intel (x86_64)
+          - os: macos-13
+            label: macos-x86_64
+            arch: x86_64
+            eb_platform: --mac
+            python_version: "3.13"
+            node_version: "20"
+
+          # macOS Apple Silicon (arm64)
+          - os: macos-latest
+            label: macos-arm64
+            arch: arm64
+            eb_platform: --mac
+            python_version: "3.13"
+            node_version: "20"
+
+    runs-on: ${{ matrix.os }}
+    env:
+      EB_PLATFORM: ${{ matrix.eb_platform }}
+      ARCH: ${{ matrix.arch }}
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Derive app version from tag
+        shell: bash
+        run: |
+          RAW="${GITHUB_REF_NAME}"
+
+          # Extract first semantic version from string
+          VERSION=$(echo "$RAW" | sed -E 's/.*[^0-9]([0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9._-]+)?).*/\1/')
+
+          if [ -z "$VERSION" ]; then
+            echo "❌ Could not extract version from '$RAW'"
+            exit 1
+          fi
+
+          echo "⧗ Derived version: $VERSION"
+          echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node_version }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python_version }}
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install backend dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Install make (Windows only)
+        if: runner.os == 'Windows'
+        run: choco install make -y
+
+      - name: Install system fpm (Linux ARM only)
+        if: runner.os == 'Linux' && matrix.arch == 'arm64'
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ruby ruby-dev build-essential
+          sudo gem install --no-document fpm
+          echo "USE_SYSTEM_FPM=true" >> "$GITHUB_ENV"
+
+      - name: Build backend & Electron app
+        shell: bash
+        run: |
+          # ARCH and EB_PLATFORM available via env
+          make build-app \
+            EB_PLATFORM="${{ matrix.eb_platform }}" \
+            EB_EXTRA="--publish never -c.extraMetadata.version=${APP_VERSION}"
+
+      - name: Package installer into single zip
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          DIST_DIR="frontend/build/app"
+
+          case "$RUNNER_OS" in
+            "Linux")
+              installer=$(find "$DIST_DIR" -maxdepth 3 -type f \( -name "*.AppImage" -o -name "*.deb" \) | head -n 1)
+              ;;
+            "macOS")
+              installer=$(find "$DIST_DIR" -maxdepth 3 -type f -name "*.dmg" | head -n 1)
+              ;;
+            "Windows")
+              installer=$(find "$DIST_DIR" -maxdepth 3 -type f -name "*Setup*.exe" | head -n 1)
+              ;;
+          esac
+
+          if [ -z "${installer:-}" ]; then
+            echo "❌ No installer found in $DIST_DIR for $RUNNER_OS"
+            exit 1
+          fi
+
+          echo "⧗ Found installer: $installer"
+
+          zip_name="magbridge-${{ matrix.label }}.zip"
+
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            powershell -Command "Compress-Archive -Path \"${installer}\" -DestinationPath \"${zip_name}\""
+          else
+            zip -j "$zip_name" "$installer"
+          fi
+
+          echo "⧗ Created $zip_name"
+
+      - name: Upload zip to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: magbridge-${{ matrix.label }}.zip
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
