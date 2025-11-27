@@ -70,7 +70,7 @@ class MBMolecule:
 
     def ToSmiles(self) -> str:
         """Returns canonical SMILES notation"""
-        return MolToSmiles(RemoveHs(self._mol))
+        return MolToSmiles(RemoveHs(self._mol), isomericSmiles=False, canonical=True)
 
     def __str__(self):
         return f"{self.source_file}:{self.mol_index} ({self.smiles})"
