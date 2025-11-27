@@ -53,6 +53,8 @@ As a result, the generated SMILES for BrO3-, ClO3-, ClO4-, IO3- and IO4- anions 
 @note5: For BF4- anion, the negative charge must be located on the boron atom. Otherwise SDF fails to parse. 
 @note6: In the reference (Table 3), PO4(3-) anion was incorrectly written as PO3(3-).
 @note7: PtCl6(2-) (Table 3 in the reference) was intentionally omited in the dictionary.
+@note8: Our software does not support stereochemical structures.
+@note9: carbonyl (CO) ligand must be drawn with (+) charge located on C and (-) on O. Otherwise, SDF fails to parse.
 
 Here's a breakdown of the values:
 """
@@ -224,7 +226,97 @@ COMMON_MOLECULES = {
     },
     ""
     # COMMON LIGANDS
-    # COMMON SOLVENTS
+    "acac-": {
+        "Name": "acetylacetonate",
+        "SMILES": "CC(=O)C=C(C)[O-]",
+        "DIAMAG_SUS": -52,
+    },
+    "bipy": {
+        "Name": "2,2′-bipyridine",
+        "SMILES": "c1ccc(-c2ccccn2)nc1",
+        "DIAMAG_SUS": -105,
+    },
+    "CO": {
+        "Name": "carbonyl",
+        "SMILES": "[C-]#[O+]",
+        "DIAMAG_SUS": -10,
+    },
+    "en": {
+        "Name": "ethylenediamine",
+        "SMILES": "NCCN",
+        "DIAMAG_SUS": -46.5,
+    },
+    "C2H4": {
+        "Name": "ethylene",
+        "SMILES": "C=C",
+        "DIAMAG_SUS": -15,
+    },
+    "gly": {
+        "Name": "glycinate",
+        "SMILES": "NCC(=O)[O-]",
+        "DIAMAG_SUS": -37,
+    },
+    "H2O": {
+        "Name": "glycinate",
+        "SMILES": "O",
+        "DIAMAG_SUS": -13,
+    },
+    "H2N-NH2": {
+        "Name": "hydrazine",
+        "SMILES": "NN",
+        "DIAMAG_SUS": -20,
+    },
+    "mal": {
+        "Name": "malonate",
+        "SMILES": "O=C([O-])CC(=O)[O-]",
+        "DIAMAG_SUS": -45,
+    },
+    "NH3": {
+        "Name": "ammonia",
+        "SMILES": "N",
+        "DIAMAG_SUS": -18,
+    },
+    "phen": {
+        "Name": "phenanthroline",
+        "SMILES": "c1cnc2c(c1)ccc1cccnc12",
+        "DIAMAG_SUS": -128,
+    },
+    "o-PBMA": {
+        "Name": "o-phenylenebisdimethylarsine",
+        "SMILES": "c1cnc2c(c1)ccc1cccnc12",
+        "DIAMAG_SUS": -194,
+    },
+    "H2Pc": {
+        "Name": "phthalocyanine",
+        "SMILES": "c1ccc2c(c1)-c1nc-2nc2[nH]c(nc3nc(nc4[nH]c(n1)c1ccccc41)-c1ccccc1-3)c1ccccc21",
+        "DIAMAG_SUS": -442,
+    },
+    "PPh3": {
+        "Name": "triphenylphosphine",
+        "SMILES": "c1ccc(P(c2ccccc2)c2ccccc2)cc1",
+        "DIAMAG_SUS": -167,
+    },
+    "pyz": {
+        "Name": "pyrazine",
+        "SMILES": "c1cnccn1",
+        "DIAMAG_SUS": -50,
+    },
+    "py": {
+        "Name": "pyridine",
+        "SMILES": "c1cnccn1",
+        "DIAMAG_SUS": -49,
+    },
+    "sal(2-)": {
+        "Name": "salen2-",
+        "SMILES": "[O-]c1ccccc1C=NCCN=Cc1ccccc1[O-]",
+        "DIAMAG_SUS": -182,
+    },
+    "urea": {
+        "Name": "urea",
+        "SMILES": "NC(N)=O",
+        "DIAMAG_SUS": -34,
+    },
+    # COMMON ORGANIC SOLVENTS
     "CCl4": {
         "Name": "tetrachloromethane",
         "SMILES": "ClC(Cl)(Cl)Cl",
