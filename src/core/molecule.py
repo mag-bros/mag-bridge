@@ -68,6 +68,7 @@ class MBMolecule:
         """Return the underlying RDKit Mol object."""
         return self._mol
 
+    # NOTE: Our software does not support stereochemical structures.
     def ToSmiles(self) -> str:
         """Returns canonical SMILES notation"""
         return MolToSmiles(RemoveHs(self._mol), isomericSmiles=False, canonical=True)

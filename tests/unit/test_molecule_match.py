@@ -26,10 +26,11 @@ def test_molecule_match() -> None:
         # Test Results
         try:
             # trunk-ignore(bandit/B101)
+
             # Exception (thiosulfate anion)
             if compound.source_file in EXCEPTION:
                 print(
-                    f'[INF] "{compound.source_file}": ⚠ Allowed {set(group)} canonical SMILES case'
+                    f'[INF] "{compound.source_file}": ⚠ Allowed {len(set(group))} canonical SMILES case: {set(group)}'
                 )
                 continue
 
