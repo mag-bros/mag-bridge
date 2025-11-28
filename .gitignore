@@ -3,6 +3,7 @@ __pycache__/
 *.py[codz]
 *$py.class
 images/
+*.DS_Store
 # C extensions
 *.so
 
