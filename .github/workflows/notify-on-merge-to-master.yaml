@@ -1,0 +1,53 @@
+name: Notify Discord on PR Merge to Master
+
+on:
+  push:
+    branches:
+      - 'master'
+
+concurrency:
+  group: merged-to-master
+  cancel-in-progress: true
+
+jobs:
+  discord-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract PR number from merge commit
+        id: pr_number
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          echo "Commit message: $COMMIT_MSG"
+
+          PR_NUMBER=$(echo "$COMMIT_MSG" | grep -oE 'pull request #[0-9]+' | grep -oE '[0-9]+')
+
+          echo "PR number: $PR_NUMBER"
+          echo "number=$PR_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Get PR title
+        id: pr_title
+        if: steps.pr_number.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE=$(gh api repos/${{ github.repository }}/pulls/${{ steps.pr.outputs.number }} --jq '.title')
+          echo "Merged PR title: $TITLE"
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+
+      - name: Notify Discord
+        uses: rjstone/discord-webhook-notify@v2
+        with:
+          webhookUrl: ${{ secrets.DISCORD_PR_WEBHOOK }}
+          username: "MagBridge CI"
+          avatarUrl: "https://raw.githubusercontent.com/mag-bros/mag-bridge/81eb1228315ee646b49632b9040eb1bb52f215a2/.github/assets/sukces.png"
+          color: "#ba005b"
+          title: "🙈 PR merged to Master"
+          description: |
+            **Author:** `${{ github.event.pusher.name }}`
+          details: |
+            📁 **PR title:** ${{ steps.pr_title.outputs.title }}
+            ✨ **PR number:** ${{ steps.pr_number.outputs.number }}
+          footer: "MagBridge CI • ${{ github.event.head_commit.timestamp }}"
