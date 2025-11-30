@@ -61,490 +61,500 @@ Here's a breakdown of the values:
 
 COMMON_MOLECULES = {
     # COMMON ANIONS
-    "AsO3(3-)": {
-        "name": "arsenate(III)",
-        "SMILES": { "[O-][As]([O-])[O-]" },
-        "diamag_sus": -51,
-        "sdf_file": "AsO33-.sdf",
-    },
-    "AsO4(3-)": {
-        "name": "arsenate(V)",
-        "SMILES": { "O=[As]([O-])([O-])[O-]" },
-        "diamag_sus": -60,
-        "sdf_file": "AsO43-.sdf",
-    },
-    "BF4(-)": {
-        "name": "tetrafluoroborate",
-        "SMILES": { "F[B-](F)(F)F" },
-        "diamag_sus": -37,
-        "sdf_file": "BF4-.sdf",
-    },
-    "BO3(3-)": {
-        "name": "borate",
-        "SMILES": { "[O-]B([O-])[O-]" },
-        "diamag_sus": -35,
-        "sdf_file": "BO33-.sdf",
-    },
-    "BrO3(-)": {
-        "name": "bromate(V)",
-        "SMILES": { "[O-][Br+2]([O-])[O-]" },
-        "diamag_sus": -40,
-        "sdf_file": "BrO3-.sdf",
-    },
-    "ClO3(-)": {
-        "name": "chlorate(V)",
-        "SMILES": { "[O-][Cl+2]([O-])[O-]" },
-        "diamag_sus": -30.2,
-        "sdf_file": "ClO3-.sdf",
-    },
-    "ClO4(-)": {
-        "name": "chlorate(VII)",
-        "SMILES": { "[O-][Cl+3]([O-])([O-])[O-]" },
-        "diamag_sus": -32.0,
-        "sdf_file": "ClO4-.sdf",
-    },
-    "CN(-)": {
-        "name": "cyanide",
-        "SMILES": { "[C-]#N" },
-        "diamag_sus": -13.0,
-        "sdf_file": "CN-.sdf",
-    },
-    "C5H5(-)": {
-        "name": "cyclopentadienyl",
-        "SMILES": { "c1cc[cH-]c1" },
-        "diamag_sus": -65,
-        "sdf_file": "C5H5-.sdf",
-    },
-    "C6H5COO(-)": {
-        "name": "benzoate",
-        "SMILES": { "O=C([O-])c1ccccc1" },
-        "diamag_sus": -71,
-        "sdf_file": "C6H5COO-.sdf",
-    },
-    "CO3(2-)": {
-        "name": "carbonate",
-        "SMILES": { "O=C([O-])[O-]" },
-        "diamag_sus": -28.0,
-        "sdf_file": "CO32-.sdf",
-    },
-    "C2O4(2-)": {
-        "name": "oxalate",
-        "SMILES": { "O=C([O-])C(=O)[O-]" },
-        "diamag_sus": -34,
-        "sdf_file": "C2O42-.sdf",
-    },
-    "HCOO(-)": {
-        "name": "formate",
-        "SMILES": { "O=C[O-]" },
-        "diamag_sus": -17,
-        "sdf_file": "HCOO-.sdf",
-    },
-    "IO3(-)": {
-        "name": "iodate(V)",
-        "SMILES": { "[O-][I+2]([O-])[O-]" },
-        "diamag_sus": -51,
-        "sdf_file": "IO3-.sdf",
-    },
-    "IO4(-)": {
-        "name": "iodate(VII)",
-        "SMILES": { "[O-][I+3]([O-])([O-])[O-]" },
-        "diamag_sus": -51.9,
-        "sdf_file": "IO4-.sdf",
-    },
-    "NO2(-)": {
-        "name": "nitrate(III)",
-        "SMILES": { "O=N[O-]" },
-        "diamag_sus": -10.0,
-        "sdf_file": "NO2-.sdf",
-    },
-    "NO3(-)": {
-        "name": "nitrate(V)",
-        "SMILES": { "O=[N+]([O-])[O-]" },
-        "diamag_sus": -18.9,
-        "sdf_file": "NO3-.sdf",
-    },
-    "NCO(-)": {
-        "name": "cyanate",
-        "SMILES": { "N#C[O-]" },
-        "diamag_sus": -23,
-        "sdf_file": "NCO-.sdf",
-    },
-    "NCS(-)": {
-        "name": "thiocyanate",
-        "SMILES": { "N#C[S-]" },
-        "diamag_sus": -31.0,
-        "sdf_file": "NCS-.sdf",
-    },
-    "OAc(-)": {
-        "name": "acetate",
-        "SMILES": { "CC(=O)[O-]" },
-        "diamag_sus": -31.5,
-        "sdf_file": "AcO-.sdf", # TODO: is this file correct?
-    },
-    "OH(-)": {
-        "name": "hydroxide",
-        "SMILES": { "[OH-]" },
-        "diamag_sus": -12.0,
-        "sdf_file": "OH-.sdf",
-    },
-    "PO4(3-)": {  # In Table 3 in 10.1021/ed085p532 Authors provided incorrect formula, PO3(3-) instead of PO4(3-). EXPLANATION: 1. Phosphite exists as HPO3(2-) anion; 2. The diamag value in the article corresponds to phosphate (PO43-) anion (see: 10.1246/bcsj.66.371)
-        "name": "phosphate",
-        "SMILES": { "O=P([O-])([O-])[O-]" },
-        "diamag_sus": -42,
-        "sdf_file": "PO43-.sdf",
-    },
-    "SO3(2-)": {
-        "name": "sulfate(IV)",
-        "SMILES": { "O=S([O-])[O-]" },
-        "diamag_sus": -38,
-        "sdf_file": "SO32-.sdf",
-    },
-    "SO4(2-)": {
-        "name": "sulfate(VI)",
-        "SMILES": { "O=S(=O)([O-])[O-]" },
-        "diamag_sus": -40.1,
-        "sdf_file": "SO42-.sdf",
-    },
-    "S2O3(2-)": {
-        "name": "thiosulfate",
-        "SMILES": {  # Two canonical SMILES of this anion exist.
-            "O=S([O-])([O-])=S",
-            "O=S(=O)([O-])[S-]",
+    "anions": {
+        "AsO3(3-)": {
+            "name": "arsenate(III)",
+            "SMILES": {"[O-][As]([O-])[O-]"},
+            "diamag_sus": -51,
+            "sdf_file": "AsO33-.sdf",
         },
-        "diamag_sus": -46,
-        "sdf_file": "S2O32-.sdf",
+        "AsO4(3-)": {
+            "name": "arsenate(V)",
+            "SMILES": {"O=[As]([O-])([O-])[O-]"},
+            "diamag_sus": -60,
+            "sdf_file": "AsO43-.sdf",
+        },
+        "BF4(-)": {
+            "name": "tetrafluoroborate",
+            "SMILES": {"F[B-](F)(F)F"},
+            "diamag_sus": -37,
+            "sdf_file": "BF4-.sdf",
+        },
+        "BO3(3-)": {
+            "name": "borate",
+            "SMILES": {"[O-]B([O-])[O-]"},
+            "diamag_sus": -35,
+            "sdf_file": "BO33-.sdf",
+        },
+        "BrO3(-)": {
+            "name": "bromate(V)",
+            "SMILES": {"[O-][Br+2]([O-])[O-]"},
+            "diamag_sus": -40,
+            "sdf_file": "BrO3-.sdf",
+        },
+        "ClO3(-)": {
+            "name": "chlorate(V)",
+            "SMILES": {"[O-][Cl+2]([O-])[O-]"},
+            "diamag_sus": -30.2,
+            "sdf_file": "ClO3-.sdf",
+        },
+        "ClO4(-)": {
+            "name": "chlorate(VII)",
+            "SMILES": {"[O-][Cl+3]([O-])([O-])[O-]"},
+            "diamag_sus": -32.0,
+            "sdf_file": "ClO4-.sdf",
+        },
+        "CN(-)": {
+            "name": "cyanide",
+            "SMILES": {"[C-]#N"},
+            "diamag_sus": -13.0,
+            "sdf_file": "CN-.sdf",
+        },
+        "C5H5(-)": {
+            "name": "cyclopentadienyl",
+            "SMILES": {"c1cc[cH-]c1"},
+            "diamag_sus": -65,
+            "sdf_file": "C5H5-.sdf",
+        },
+        "C6H5COO(-)": {
+            "name": "benzoate",
+            "SMILES": {"O=C([O-])c1ccccc1"},
+            "diamag_sus": -71,
+            "sdf_file": "C6H5COO-.sdf",
+        },
+        "CO3(2-)": {
+            "name": "carbonate",
+            "SMILES": {"O=C([O-])[O-]"},
+            "diamag_sus": -28.0,
+            "sdf_file": "CO32-.sdf",
+        },
+        "C2O4(2-)": {
+            "name": "oxalate",
+            "SMILES": {"O=C([O-])C(=O)[O-]"},
+            "diamag_sus": -34,
+            "sdf_file": "C2O42-.sdf",
+        },
+        "HCOO(-)": {
+            "name": "formate",
+            "SMILES": {"O=C[O-]"},
+            "diamag_sus": -17,
+            "sdf_file": "HCOO-.sdf",
+        },
+        "IO3(-)": {
+            "name": "iodate(V)",
+            "SMILES": {"[O-][I+2]([O-])[O-]"},
+            "diamag_sus": -51,
+            "sdf_file": "IO3-.sdf",
+        },
+        "IO4(-)": {
+            "name": "iodate(VII)",
+            "SMILES": {"[O-][I+3]([O-])([O-])[O-]"},
+            "diamag_sus": -51.9,
+            "sdf_file": "IO4-.sdf",
+        },
+        "NO2(-)": {
+            "name": "nitrate(III)",
+            "SMILES": {"O=N[O-]"},
+            "diamag_sus": -10.0,
+            "sdf_file": "NO2-.sdf",
+        },
+        "NO3(-)": {
+            "name": "nitrate(V)",
+            "SMILES": {"O=[N+]([O-])[O-]"},
+            "diamag_sus": -18.9,
+            "sdf_file": "NO3-.sdf",
+        },
+        "NCO(-)": {
+            "name": "cyanate",
+            "SMILES": {"N#C[O-]"},
+            "diamag_sus": -23,
+            "sdf_file": "NCO-.sdf",
+        },
+        "NCS(-)": {
+            "name": "thiocyanate",
+            "SMILES": {"N#C[S-]"},
+            "diamag_sus": -31.0,
+            "sdf_file": "NCS-.sdf",
+        },
+        "OAc(-)": {
+            "name": "acetate",
+            "SMILES": {"CC(=O)[O-]"},
+            "diamag_sus": -31.5,
+            "sdf_file": "AcO-.sdf",  # TODO: is this file correct?
+        },
+        "OH(-)": {
+            "name": "hydroxide",
+            "SMILES": {"[OH-]"},
+            "diamag_sus": -12.0,
+            "sdf_file": "OH-.sdf",
+        },
+        "PO4(3-)": {  # In Table 3 in 10.1021/ed085p532 Authors provided incorrect formula, PO3(3-) instead of PO4(3-). EXPLANATION: 1. Phosphite exists as HPO3(2-) anion; 2. The diamag value in the article corresponds to phosphate (PO43-) anion (see: 10.1246/bcsj.66.371)
+            "name": "phosphate",
+            "SMILES": {"O=P([O-])([O-])[O-]"},
+            "diamag_sus": -42,
+            "sdf_file": "PO43-.sdf",
+        },
+        "SO3(2-)": {
+            "name": "sulfate(IV)",
+            "SMILES": {"O=S([O-])[O-]"},
+            "diamag_sus": -38,
+            "sdf_file": "SO32-.sdf",
+        },
+        "SO4(2-)": {
+            "name": "sulfate(VI)",
+            "SMILES": {"O=S(=O)([O-])[O-]"},
+            "diamag_sus": -40.1,
+            "sdf_file": "SO42-.sdf",
+        },
+        "S2O3(2-)": {
+            "name": "thiosulfate",
+            "SMILES": {  # Two canonical SMILES of this anion exist.
+                "O=S([O-])([O-])=S",
+                "O=S(=O)([O-])[S-]",
+            },
+            "diamag_sus": -46,
+            "sdf_file": "S2O32-.sdf",
+        },
+        "S2O8(2-)": {
+            "name": "peroxydisulfate",
+            "SMILES": {"O=S(=O)([O-])OOS(=O)(=O)[O-]"},
+            "diamag_sus": -78,
+            "sdf_file": "S2O82-.sdf",
+        },
+        "HSO4(-)": {
+            "name": "bisulfate",
+            "SMILES": {"O=S(=O)([O-])O"},
+            "diamag_sus": -35.0,
+            "sdf_file": "HSO4-.sdf",
+        },
+        "SeO3(2-)": {
+            "name": "selenite",
+            "SMILES": {"O=[Se]([O-])[O-]"},
+            "diamag_sus": -44,
+            "sdf_file": "SeO32-.sdf",
+        },
+        "SeO4(2-)": {
+            "name": "selenate",
+            "SMILES": {"O=[Se](=O)([O-])[O-]"},
+            "diamag_sus": -51,
+            "sdf_file": "SeO42-.sdf",
+        },
+        "SiO3(2-)": {
+            "name": "silicate",
+            "SMILES": {
+                "O=[Si]([O-])[O-]"
+            },  # the double bond in this SMILES is a simplification of the actual [(SiO3)n]m- structure.
+            "diamag_sus": -36,
+            "sdf_file": "SiO32-.sdf",
+        },
+        "TeO3(2-)": {
+            "name": "tellurite",
+            "SMILES": {"O=[Te]([O-])[O-]"},
+            "diamag_sus": -63,
+            "sdf_file": "TeO32-.sdf",
+        },
+        "TeO4(2-)": {
+            "name": "tellurate",
+            "SMILES": {"O=[Te](=O)([O-])[O-]"},
+            "diamag_sus": -55,
+            "sdf_file": "TeO42-.sdf",
+        },
     },
-    "S2O8(2-)": {
-        "name": "peroxydisulfate",
-        "SMILES": { "O=S(=O)([O-])OOS(=O)(=O)[O-]" },
-        "diamag_sus": -78,
-        "sdf_file": "S2O82-.sdf",
+    "ligands": {
+        # COMMON LIGANDS
+        "acac-": {
+            "name": "acetylacetonate",
+            "SMILES": {"CC(=O)C=C(C)[O-]"},
+            "diamag_sus": -52,
+            "sdf_file": "acac-.sdf",
+        },
+        "bipy": {
+            "name": "2,2′-bipyridine",
+            "SMILES": {"c1ccc(-c2ccccn2)nc1"},
+            "diamag_sus": -105,
+            "sdf_file": "bipy.sdf",
+        },
+        "CO": {
+            "name": "carbonyl",
+            "SMILES": {"[C-]#[O+]"},
+            "diamag_sus": -10,
+            "sdf_file": "CO.sdf",
+        },
+        "en": {
+            "name": "ethylenediamine",
+            "SMILES": {"NCCN"},
+            "diamag_sus": -46.5,
+            "sdf_file": "en.sdf",
+        },
+        "C2H4": {
+            "name": "ethylene",
+            "SMILES": {"C=C"},
+            "diamag_sus": -15,
+            "sdf_file": "ethylene.sdf",
+        },
+        "gly": {
+            "name": "glycinate",
+            "SMILES": {"NCC(=O)[O-]"},
+            "diamag_sus": -37,
+            "sdf_file": "glycinate.sdf",  # TODO: is this file correct?
+        },
+        "H2O": {
+            "name": "glycinate",
+            "SMILES": {"O"},
+            "diamag_sus": -13,
+            "sdf_file": "",  # TODO: i couldnt find this file
+        },
+        "H2N-NH2": {
+            "name": "hydrazine",
+            "SMILES": {"NN"},
+            "diamag_sus": -20,
+            "sdf_file": "hydrazine.sdf",
+        },
+        "mal": {
+            "name": "malonate",
+            "SMILES": {"O=C([O-])CC(=O)[O-]"},
+            "diamag_sus": -45,
+            "sdf_file": "malonate.sdf",
+        },
+        "NH3": {
+            "name": "ammonia",
+            "SMILES": {"N"},
+            "diamag_sus": -18,
+            "sdf_file": "",  # TODO: couldnt find
+        },
+        "phen": {
+            "name": "phenanthroline",
+            "SMILES": {"c1cnc2c(c1)ccc1cccnc12"},
+            "diamag_sus": -128,
+            "sdf_file": "phen.sdf",
+        },
+        "o-PBMA": {
+            "name": "o-phenylenebisdimethylarsine",
+            "SMILES": {"c1cnc2c(c1)ccc1cccnc12"},
+            "diamag_sus": -194,
+            "sdf_file": "o-PBMA.sdf",
+        },
+        "H2Pc": {
+            "name": "phthalocyanine",
+            "SMILES": {
+                "c1ccc2c(c1)-c1nc-2nc2[nH]c(nc3nc(nc4[nH]c(n1)c1ccccc41)-c1ccccc1-3)c1ccccc21"
+            },
+            "diamag_sus": -442,
+            "sdf_file": "phthalocyanine.sdf",
+        },
+        "PPh3": {
+            "name": "triphenylphosphine",
+            "SMILES": {"c1ccc(P(c2ccccc2)c2ccccc2)cc1"},
+            "diamag_sus": -167,
+            "sdf_file": "PPh3.sdf",
+        },
+        "pyz": {
+            "name": "pyrazine",
+            "SMILES": {"c1cnccn1"},
+            "diamag_sus": -50,
+            "sdf_file": "pyrazine.sdf",
+        },
+        "py": {
+            "name": "pyridine",
+            "SMILES": {"c1cnccn1"},
+            "diamag_sus": -49,
+            "sdf_file": "pyridine.sdf",
+        },
+        "sal(2-)": {
+            "name": "salen2-",
+            "SMILES": {"[O-]c1ccccc1C=NCCN=Cc1ccccc1[O-]"},
+            "diamag_sus": -182,
+            "sdf_file": "salen2-.sdf",
+        },
+        "urea": {
+            "name": "urea",
+            "SMILES": {"NC(N)=O"},
+            "diamag_sus": -34,
+            "sdf_file": "urea.sdf",
+        },
     },
-    "HSO4(-)": {
-        "name": "bisulfate",
-        "SMILES": { "O=S(=O)([O-])O" },
-        "diamag_sus": -35.0,
-        "sdf_file": "HSO4-.sdf",
-    },
-    "SeO3(2-)": {
-        "name": "selenite",
-        "SMILES": { "O=[Se]([O-])[O-]" },
-        "diamag_sus": -44,
-        "sdf_file": "SeO32-.sdf",
-    },
-    "SeO4(2-)": {
-        "name": "selenate",
-        "SMILES": { "O=[Se](=O)([O-])[O-]" },
-        "diamag_sus": -51,
-        "sdf_file": "SeO42-.sdf",
-    },
-    "SiO3(2-)": {
-        "name": "silicate",
-        "SMILES": { "O=[Si]([O-])[O-]" },  # the double bond in this SMILES is a simplification of the actual [(SiO3)n]m- structure.
-        "diamag_sus": -36,
-        "sdf_file": "SiO32-.sdf",
-    },
-    "TeO3(2-)": {
-        "name": "tellurite",
-        "SMILES": { "O=[Te]([O-])[O-]" },
-        "diamag_sus": -63,
-        "sdf_file": "TeO32-.sdf",
-    },
-    "TeO4(2-)": {
-        "name": "tellurate",
-        "SMILES": { "O=[Te](=O)([O-])[O-]" },
-        "diamag_sus": -55,
-        "sdf_file": "TeO42-.sdf",
-    },
-    # COMMON LIGANDS
-    "acac-": {
-        "name": "acetylacetonate",
-        "SMILES": { "CC(=O)C=C(C)[O-]" },
-        "diamag_sus": -52,
-        "sdf_file": "acac-.sdf",
-    },
-    "bipy": {
-        "name": "2,2′-bipyridine",
-        "SMILES": { "c1ccc(-c2ccccn2)nc1" },
-        "diamag_sus": -105,
-        "sdf_file": "bipy.sdf",
-    },
-    "CO": {
-        "name": "carbonyl",
-        "SMILES": { "[C-]#[O+]" },
-        "diamag_sus": -10,
-        "sdf_file": "CO.sdf",
-    },
-    "en": {
-        "name": "ethylenediamine",
-        "SMILES": { "NCCN" },
-        "diamag_sus": -46.5,
-        "sdf_file": "en.sdf",
-    },
-    "C2H4": {
-        "name": "ethylene",
-        "SMILES": { "C=C" },
-        "diamag_sus": -15,
-        "sdf_file": "ethylene.sdf",
-    },
-    "gly": {
-        "name": "glycinate",
-        "SMILES": { "NCC(=O)[O-]" },
-        "diamag_sus": -37,
-        "sdf_file": "glycinate.sdf", # TODO: is this file correct?
-    },
-    "H2O": {
-        "name": "glycinate",
-        "SMILES": { "O" },
-        "diamag_sus": -13,
-        "sdf_file": "", # TODO: i couldnt find this file
-    },
-    "H2N-NH2": {
-        "name": "hydrazine",
-        "SMILES": { "NN" },
-        "diamag_sus": -20,
-        "sdf_file": "hydrazine.sdf",
-    },
-    "mal": {
-        "name": "malonate",
-        "SMILES": { "O=C([O-])CC(=O)[O-]" },
-        "diamag_sus": -45,
-        "sdf_file": "malonate.sdf",
-    },
-    "NH3": {
-        "name": "ammonia",
-        "SMILES": { "N" },
-        "diamag_sus": -18,
-        "sdf_file": "", # TODO: couldnt find 
-    },
-    "phen": {
-        "name": "phenanthroline",
-        "SMILES": { "c1cnc2c(c1)ccc1cccnc12" },
-        "diamag_sus": -128,
-        "sdf_file": "phen.sdf",
-    },
-    "o-PBMA": {
-        "name": "o-phenylenebisdimethylarsine",
-        "SMILES": { "c1cnc2c(c1)ccc1cccnc12" },
-        "diamag_sus": -194,
-        "sdf_file": "o-PBMA.sdf",
-    },
-    "H2Pc": {
-        "name": "phthalocyanine",
-        "SMILES": { "c1ccc2c(c1)-c1nc-2nc2[nH]c(nc3nc(nc4[nH]c(n1)c1ccccc41)-c1ccccc1-3)c1ccccc21" },
-        "diamag_sus": -442,
-        "sdf_file": "phthalocyanine.sdf",
-    },
-    "PPh3": {
-        "name": "triphenylphosphine",
-        "SMILES": { "c1ccc(P(c2ccccc2)c2ccccc2)cc1" },
-        "diamag_sus": -167,
-        "sdf_file": "PPh3.sdf",
-    },
-    "pyz": {
-        "name": "pyrazine",
-        "SMILES": { "c1cnccn1" },
-        "diamag_sus": -50,
-        "sdf_file": "pyrazine.sdf",
-    },
-    "py": {
-        "name": "pyridine",
-        "SMILES": { "c1cnccn1" },
-        "diamag_sus": -49,
-        "sdf_file": "pyridine.sdf",
-    },
-    "sal(2-)": {
-        "name": "salen2-",
-        "SMILES": { "[O-]c1ccccc1C=NCCN=Cc1ccccc1[O-]" },
-        "diamag_sus": -182,
-        "sdf_file": "salen2-.sdf",
-    },
-    "urea": {
-        "name": "urea",
-        "SMILES": { "NC(N)=O" },
-        "diamag_sus": -34,
-        "sdf_file": "urea.sdf",
-    },
-    # COMMON ORGANIC SOLVENTS
-    "CCl4": {
-        "name": "tetrachloromethane",
-        "SMILES": { "ClC(Cl)(Cl)Cl" },
-        "diamag_sus": -66.8,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CHCl3": {
-        "name": "chloroforom",
-        "SMILES": { "ClC(Cl)Cl" },
-        "diamag_sus": -58.9,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH2Cl2": {
-        "name": "dichloromethane",
-        "SMILES": { "ClCCl" },
-        "diamag_sus": -46.6,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3Cl": {
-        "name": "chloromethane",
-        "SMILES": { "CCl" },
-        "diamag_sus": -32.0,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3NO2": {
-        "name": "nitromethane",
-        "SMILES": { "C[N+](=O)[O-]" },
-        "diamag_sus": -21.0,  # The overall molecule has neutral charge
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3OH": {
-        "name": "methanol",
-        "SMILES": { "CO" },
-        "diamag_sus": -21.4,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CCl3COOH": {
-        "name": "trichloroacetic acid",
-        "SMILES": { "O=C(O)C(Cl)(Cl)Cl" },
-        "diamag_sus": -73.0,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CF3COOH": {
-        "name": "trifluoroacetic acid",
-        "SMILES": { "O=C(O)C(F)(F)F" },
-        "diamag_sus": -43.3,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3CN": {
-        "name": "acetonitrile",
-        "SMILES": { "CC#N" },
-        "diamag_sus": -27.8,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "1,2-CH2Cl2": {
-        "name": "1,2-dichloroethane",
-        "SMILES": { "ClCCCl" },
-        "diamag_sus": -59.6,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3COOH": {
-        "name": "acetic acid",
-        "SMILES": { "CC(=O)O" },
-        "diamag_sus": -31.8,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3CH2OH": {
-        "name": "ethanol",
-        "SMILES": { "CCO" },
-        "diamag_sus": -33.7,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "HOCH2CH2OH": {
-        "name": "ethylene glycol",
-        "SMILES": { "OCCO" },
-        "diamag_sus": -38.9,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3CH2SH": {
-        "name": "ethanethiol",
-        "SMILES": { "CCS" },
-        "diamag_sus": -44.9,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3C(=O)CH3": {
-        "name": "acetone",
-        "SMILES": { "CC(C)=O" },
-        "diamag_sus": -33.8,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3C(=O)OC(=O)CH3": {
-        "name": "acetic anhydride",
-        "SMILES": { "CC(=O)OC(C)=O" },
-        "diamag_sus": -52.8,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3CH2CH2CN": {
-        "name": "butyronitrile",
-        "SMILES": { "CCCC#N" },
-        "diamag_sus": -50.4,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3C(=O)OCH2CH3": {
-        "name": "ethyl acetate",
-        "SMILES": { "CCOC(C)=O" },
-        "diamag_sus": -54.1,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3CH2CH2CH2OH": {
-        "name": "butanol",
-        "SMILES": { "CCCCO" },
-        "diamag_sus": -56.4,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3CH2OCH2CH3": {
-        "name": "diethyl ether",
-        "SMILES": { "CCOCC" },
-        "diamag_sus": -55.5,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3CH2CH2CH2CH3": {
-        "name": "pentane",
-        "SMILES": { "CCCCC" },
-        "diamag_sus": -61.5,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "1,2-C6H4Cl2": {
-        "name": "o-dichlorobenzene",
-        "SMILES": { "Clc1ccccc1Cl" },
-        "diamag_sus": -84.4,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "C6H6": {
-        "name": "benzene",
-        "SMILES": { "c1ccccc1" },
-        "diamag_sus": -54.8,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "C6H12": {
-        "name": "cyclohexane",
-        "SMILES": { "C1CCCCC1" },
-        "diamag_sus": -68,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3CH2CH2CH2CH2CH3": {
-        "name": "hexane",
-        "SMILES": { "CCCCCC" },
-        "diamag_sus": -74.1,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "N(CH2CH3)3": {
-        "name": "triethylamine",
-        "SMILES": { "CCN(CC)CC" },
-        "diamag_sus": -83.3,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "PhCN": {
-        "name": "benzonitrile",
-        "SMILES": { "N#Cc1ccccc1" },
-        "diamag_sus": -65.2,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "PhCH3": {
-        "name": "toluene",
-        "SMILES": { "Cc1ccccc1" },
-        "diamag_sus": -65.6,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "CH3C(CH3)2CH2CH(CH3)2": {
-        "name": "isooctane",
-        "SMILES": { "CC(C)CC(C)(C)C" },
-        "diamag_sus": -99.1,
-        "sdf_file": "", # TODO: couldnt find this file
-    },
-    "C10H8": {
-        "name": "naphthaline",
-        "SMILES": { "c1ccc2ccccc2c1" },
-        "diamag_sus": -91.6,
-        "sdf_file": "", # TODO: couldnt find this file
+    "organic_solvents": {
+        # COMMON ORGANIC SOLVENTS
+        "CCl4": {
+            "name": "tetrachloromethane",
+            "SMILES": {"ClC(Cl)(Cl)Cl"},
+            "diamag_sus": -66.8,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CHCl3": {
+            "name": "chloroforom",
+            "SMILES": {"ClC(Cl)Cl"},
+            "diamag_sus": -58.9,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH2Cl2": {
+            "name": "dichloromethane",
+            "SMILES": {"ClCCl"},
+            "diamag_sus": -46.6,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3Cl": {
+            "name": "chloromethane",
+            "SMILES": {"CCl"},
+            "diamag_sus": -32.0,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3NO2": {
+            "name": "nitromethane",
+            "SMILES": {"C[N+](=O)[O-]"},
+            "diamag_sus": -21.0,  # The overall molecule has neutral charge
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3OH": {
+            "name": "methanol",
+            "SMILES": {"CO"},
+            "diamag_sus": -21.4,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CCl3COOH": {
+            "name": "trichloroacetic acid",
+            "SMILES": {"O=C(O)C(Cl)(Cl)Cl"},
+            "diamag_sus": -73.0,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CF3COOH": {
+            "name": "trifluoroacetic acid",
+            "SMILES": {"O=C(O)C(F)(F)F"},
+            "diamag_sus": -43.3,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3CN": {
+            "name": "acetonitrile",
+            "SMILES": {"CC#N"},
+            "diamag_sus": -27.8,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "1,2-CH2Cl2": {
+            "name": "1,2-dichloroethane",
+            "SMILES": {"ClCCCl"},
+            "diamag_sus": -59.6,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3COOH": {
+            "name": "acetic acid",
+            "SMILES": {"CC(=O)O"},
+            "diamag_sus": -31.8,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3CH2OH": {
+            "name": "ethanol",
+            "SMILES": {"CCO"},
+            "diamag_sus": -33.7,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "HOCH2CH2OH": {
+            "name": "ethylene glycol",
+            "SMILES": {"OCCO"},
+            "diamag_sus": -38.9,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3CH2SH": {
+            "name": "ethanethiol",
+            "SMILES": {"CCS"},
+            "diamag_sus": -44.9,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3C(=O)CH3": {
+            "name": "acetone",
+            "SMILES": {"CC(C)=O"},
+            "diamag_sus": -33.8,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3C(=O)OC(=O)CH3": {
+            "name": "acetic anhydride",
+            "SMILES": {"CC(=O)OC(C)=O"},
+            "diamag_sus": -52.8,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3CH2CH2CN": {
+            "name": "butyronitrile",
+            "SMILES": {"CCCC#N"},
+            "diamag_sus": -50.4,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3C(=O)OCH2CH3": {
+            "name": "ethyl acetate",
+            "SMILES": {"CCOC(C)=O"},
+            "diamag_sus": -54.1,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3CH2CH2CH2OH": {
+            "name": "butanol",
+            "SMILES": {"CCCCO"},
+            "diamag_sus": -56.4,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3CH2OCH2CH3": {
+            "name": "diethyl ether",
+            "SMILES": {"CCOCC"},
+            "diamag_sus": -55.5,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3CH2CH2CH2CH3": {
+            "name": "pentane",
+            "SMILES": {"CCCCC"},
+            "diamag_sus": -61.5,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "1,2-C6H4Cl2": {
+            "name": "o-dichlorobenzene",
+            "SMILES": {"Clc1ccccc1Cl"},
+            "diamag_sus": -84.4,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "C6H6": {
+            "name": "benzene",
+            "SMILES": {"c1ccccc1"},
+            "diamag_sus": -54.8,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "C6H12": {
+            "name": "cyclohexane",
+            "SMILES": {"C1CCCCC1"},
+            "diamag_sus": -68,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3CH2CH2CH2CH2CH3": {
+            "name": "hexane",
+            "SMILES": {"CCCCCC"},
+            "diamag_sus": -74.1,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "N(CH2CH3)3": {
+            "name": "triethylamine",
+            "SMILES": {"CCN(CC)CC"},
+            "diamag_sus": -83.3,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "PhCN": {
+            "name": "benzonitrile",
+            "SMILES": {"N#Cc1ccccc1"},
+            "diamag_sus": -65.2,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "PhCH3": {
+            "name": "toluene",
+            "SMILES": {"Cc1ccccc1"},
+            "diamag_sus": -65.6,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "CH3C(CH3)2CH2CH(CH3)2": {
+            "name": "isooctane",
+            "SMILES": {"CC(C)CC(C)(C)C"},
+            "diamag_sus": -99.1,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
+        "C10H8": {
+            "name": "naphthaline",
+            "SMILES": {"c1ccc2ccccc2c1"},
+            "diamag_sus": -91.6,
+            "sdf_file": "",  # TODO: couldnt find this file
+        },
     },
 }
 
