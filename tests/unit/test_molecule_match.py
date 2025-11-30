@@ -4,17 +4,17 @@ from typing import Any
 import pytest
 from rdkit import Chem
 
-from loader import SDFLoader
-from src import SDF_TEST_DIR
+from src import MOLECULE_MATCH_SUBDIR, SDF_DIR
 from src.core.compound import MBCompound
+from src.loader import SDFLoader
 
 
-@pytest.mark.parametrize("sdf_file", [p.name for p in SDF_TEST_DIR.glob("*.sdf")])
+@pytest.mark.parametrize("sdf_file", [p.name for p in SDF_DIR.joinpath(MOLECULE_MATCH_SUBDIR).glob("*.sdf")])
 def test_molecule_match(sdf_file: str) -> None:
-    """Loop through SDF test cases files"""
+    """ Unit Test checking molecule substructure match utility done via SMILES format. """
 
     # Load all MBCompound instances from the given SDF file
-    compound: MBCompound = SDFLoader.Load(sdf_file, "tests")
+    compound: MBCompound = SDFLoader.Load(sdf_file, subdir="molecule_match")
 
     EXCEPTION = ["S2O32-.sdf"]
 
