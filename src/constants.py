@@ -260,8 +260,8 @@ COMMON_MOLECULES = {
             "sdf_file": "TeO42-.sdf",
         },
     },
+    # COMMON LIGANDS
     "ligands": {
-        # COMMON LIGANDS
         "acac-": {
             "name": "acetylacetonate",
             "SMILES": {"CC(=O)C=C(C)[O-]"},
@@ -330,7 +330,7 @@ COMMON_MOLECULES = {
         },
         "o-PBMA": {
             "name": "o-phenylenebisdimethylarsine",
-            "SMILES": {"c1cnc2c(c1)ccc1cccnc12"},
+            "SMILES": {"C[As](C)c1ccccc1[As](C)C"},
             "diamag_sus": -194,
             "sdf_file": "o-PBMA.sdf",
         },
@@ -356,7 +356,7 @@ COMMON_MOLECULES = {
         },
         "py": {
             "name": "pyridine",
-            "SMILES": {"c1cnccn1"},
+            "SMILES": {"c1ccncc1"},
             "diamag_sus": -49,
             "sdf_file": "pyridine.sdf",
         },
@@ -373,187 +373,187 @@ COMMON_MOLECULES = {
             "sdf_file": "urea.sdf",
         },
     },
+    # COMMON ORGANIC SOLVENTS
     "organic_solvents": {
-        # COMMON ORGANIC SOLVENTS
         "CCl4": {
             "name": "tetrachloromethane",
             "SMILES": {"ClC(Cl)(Cl)Cl"},
             "diamag_sus": -66.8,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CCl4.sdf",
         },
         "CHCl3": {
             "name": "chloroforom",
             "SMILES": {"ClC(Cl)Cl"},
             "diamag_sus": -58.9,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CHCl3.sdf",
         },
         "CH2Cl2": {
             "name": "dichloromethane",
             "SMILES": {"ClCCl"},
             "diamag_sus": -46.6,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH2Cl2.sdf",
         },
         "CH3Cl": {
             "name": "chloromethane",
             "SMILES": {"CCl"},
             "diamag_sus": -32.0,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3Cl.sdf",
         },
         "CH3NO2": {
             "name": "nitromethane",
             "SMILES": {"C[N+](=O)[O-]"},
-            "diamag_sus": -21.0,  # The overall molecule has neutral charge
-            "sdf_file": "",  # TODO: couldnt find this file
+            "diamag_sus": -21.0,
+            "sdf_file": "CH3NO2.sdf",
         },
         "CH3OH": {
             "name": "methanol",
             "SMILES": {"CO"},
             "diamag_sus": -21.4,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3OH.sdf",
         },
         "CCl3COOH": {
             "name": "trichloroacetic acid",
             "SMILES": {"O=C(O)C(Cl)(Cl)Cl"},
             "diamag_sus": -73.0,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CCl3COOH.sdf",
         },
         "CF3COOH": {
             "name": "trifluoroacetic acid",
             "SMILES": {"O=C(O)C(F)(F)F"},
             "diamag_sus": -43.3,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CF3COOH.sdf",
         },
         "CH3CN": {
             "name": "acetonitrile",
             "SMILES": {"CC#N"},
             "diamag_sus": -27.8,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3CN.sdf",
         },
         "1,2-CH2Cl2": {
             "name": "1,2-dichloroethane",
             "SMILES": {"ClCCCl"},
             "diamag_sus": -59.6,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "ClCH2CH2Cl.sdf",
         },
         "CH3COOH": {
             "name": "acetic acid",
             "SMILES": {"CC(=O)O"},
             "diamag_sus": -31.8,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3COOH.sdf",
         },
         "CH3CH2OH": {
             "name": "ethanol",
             "SMILES": {"CCO"},
             "diamag_sus": -33.7,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3CH2OH.sdf",
         },
         "HOCH2CH2OH": {
             "name": "ethylene glycol",
             "SMILES": {"OCCO"},
             "diamag_sus": -38.9,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "HOCH2CH2OH.sdf",
         },
         "CH3CH2SH": {
             "name": "ethanethiol",
             "SMILES": {"CCS"},
             "diamag_sus": -44.9,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3CH2SH.sdf",
         },
         "CH3C(=O)CH3": {
             "name": "acetone",
             "SMILES": {"CC(C)=O"},
             "diamag_sus": -33.8,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3COCH3.sdf",
         },
         "CH3C(=O)OC(=O)CH3": {
             "name": "acetic anhydride",
             "SMILES": {"CC(=O)OC(C)=O"},
             "diamag_sus": -52.8,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3CO_O_OCCH3.sdf",
         },
         "CH3CH2CH2CN": {
             "name": "butyronitrile",
             "SMILES": {"CCCC#N"},
             "diamag_sus": -50.4,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3CH2CH2CN.sdf",
         },
         "CH3C(=O)OCH2CH3": {
             "name": "ethyl acetate",
             "SMILES": {"CCOC(C)=O"},
             "diamag_sus": -54.1,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3CO_OCH2CH3.sdf",
         },
         "CH3CH2CH2CH2OH": {
             "name": "butanol",
             "SMILES": {"CCCCO"},
             "diamag_sus": -56.4,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3CH2CH2CH2OH.sdf",
         },
         "CH3CH2OCH2CH3": {
             "name": "diethyl ether",
             "SMILES": {"CCOCC"},
             "diamag_sus": -55.5,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3CH2OCH2CH3.sdf",
         },
         "CH3CH2CH2CH2CH3": {
             "name": "pentane",
             "SMILES": {"CCCCC"},
             "diamag_sus": -61.5,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3CH2CH2CH2CH3.sdf",
         },
         "1,2-C6H4Cl2": {
             "name": "o-dichlorobenzene",
             "SMILES": {"Clc1ccccc1Cl"},
             "diamag_sus": -84.4,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "o-C6H4Cl2.sdf",
         },
         "C6H6": {
             "name": "benzene",
             "SMILES": {"c1ccccc1"},
             "diamag_sus": -54.8,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "C6H6.sdf",
         },
         "C6H12": {
             "name": "cyclohexane",
             "SMILES": {"C1CCCCC1"},
             "diamag_sus": -68,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "C6H12.sdf",
         },
         "CH3CH2CH2CH2CH2CH3": {
             "name": "hexane",
             "SMILES": {"CCCCCC"},
             "diamag_sus": -74.1,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "CH3CH2CH2CH2CH2CH3.sdf",
         },
         "N(CH2CH3)3": {
             "name": "triethylamine",
             "SMILES": {"CCN(CC)CC"},
             "diamag_sus": -83.3,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "N_CH2CH3_3.sdf",
         },
         "PhCN": {
             "name": "benzonitrile",
             "SMILES": {"N#Cc1ccccc1"},
             "diamag_sus": -65.2,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "PhCN.sdf",
         },
         "PhCH3": {
             "name": "toluene",
             "SMILES": {"Cc1ccccc1"},
             "diamag_sus": -65.6,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "PhCH3.sdf",
         },
         "CH3C(CH3)2CH2CH(CH3)2": {
             "name": "isooctane",
             "SMILES": {"CC(C)CC(C)(C)C"},
             "diamag_sus": -99.1,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "isooctane.sdf",
         },
         "C10H8": {
             "name": "naphthaline",
             "SMILES": {"c1ccc2ccccc2c1"},
             "diamag_sus": -91.6,
-            "sdf_file": "",  # TODO: couldnt find this file
+            "sdf_file": "naphthaline.sdf",
         },
     },
 }
