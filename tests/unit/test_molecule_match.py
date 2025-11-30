@@ -32,6 +32,7 @@ def _run_molecule_match(
         mol.ToSmiles() for mol in compound.GetMols(to_rdkit=False)
     }
 
+    # when comparing two sets with "==" the order of elements doesn't matter
     test_condition: bool = sdf_compound_smiles == expected_smiles
     error_msg = (
         f"[ERR]: group={group}, mol_key={mol_key}, "
