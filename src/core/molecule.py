@@ -3,7 +3,7 @@ from typing import Any
 from rdkit.Chem import AddHs, Atom, GetMolFrags, Mol, MolToSmiles, RemoveHs, RWMol
 from rdkit.Chem import rdMolDescriptors as rdmd
 
-from src.constants import ConstProvider
+from src.constants.provider import ConstProvider
 from src.core.atom import MBAtom
 
 

@@ -2,7 +2,7 @@ from typing import Any
 
 from rdkit.Chem import Atom
 
-from src.constants import METAL_CATIONS, ConstProvider
+from src.constants.provider import METAL_CATIONS, ConstProvider
 
 
 class MBAtom:
