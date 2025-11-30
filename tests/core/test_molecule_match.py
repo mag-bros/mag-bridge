@@ -1,11 +1,6 @@
-from pathlib import Path
-from typing import Any
-
 import pytest
-from rdkit import Chem
-from rdkit.Chem import MolKey
 
-from src import MOLECULE_MATCH_SUBDIR, SDF_DIR
+from src import MOLECULE_MATCH_SUBDIR
 from src.constants.common_molecules import COMMON_MOLECULES, CommonMolecule
 from src.core.compound import MBCompound
 from src.loader import SDFLoader
