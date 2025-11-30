@@ -27,10 +27,4 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run tests
-        run: |
-          set +e
-          pytest tests/integration || INTEGRATION_FAIL=1
-          pytest tests/unit || UNIT_FAIL=1
-          if [ "$INTEGRATION_FAIL" = "1" ] || [ "$UNIT_FAIL" = "1" ]; then
-            exit 1
-          fi
+        run: pytest
