@@ -6,5 +6,9 @@ ROOT_DIR: Path = next(
 
 IMAGES_DIR: Path = ROOT_DIR.joinpath("images")
 IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+
 SDF_DIR: Path = ROOT_DIR.joinpath("data/sdf")
-SDF_TEST_DIR: Path = ROOT_DIR.joinpath("data/sdf/tests")
+MOLECULE_MATCH_SUBDIR = "molecule_match"
+DIAMAG_COMPOUND_ATOMS_SUBDIR = "diamag_compound/atoms"
+DIAMAG_COMPOUND_MOLECULES_SUBDIR = "diamag_compound/molecules"
+DIAMAG_COMPOUND_CONSTITUTIVE_CORR_SUBDIR = "diamag_compound/constitutive_corr"
