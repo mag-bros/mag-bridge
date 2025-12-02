@@ -47,7 +47,7 @@ jobs:
           title: "🙈 Pull request merged to Master"
           description: |
             **Author:** `${{ github.event.pusher.name }}`
-          details: |
+          details: >
             📁 **PR title:** ${{ steps.pr_title.outputs.title }}
             ✨ **PR number:** ${{ steps.pr_number.outputs.number }}
           footer: "MagBridge CI • ${{ github.event.head_commit.timestamp }}"
