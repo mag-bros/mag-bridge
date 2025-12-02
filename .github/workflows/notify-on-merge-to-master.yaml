@@ -22,7 +22,7 @@ jobs:
           COMMIT_MSG="${{ github.event.head_commit.message }}"
           echo "Commit message: $COMMIT_MSG"
 
-          PR_NUMBER=$(echo "$COMMIT_MSG" | grep -oE 'pull request #[0-9]+' | grep -oE '[0-9]+')
+          PR_NUMBER=$(echo "$COMMIT_MSG" | grep -oE '#[0-9]+' | grep -oE '[0-9]+')
 
           echo "PR number: $PR_NUMBER"
           echo "number=$PR_NUMBER" >> $GITHUB_OUTPUT
