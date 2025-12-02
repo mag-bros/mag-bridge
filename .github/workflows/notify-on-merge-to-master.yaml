@@ -38,9 +38,10 @@ jobs:
           echo "title=$TITLE" >> $GITHUB_OUTPUT
 
       - name: Notify Discord
+        if: steps.pr_number.outputs.number != ''
         uses: rjstone/discord-webhook-notify@v2
         with:
-          webhookUrl: ${{ secrets.DISCORD_PR_WEBHOOK }}
+          webhookUrl: "${{ secrets.DISCORD_PR_WEBHOOK }}"
           username: "MagBridge CI"
           avatarUrl: "https://raw.githubusercontent.com/mag-bros/mag-bridge/assets-v1.2/.github/assets/sukces.png"
           color: "#ba005b"
