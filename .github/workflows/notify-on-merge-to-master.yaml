@@ -21,9 +21,6 @@ jobs:
           avatarUrl: "https://raw.githubusercontent.com/mag-bros/mag-bridge/assets-v1.2/.github/assets/sukces.png"
           color: "#ba005b"
           title: "🙈 Pull request merged to Master"
-          description: |
-            **Author:** `test`
-          details: |
-            📁 **PR title:** test
-            ✨ **PR number:** test
-          footer: "MagBridge CI • ${{ github.event.head_commit.timestamp }}"
+          description: "**Author:** `test`"
+          details: "📁 **PR title:** test\n✨ **PR number:** test"
+          footer: "MagBridge CI • ${{ github.event.head_commit.timestamp || github.event.pushed_at || 'unknown' }}"
