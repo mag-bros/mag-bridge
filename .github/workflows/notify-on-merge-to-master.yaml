@@ -33,7 +33,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TITLE=$(gh api repos/${{ github.repository }}/pulls/${{ steps.pr.outputs.number }} --jq '.title')
+          TITLE=$(gh api repos/${{ github.repository }}/pulls/${{ steps.pr_number.outputs.number }} --jq '.title')
           echo "Merged PR title: $TITLE"
           echo "title=$TITLE" >> $GITHUB_OUTPUT
 
