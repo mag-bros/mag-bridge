@@ -3,10 +3,10 @@ name: Notify Discord on PR Merge to Master
 on:
   push:
     branches:
-      - 'master'
+      - master
 
 concurrency:
-  group: merged-to-master
+  group: merged-to-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -42,9 +42,9 @@ jobs:
         with:
           webhookUrl: ${{ secrets.DISCORD_PR_WEBHOOK }}
           username: "MagBridge CI"
-          avatarUrl: "https://raw.githubusercontent.com/mag-bros/mag-bridge/81eb1228315ee646b49632b9040eb1bb52f215a2/.github/assets/sukces.png"
+          avatarUrl: "https://raw.githubusercontent.com/mag-bros/mag-bridge/assets-v1.2/.github/assets/sukces.png"
           color: "#ba005b"
-          title: "🙈 PR merged to Master"
+          title: "🙈 Pull request merged to Master"
           description: |
             **Author:** `${{ github.event.pusher.name }}`
           details: |
