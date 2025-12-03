@@ -21,6 +21,7 @@ jobs:
           avatarUrl: "https://raw.githubusercontent.com/mag-bros/mag-bridge/assets-v1.2/.github/assets/sukces.png"
           color: "#ba005b"
           title: "test"
+          severity: "info"
           description: "test"
           details: "test"
           footer: "test"
