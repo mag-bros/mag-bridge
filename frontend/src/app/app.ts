@@ -15,7 +15,6 @@ import { interval, Subscription } from 'rxjs';
 export class AppComponent {
 
   isLoading = true;
-  response?: string;
   private backendCheckSubscription!: Subscription;
 
   constructor(private restService: RestService) { }
@@ -32,7 +31,7 @@ export class AppComponent {
     const startTime = performance.now();
     const startIso = new Date().toISOString();
 
-    window.stdout.log('Starting backend health check at', startIso);
+    window.stdout?.log('Starting backend health check at', startIso);
 
     this.backendCheckSubscription = interval(500).subscribe(() => {
       this.checkBackendHealth(startTime);
@@ -51,15 +50,22 @@ export class AppComponent {
   }
 
   private handleBackendReady(res: any, startTime: number) {
+    // ECONNREFUSED from main.js is mapped to `null`
+    if (res == null) {
+      window.stdout?.error('Backend not yet ready (connection refused)');
+      return;
+    }
+
     const seconds = ((performance.now() - startTime) / 1000).toFixed(2);
 
-    window.stdout.log('Backend health OK:', res, `ready after ${seconds}s`);
+    window.stdout?.log('Backend health OK:', res, `ready after ${seconds}s`);
 
     this.isLoading = false;
     this.backendCheckSubscription.unsubscribe();
   }
 
   private handleBackendNotReady(err: any) {
-    window.stdout.error('Backend not yet ready (healthcheck failed):', err);
+    // This is for real errors, not "backend not listening yet"
+    window.stdout?.error('Backend healthcheck error:', err);
   }
 }

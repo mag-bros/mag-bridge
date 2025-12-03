@@ -1,51 +1,45 @@
-SHELL := /bin/sh
+# Commands
+SHELL := /bin/bash
+PYTHON ?= python
+NPM ?= npm
+NPX ?= npx
+
 .ONESHELL:
 .SILENT:
 
-# Project root (auto-detected to the directory containing this Makefile)
+# Project root paths (auto-detected to the directory containing this Makefile)
 ROOT_DIR ?= $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+HOME_DIR ?= $(HOME)
 
-# Source directories
-BACKEND_SRC ?= $(ROOT_DIR)/backend
+# Frontend packaging
+PRODUCT_NAME ?= MagBridge
 FRONTEND_SRC ?= $(ROOT_DIR)/frontend
-
-# Build output directories
-BUILD ?= $(ROOT_DIR)/frontend/build
-FRONTEND_DIST := $(BUILD)/frontend
-BACKEND_DIST := $(BUILD)/backend
-APP_DIST := $(BUILD)/app
+FRONTEND_TARGET := $(BUILD_DIR)/frontend
 
 # Backend packaging
-BACKEND_APP_NAME ?= backend_app
-BACKEND_ENTRY ?= $(BACKEND_SRC)/main.py
-PYINSTALLER_OPTS ?= --onefile
+BACKEND_APPNAME ?= backend_app
+BACKEND_SRC ?= $(ROOT_DIR)/backend
+BACKEND_TARGET := $(BUILD_DIR)/backend
+BACKEND_ENTRYPOINT ?= $(BACKEND_SRC)/main.py
 
-# Frontend build
-NPM ?= npm
-NPX ?= npx
-ELECTRON_BUILDER ?= $(NPX) electron-builder
+# Build packaging
+BUILD_DIR ?= $(ROOT_DIR)/frontend/build
+PACKAGE_TARGET := $(BUILD_DIR)/app
+PACKAGE_EXECUTABLE ?= $(PACKAGE_TARGET)/mac-arm64/$(PRODUCT_NAME).app/Contents/MacOS/$(PRODUCT_NAME)
 
-# Logs
-HOME_DIR ?= $(HOME)
+# App logs
 LOG_DIR ?= $(HOME_DIR)/magbridge
 LOG_FILE ?= $(LOG_DIR)/app.log
-
-# Runtime (packaged app) paths
-APP_NAME ?= Mag Bridge
-MAC_APP_BIN := $(APP_DIST)/mac-arm64/$(APP_NAME).app/Contents/MacOS/$(APP_NAME)
-
-# Python (optionally point at your venv)
-PYTHON ?= python3
 
 # OS detection (GNU Make on Windows sets OS=Windows_NT)
 EB_PLATFORM ?= --mac
 EB_EXTRA ?=
-
 ifeq ($(OS),Windows_NT)
   RM := rm -rf
   MKDIR := mkdir -p
   PATH_SEP := ;
   EB_PLATFORM = --win
+	PACKAGE_EXECUTABLE = TODO_SET_THIS_VALUE_ON_WINDOWS
   PYTHON ?= python
 else
   RM := rm -rf
@@ -53,68 +47,86 @@ else
   PATH_SEP := :
 endif
 
-.PHONY: all clean build-backend build-app dev run logs show-vars
-
-all: build-backend build-frontend
+.PHONY: build build-backend dev backend run logs info  clean
 
 build-backend:
-	$(RM) "$(BACKEND_DIST)"
-	$(MKDIR) "$(BACKEND_DIST)" "$(BACKEND_DIST)/.pyi-work" "$(BACKEND_DIST)/.pyi-specs"
-	@echo "⧗ Building backend with PyInstaller → $(BACKEND_DIST)"
+	$(RM) "$(BACKEND_TARGET)"
+	$(MKDIR) "$(BACKEND_TARGET)" "$(BACKEND_TARGET)/.pyi-work" "$(BACKEND_TARGET)/.pyi-specs"
+	@echo "⧗ Building backend with PyInstaller → $(BACKEND_TARGET)"
 	$(PYTHON) -m PyInstaller $(PYINSTALLER_OPTS) \
-	  --name "$(BACKEND_APP_NAME)" \
+	  --onefile \
+	  --name "$(BACKEND_APPNAME)" \
 	  --paths "$(BACKEND_SRC)" \
-	  --distpath "$(BACKEND_DIST)" \
-	  --workpath "$(BACKEND_DIST)/.pyi-work" \
-	  --specpath "$(BACKEND_DIST)/.pyi-specs" \
-	  --noconfirm "$(BACKEND_ENTRY)"
-	@echo "✓ Backend built: $(BACKEND_DIST)/$(BACKEND_APP_NAME) (or .exe on Windows)"
+	  --distpath "$(BACKEND_TARGET)" \
+	  --workpath "$(BACKEND_TARGET)/.pyi-work" \
+	  --specpath "$(BACKEND_TARGET)/.pyi-specs" \
+	  --noconfirm "$(BACKEND_ENTRYPOINT)"
+	@echo "✓ Backend built: $(BACKEND_TARGET)/$(BACKEND_APPNAME) (or .exe on Windows)"
 
-build-app: build-backend
-	$(RM) "$(FRONTEND_DIST)" "$(APP_DIST)"
+build: build-backend
+	$(RM) "$(FRONTEND_TARGET)" "$(PACKAGE_TARGET)"
 	@echo "⧗ Installing frontend deps"
 	$(NPM) ci --prefix "$(FRONTEND_SRC)"
 	@echo "⧗ Building Angular"
 	$(NPM) run build-angular --prefix "$(FRONTEND_SRC)"
 	@echo "⧗ Packaging Electron ($(EB_PLATFORM) $(EB_EXTRA))"
 	cd "$(FRONTEND_SRC)" && $(NPX) electron-builder $(EB_PLATFORM) $(EB_EXTRA) && \
-	  echo "✓ Frontend packaged under $(APP_DIST)"
+	  echo "✓ Frontend packaged under $(PACKAGE_TARGET)"
 
-##### ============
+##### ------------
 ##### Dev & Run
-##### ============
+##### ------------
 
 dev:
 	$(MKDIR) "$(LOG_DIR)"
 	-rm -f "$(LOG_FILE)"
-	@echo "⧗ Starting frontend dev (logs: $(LOG_FILE))"
+	@echo "⧗ Starting developer mode (Running Frontend with Backend) (logs: $(LOG_FILE))"
 	$(NPM) run dev --prefix "$(FRONTEND_SRC)"
+
+backend:
+	@echo "⧗ Starting Backend (logs: $(LOG_FILE))"
+	$(NPM) run dev-backend --prefix "$(FRONTEND_SRC)"
 
 run:
 	$(MKDIR) "$(LOG_DIR)"
 	-rm -f "$(LOG_FILE)"
-	@echo "⧗ Running packaged app: $(MAC_APP_BIN)"
-	"$(MAC_APP_BIN)"
+	@echo "⧗ Running packaged app: $(PACKAGE_EXECUTABLE)"
+	"$(PACKAGE_EXECUTABLE)"
 
 logs:
 	$(MKDIR) "$(LOG_DIR)"
 	@echo "⧗ Tailing logs at: $(LOG_FILE)"
 	tail -f "$(LOG_FILE)"
 
-show-vars:
-	@echo "ROOT_DIR        = $(ROOT_DIR)"
-	@echo "BACKEND_SRC     = $(BACKEND_SRC)"
-	@echo "FRONTEND_SRC    = $(FRONTEND_SRC)"
-	@echo "BUILD           = $(BUILD)"
-	@echo "BACKEND_APP_NAME= $(BACKEND_APP_NAME)"
-	@echo "BACKEND_ENTRY   = $(BACKEND_ENTRY)"
-	@echo "BACKEND_DIST    = $(BACKEND_DIST)"
-	@echo "FRONTEND_DIST   = $(FRONTEND_DIST)"
-	@echo "APP_DIST        = $(APP_DIST)"
-	@echo "LOG_FILE        = $(LOG_FILE)"
-	@echo "PYTHON          = $(PYTHON)"
-	@echo "EB_PLATFORM     = $(EB_PLATFORM)"
+info:
+	@echo "------ Commands ------"
+	@echo "SHELL    	= $(SHELL)"
+	@echo "PYTHON   	= $(PYTHON)"
+	@echo "NPM      	= $(NPM)"
+	@echo "------ Project root paths  ------"
+	@echo "ROOT_DIR        	= $(ROOT_DIR)"
+	@echo "HOME_DIR        	= $(HOME_DIR)"
+	@echo "------ Frontend packaging ------"
+	@echo "PRODUCT_NAME    	= $(PRODUCT_NAME)"
+	@echo "FRONTEND_SRC 		= $(FRONTEND_SRC)"
+	@echo "FRONTEND_TARGET 	= $(FRONTEND_TARGET)"
+	@echo "------ Backend packaging ------"
+	@echo "BACKEND_APPNAME 	= $(BACKEND_APPNAME)"
+	@echo "BACKEND_SRC  		= $(BACKEND_SRC)"
+	@echo "BACKEND_TARGET  	= $(BACKEND_TARGET)"
+	@echo "BACKEND_ENTRYPOINT      = $(BACKEND_ENTRYPOINT)"
+	@echo "------ Build packaging ------"
+	@echo "BUILD_DIR 		= $(BUILD_DIR)"
+	@echo "PACKAGE_TARGET		= $(PACKAGE_TARGET)"
+	@echo "------ App logs ------"
+	@echo "LOG_DIR         	= $(LOG_DIR)"
+	@echo "LOG_FILE        	= $(LOG_FILE)"
+	@echo "------ OS detection ------"
+	@echo "PACKAGE_EXECUTABLE	= $(PACKAGE_EXECUTABLE)"
+	@echo "EB_PLATFORM     	= $(EB_PLATFORM)"
+	@echo "PATH_SEP        	= $(PATH_SEP)"
+	@echo "EB_EXTRA     	 	= $(EB_EXTRA)"
 
 clean:
 	@echo "⧗ Cleaning build outputs"
-	$(RM) "$(BACKEND_DIST)" "$(FRONTEND_DIST)" "$(APP_DIST)"
+	$(RM) "$(BACKEND_TARGET)" "$(FRONTEND_TARGET)" "$(PACKAGE_TARGET)"

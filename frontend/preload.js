@@ -14,22 +14,9 @@ const { contextBridge, ipcRenderer } = require('electron');
 // ============================================================================
 
 // Safe API bridge
-// contextBridge.exposeInMainWorld('electronAPI', {
-//   apiRequest: (url, method, body) => ipcRenderer.invoke('api-request', { url, method, body }),
-// });
-
-type ApiResult<T = unknown> =
-  | { ok: true; data: T }
-  | {
-    ok: false;
-    kind: 'network' | 'http' | 'timeout' | 'protocol' | 'internal';
-    code?: string;          // e.g. ECONNREFUSED, ETIMEDOUT, HTTP_500
-    message: string;        // human readable
-    status?: number;        // HTTP status if any
-    transient?: boolean;    // hint for retry logic
-  };
-
-
+contextBridge.exposeInMainWorld('electronAPI', {
+  apiRequest: (url, method, body) => ipcRenderer.invoke('api-request', { url, method, body }),
+});
 
 // ============================================================================
 // 2. Explicit Renderer → Main Logging (stdout bridge)

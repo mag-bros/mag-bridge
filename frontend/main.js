@@ -33,52 +33,69 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(() => {
+function startProdBackend() {
+  log.info('Spawning backend from executable', { path: cfg.backendExecutablePath });
+
+  backendProcess = spawn(cfg.backendExecutablePath, {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, PYTHONUNBUFFERED: '1' },
+  });
+
+  log.hookChildProcess(backendProcess, { name: 'backend' });
+}
+
+function startDevBackend() {
+  const args = [];
+  if (cfg.importTime) args.push('-X', 'importtime');
+
+  args.push(
+    '-m',
+    'uvicorn',
+    cfg.uvicorn.app,
+    '--host',
+    cfg.uvicorn.host,
+    '--port',
+    String(cfg.uvicorn.port),
+    '--log-level',
+    cfg.uvicorn.logLevel,
+    '--use-colors'
+  );
+
+  if (!cfg.uvicorn.accessLog) args.push('--no-access-log');
+  if (cfg.uvicorn.useUvloop) args.push('--loop', 'uvloop');
+  if (cfg.uvicorn.useHttptools) args.push('--http', 'httptools');
+  if (cfg.uvicorn.lifespanOff) args.push('--lifespan', 'off');
+  if (cfg.uvicorn.reload) args.push('--reload');
+
+  const env = {
+    ...process.env,
+    PYTHONUNBUFFERED: '1',
+    PYTHONPATH: [cfg.cwd, process.env.PYTHONPATH || ''].filter(Boolean).join(path.delimiter),
+    FORCE_COLOR: '1',
+  };
+
+  log.info('Spawning backend (dev)', {
+    cmd: cfg.python,
+    args: args.join(' '),
+    cwd: cfg.cwd,
+  });
+
+  backendProcess = spawn(cfg.python, args, {
+    cwd: cfg.cwd,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env,
+  });
+
+  log.hookChildProcess(backendProcess, { name: 'backend' });
+}
+
+function onBackendReady() {
   try {
     if (cfg.manageBackend) {
       if (cfg.isRelease) {
-        log.info('Spawning backend from executable', { path: cfg.backendExecutablePath });
-        backendProcess = spawn(cfg.backendExecutablePath, {
-          stdio: ['ignore', 'pipe', 'pipe'],
-          env: { ...process.env, PYTHONUNBUFFERED: '1' },
-        });
-        log.hookChildProcess(backendProcess, { name: 'backend' });
+        startProdBackend();
       } else {
-        // DEV: uvicorn with forced colors (since stdio is piped, no TTY)
-        const args = [];
-        if (cfg.importTime) args.push('-X', 'importtime');
-        args.push(
-          '-m',
-          'uvicorn',
-          cfg.uvicorn.app,
-          '--host',
-          cfg.uvicorn.host,
-          '--port',
-          String(cfg.uvicorn.port),
-          '--log-level',
-          cfg.uvicorn.logLevel,
-          '--use-colors', // <<< force ANSI color in uvicorn output
-        );
-        if (!cfg.uvicorn.accessLog) args.push('--no-access-log');
-        if (cfg.uvicorn.useUvloop) args.push('--loop', 'uvloop');
-        if (cfg.uvicorn.useHttptools) args.push('--http', 'httptools');
-        if (cfg.uvicorn.lifespanOff) args.push('--lifespan', 'off');
-        if (cfg.uvicorn.reload) args.push('--reload');
-
-        const env = {
-          ...process.env,
-          PYTHONUNBUFFERED: '1',
-          PYTHONPATH: [cfg.cwd, process.env.PYTHONPATH || ''].filter(Boolean).join(path.delimiter),
-          FORCE_COLOR: '1', // <<< hint for color-aware libs
-        };
-
-        log.info('spawning backend (dev)', { cmd: cfg.python, args: args.join(' '), cwd: cfg.cwd });
-        backendProcess = spawn(cfg.python, args, {
-          cwd: cfg.cwd,
-          stdio: ['ignore', 'pipe', 'pipe'],
-          env,
-        });
-        log.hookChildProcess(backendProcess, { name: 'backend' });
+        startDevBackend();
       }
     } else {
       log.warn('BACKEND_EXTERNAL=1 — not spawning backend (assuming managed externally)');
@@ -91,7 +108,9 @@ app.whenReady().then(() => {
   log.registerFrontendIpc(ipcMain, 'frontend-log');
 
   setTimeout(createWindow, 100);
-});
+}
+
+app.whenReady().then(onBackendReady);
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -106,23 +125,6 @@ app.on('will-quit', () => {
   log.info('app quitting');
 });
 
-// IPC example
-// ipcMain.handle('api-request', async (_event, { url, method = 'GET', body = null }) => {
-//   try {
-//     const options = { method, headers: { 'Content-Type': 'application/json' } };
-//     if (body) options.body = JSON.stringify(body);
-//     const response = await fetch(url, options);
-//     if (!response.ok) {
-//       const errorText = await response.text();
-//       throw new Error(`HTTP ${response.status}: ${errorText}`);
-//     }
-//     return await response.json();
-//   } catch (err) {
-//     log.error(`api-request error: ${err.message}`, { url, method });
-//     throw err;
-//   }
-// });
-
 ipcMain.handle('api-request', async (_event, { url, method = 'GET', body = null }) => {
   const options = {
     method,
@@ -133,21 +135,61 @@ ipcMain.handle('api-request', async (_event, { url, method = 'GET', body = null 
   }
 
   try {
-    const data = await fetchJson(url, options);
-    return { ok: true, data };  // <--- NORMALIZED SUCCESS
+    const response = await fetch(url, options);
 
-  } catch (err) {
-    const errorInfo = classifyApiError(err);
+    if (!response.ok) {
+      const text = await (async () => {
+        try {
+          return await response.text();
+        } catch {
+          return '<unreadable body>';
+        }
+      })();
 
-    // Only log real issues; you can suppress noisy transient ones if you want.
-    if (errorInfo.kind !== 'network' || errorInfo.code !== 'ECONNREFUSED') {
-      log.error('api-request failed', {
-        url,
-        method,
-        ...errorInfo,
-      });
+      const httpError = new Error(`HTTP ${response.status}: ${text}`);
+      httpError.status = response.status;
+      throw httpError;
     }
 
-    return { ok: false, ...errorInfo }; // <--- NORMALIZED ERROR
+    // ✅ success: same behaviour as before – raw JSON goes back to renderer
+    return await response.json();
+
+  } catch (err) {
+    const info = classifyApiError(err);
+
+    // 🔇 backend not listening yet -> treat as "not ready", don't spam stacktraces
+    if (info.kind === 'network' && info.code === 'ECONNREFUSED') {
+      // renderer will see `null` and can log a nice "not ready" line
+      return null;
+    }
+
+    // 🔊 all other errors: log with some structure, then rethrow for renderer
+    log.error(`api-request error: ${err?.message || String(err)}`, {
+      url,
+      method,
+      ...info,
+    });
+
+    throw err;
   }
 });
+
+// helper: classify main error types once, for logging and future use
+function classifyApiError(err) {
+  const cause = err?.cause || err;
+  const code = cause?.code;
+
+  if (code === 'ECONNREFUSED') {
+    return { kind: 'network', code: 'ECONNREFUSED' };
+  }
+
+  if (code === 'ENOTFOUND') {
+    return { kind: 'network', code: 'ENOTFOUND' };
+  }
+
+  if (err.status && typeof err.status === 'number') {
+    return { kind: 'http', code: `HTTP_${err.status}`, status: err.status };
+  }
+
+  return { kind: 'internal', code: cause?.name || 'INTERNAL_ERROR' };
+}
