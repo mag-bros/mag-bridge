@@ -2,10 +2,6 @@ SHELL := /bin/sh
 .ONESHELL:
 .SILENT:
 
-##### ============
-##### Core knobs (env-overridable): set via `make VAR=value` or export in shell
-##### ============
-
 # Project root (auto-detected to the directory containing this Makefile)
 ROOT_DIR ?= $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
@@ -56,10 +52,6 @@ else
   MKDIR := mkdir -p
   PATH_SEP := :
 endif
-
-##### ============
-##### Phonies
-##### ============
 
 .PHONY: all clean build-backend build-app dev run logs show-vars
 
@@ -122,10 +114,6 @@ show-vars:
 	@echo "LOG_FILE        = $(LOG_FILE)"
 	@echo "PYTHON          = $(PYTHON)"
 	@echo "EB_PLATFORM     = $(EB_PLATFORM)"
-
-##### ============
-##### Clean
-##### ============
 
 clean:
 	@echo "⧗ Cleaning build outputs"

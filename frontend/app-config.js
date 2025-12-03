@@ -4,28 +4,49 @@ const pkg = require('./package.json');
 
 const PathResolver = {
   baseDir(isRelease) {
+    // Linux/mac example: /home/user/magbridge
     return path.join(os.homedir(), isRelease ? 'magbridge' : 'magbridge-dev');
   },
 
   userSdfDir(isRelease) {
+    // Linux/mac example: /home/user/magbridge/userdata/sdf
     return path.join(this.baseDir(isRelease), 'userdata', 'sdf');
   },
 
   logFile(isRelease) {
+    // Linux/mac example: /home/user/magbridge/app.log
     return path.join(this.baseDir(isRelease), 'app.log');
   },
+
+  getBackendExecutablePath(isRelease) {
+    if (isRelease) {
+      let b = path.join(
+        process.resourcesPath,
+        'backend',
+        process.platform === 'win32' ? 'backend_app.exe' : 'backend_app'
+      );
+      console.log('Resolved backend path', { path: b });
+
+      return b
+    }
+
+    return 'N/A - backend managed by developer';
+  }
 };
 
 function getAppConfig() {
+  // NODE_ENV: development, release
   const isRelease = (process.env.NODE_ENV || pkg.env?.NODE_ENV) === 'release';
+  const manageBackend = process.env.BACKEND_EXTERNAL !== '1';
 
   return {
     isRelease: isRelease,
     nodeEnv: process.env.NODE_ENV || '(undefined)',
     pkgEnv: pkg.env?.NODE_ENV || '(undefined)',
+    backendExecutablePath: PathResolver.getBackendExecutablePath(isRelease) || '(undefined)',
 
     // core backend control
-    manageBackend: process.env.BACKEND_EXTERNAL !== '1',
+    manageBackend: manageBackend,
     python: process.env.BACKEND_CMD || (process.platform === 'win32' ? 'python' : 'python3'),
     cwd: process.env.BACKEND_CWD || path.join(__dirname, '..'),
 

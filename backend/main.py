@@ -1,5 +1,12 @@
+import time
+
+t0 = time.perf_counter()
+print(f"[BOOT] Python code starting at {t0:.4f}", flush=True)
+
+print("[BOOT] importing sys...", flush=True)
 import sys
 
+print("[BOOT] importing click...", flush=True)
 import click
 
 
@@ -10,11 +17,13 @@ import click
 @click.option("--workers", default=1, show_default=True)
 def runserver(host: str, port: int, reload: bool, workers: int):
     """Run FastAPI using Uvicorn with CLI options."""
+    print("[BOOT] importing uvicorn...", flush=True)
     import uvicorn
 
     is_release = getattr(sys, "frozen", False)
 
     if is_release:  # frozen user build
+        print("[BOOT] importing fastapi app...", flush=True)
         from backend import app
 
         uvicorn.run(

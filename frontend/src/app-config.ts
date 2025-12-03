@@ -10,6 +10,13 @@ export interface AppConfigShape {
 declare global {
   interface Window {
     appConfig?: AppConfigShape;
+
+    stdout: {
+      log: (...args: any[]) => void;
+      warn: (...args: any[]) => void;
+      error: (...args: any[]) => void;
+      debug: (...args: any[]) => void;
+    };
   }
 }
 

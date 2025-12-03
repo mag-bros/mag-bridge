@@ -5,7 +5,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
 const { getAppConfig } = require('./app-config');
 
 // ANSI utilities
@@ -131,7 +130,7 @@ function createLogger({
     if (writeToFile) {
       try {
         fs.appendFileSync(cfg.logFile, formatLine({ ...record, msg: stripAnsi(record.msg) }));
-      } catch (_) {}
+      } catch (_) { }
     }
 
     // Console (with colors)
@@ -139,9 +138,16 @@ function createLogger({
       const writer = originalConsole[level] || originalConsole.log;
       if (consoleColors) {
         const c = colorFor(level);
-        writer(
-          `${COLORS.dim}[${ts}]${COLORS.reset} ${c}${level.toUpperCase()}${COLORS.reset}: ${record.msg}`,
-        );
+        if (extra && typeof extra === 'object') {
+          writer(
+            `${COLORS.dim}[${ts}]${COLORS.reset} ${c}${level.toUpperCase()}${COLORS.reset}: ${record.msg}`,
+            extra
+          );
+        } else {
+          writer(
+            `${COLORS.dim}[${ts}]${COLORS.reset} ${c}${level.toUpperCase()}${COLORS.reset}: ${record.msg}`
+          );
+        }
       } else {
         writer(`[${ts}] ${level.toUpperCase()}: ${record.msg}`);
       }
@@ -165,22 +171,27 @@ function createLogger({
     bindWindow(win, label = 'main') {
       try {
         context.window = `${label}:${win?.id ?? 'unknown'}`;
-      } catch (_) {}
+      } catch (_) { }
     },
 
     registerFrontendIpc(ipcMain, channel = 'frontend-log') {
       ipcMain.on(channel, (_evt, payload) => {
-        const { level = 'info', message = '' } = payload || {};
-        const safe = String(message);
+        const { level = 'info', args = [] } = payload || {};
+
+        // Convert any value into a printable string
+        const msg = args
+          .map(x => (typeof x === 'object' ? JSON.stringify(x) : String(x)))
+          .join(' ');
+
         switch (level) {
           case 'error':
-            return api.error(safe, { src: 'frontend' });
+            return api.error(msg, { src: 'frontend' });
           case 'warn':
-            return api.warn(safe, { src: 'frontend' });
+            return api.warn(msg, { src: 'frontend' });
           case 'debug':
-            return api.debug(safe, { src: 'frontend' });
+            return api.debug(msg, { src: 'frontend' });
           default:
-            return api.info(safe, { src: 'frontend' });
+            return api.info(msg, { src: 'frontend' });
         }
       });
     },

@@ -1,12 +1,53 @@
-// frontend/preload.js
+// ============================================================================
+// FRONTEND PRELOAD (Electron Renderer Bridge)
+// Provides:
+//   - apiRequest IPC bridge
+//   - stdout logger (explicit logging to main)
+//   - console forwarding (renderer console -> main)
+//   - unhandled error forwarding
+// ============================================================================
+
 const { contextBridge, ipcRenderer } = require('electron');
 
+// ============================================================================
+// 1. IPC Wrapper: Safe API Request
+// ============================================================================
+
 // Safe API bridge
-contextBridge.exposeInMainWorld('electronAPI', {
-  apiRequest: (url, method, body) => ipcRenderer.invoke('api-request', { url, method, body }),
+// contextBridge.exposeInMainWorld('electronAPI', {
+//   apiRequest: (url, method, body) => ipcRenderer.invoke('api-request', { url, method, body }),
+// });
+
+type ApiResult<T = unknown> =
+  | { ok: true; data: T }
+  | {
+    ok: false;
+    kind: 'network' | 'http' | 'timeout' | 'protocol' | 'internal';
+    code?: string;          // e.g. ECONNREFUSED, ETIMEDOUT, HTTP_500
+    message: string;        // human readable
+    status?: number;        // HTTP status if any
+    transient?: boolean;    // hint for retry logic
+  };
+
+
+
+// ============================================================================
+// 2. Explicit Renderer → Main Logging (stdout bridge)
+// ============================================================================
+
+contextBridge.exposeInMainWorld('stdout', {
+  log: (...args) => ipcRenderer.send('frontend-log', { level: 'info', args }),
+  warn: (...args) => ipcRenderer.send('frontend-log', { level: 'warn', args }),
+  error: (...args) => ipcRenderer.send('frontend-log', { level: 'error', args }),
+  debug: (...args) => ipcRenderer.send('frontend-log', { level: 'debug', args }),
 });
 
-// Serialize console args robustly and strip %c CSS style args
+// ============================================================================
+// 3. Internal Renderer Console Forwarding (optional)
+// Sends all console.log/info/warn/error/debug to main log
+// ============================================================================
+
+// Serialize console args robustly (objects, errors, primitives)
 function serializeArg(a) {
   if (a instanceof Error) {
     return JSON.stringify({ name: a.name, message: a.message, stack: a.stack });
@@ -15,37 +56,38 @@ function serializeArg(a) {
     try {
       return JSON.stringify(a);
     } catch {
-      try {
-        return String(a);
-      } catch {
-        return '[unserializable-object]';
-      }
+      return String(a);
     }
   }
   return String(a);
 }
 
+// Remove %c formatting (CSS in browser console)
 function stripPercentCAndStyles(args) {
   if (!args.length) return args;
-  const parts = [];
+  const out = [];
   let i = 0;
+
   while (i < args.length) {
-    const s = String(args[i]);
-    if (s.includes('%c')) {
-      const cnt = (s.match(/%c/g) || []).length;
-      parts.push(s.replace(/%c/g, ''));
-      i += 1 + cnt; // skip CSS args following each %c
+    const text = String(args[i]);
+
+    if (text.includes('%c')) {
+      const cnt = (text.match(/%c/g) || []).length;
+      out.push(text.replace(/%c/g, ''));
+      i += 1 + cnt;
     } else {
-      parts.push(s);
-      i += 1;
+      out.push(text);
+      i++;
     }
   }
-  return parts;
+
+  return out;
 }
 
-// Forward browser console logs to main
+// Patch console.* and forward messages to main
 ['log', 'warn', 'error', 'info', 'debug'].forEach((level) => {
   const original = console[level];
+
   console[level] = (...args) => {
     try {
       const stripped = stripPercentCAndStyles(args);
@@ -54,11 +96,16 @@ function stripPercentCAndStyles(args) {
     } catch {
       ipcRenderer.send('frontend-log', { level: 'error', message: '[log serialization failed]' });
     }
+
+    // Still print to local renderer DevTools
     original(...args);
   };
 });
 
-// Forward unhandled errors
+// ============================================================================
+// 4. Unhandled Error Forwarding
+// ============================================================================
+
 window.addEventListener('error', (event) => {
   ipcRenderer.send('frontend-log', {
     level: 'error',

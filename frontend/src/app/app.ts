@@ -13,27 +13,53 @@ import { interval, Subscription } from 'rxjs';
   templateUrl: './app.html',
 })
 export class AppComponent {
-  constructor(private restService: RestService) {}
+
   isLoading = true;
-  response: string | undefined;
-  backendCheckSubscription!: Subscription;
+  response?: string;
+  private backendCheckSubscription!: Subscription;
+
+  constructor(private restService: RestService) { }
 
   ngOnInit() {
-    this.backendReadyCheck();
+    this.startBackendHealthCheck();
   }
 
-  backendReadyCheck() {
+  // ===========================================================================
+  //  Backend Health Check
+  // ===========================================================================
+
+  private startBackendHealthCheck() {
+    const startTime = performance.now();
+    const startIso = new Date().toISOString();
+
+    window.stdout.log('Starting backend health check at', startIso);
+
     this.backendCheckSubscription = interval(500).subscribe(() => {
-      this.restService.get<any>(this.restService.endpoints.general.health).subscribe({
-        next: (res) => {
-          console.log('Backend health OK:', res);
-          this.isLoading = false;
-          this.backendCheckSubscription.unsubscribe();
-        },
-        error: (err) => {
-          console.error('Backend not yet ready (healthcheck failed):', err);
-        },
-      });
+      this.checkBackendHealth(startTime);
     });
+  }
+
+  private checkBackendHealth(startTime: number) {
+    const health$ = this.restService.get<any>(
+      this.restService.endpoints.general.health
+    );
+
+    health$.subscribe({
+      next: (res) => this.handleBackendReady(res, startTime),
+      error: (err) => this.handleBackendNotReady(err),
+    });
+  }
+
+  private handleBackendReady(res: any, startTime: number) {
+    const seconds = ((performance.now() - startTime) / 1000).toFixed(2);
+
+    window.stdout.log('Backend health OK:', res, `ready after ${seconds}s`);
+
+    this.isLoading = false;
+    this.backendCheckSubscription.unsubscribe();
+  }
+
+  private handleBackendNotReady(err: any) {
+    window.stdout.error('Backend not yet ready (healthcheck failed):', err);
   }
 }

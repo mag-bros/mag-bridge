@@ -37,14 +37,8 @@ app.whenReady().then(() => {
   try {
     if (cfg.manageBackend) {
       if (cfg.isRelease) {
-        // Packaged backend binary
-        const backendPath = path.join(
-          process.resourcesPath,
-          'backend',
-          process.platform === 'win32' ? 'backend_app.exe' : 'backend_app',
-        );
-        log.info('spawning backend (release)', { path: backendPath });
-        backendProcess = spawn(backendPath, {
+        log.info('Spawning backend from executable', { path: cfg.backendExecutablePath });
+        backendProcess = spawn(cfg.backendExecutablePath, {
           stdio: ['ignore', 'pipe', 'pipe'],
           env: { ...process.env, PYTHONUNBUFFERED: '1' },
         });
@@ -113,18 +107,47 @@ app.on('will-quit', () => {
 });
 
 // IPC example
+// ipcMain.handle('api-request', async (_event, { url, method = 'GET', body = null }) => {
+//   try {
+//     const options = { method, headers: { 'Content-Type': 'application/json' } };
+//     if (body) options.body = JSON.stringify(body);
+//     const response = await fetch(url, options);
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       throw new Error(`HTTP ${response.status}: ${errorText}`);
+//     }
+//     return await response.json();
+//   } catch (err) {
+//     log.error(`api-request error: ${err.message}`, { url, method });
+//     throw err;
+//   }
+// });
+
 ipcMain.handle('api-request', async (_event, { url, method = 'GET', body = null }) => {
+  const options = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (body != null) {
+    options.body = JSON.stringify(body);
+  }
+
   try {
-    const options = { method, headers: { 'Content-Type': 'application/json' } };
-    if (body) options.body = JSON.stringify(body);
-    const response = await fetch(url, options);
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
-    }
-    return await response.json();
+    const data = await fetchJson(url, options);
+    return { ok: true, data };  // <--- NORMALIZED SUCCESS
+
   } catch (err) {
-    log.error(`api-request error: ${err.message}`, { url, method });
-    throw err;
+    const errorInfo = classifyApiError(err);
+
+    // Only log real issues; you can suppress noisy transient ones if you want.
+    if (errorInfo.kind !== 'network' || errorInfo.code !== 'ECONNREFUSED') {
+      log.error('api-request failed', {
+        url,
+        method,
+        ...errorInfo,
+      });
+    }
+
+    return { ok: false, ...errorInfo }; // <--- NORMALIZED ERROR
   }
 });
