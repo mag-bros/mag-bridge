@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone } from '@angular/core';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { Form } from './components/form/form';
@@ -17,7 +17,12 @@ export class AppComponent {
   isLoading = true;
   private backendCheckSubscription!: Subscription;
 
-  constructor(private restService: RestService) { }
+  constructor(
+    private restService: RestService,
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
+  ) { }
+
 
   ngOnInit() {
     this.startBackendHealthCheck();
@@ -51,6 +56,8 @@ export class AppComponent {
 
   private handleBackendReady(res: any, startTime: number) {
     // ECONNREFUSED from main.js is mapped to `null`
+    window.stdout?.log('ANGULAR: handleBackendReady fired');
+
     if (res == null) {
       window.stdout?.error('Backend not yet ready (connection refused)');
       return;
@@ -60,8 +67,11 @@ export class AppComponent {
 
     window.stdout?.log('Backend health OK:', res, `ready after ${seconds}s`);
 
-    this.isLoading = false;
-    this.backendCheckSubscription.unsubscribe();
+    this.ngZone.run(() => {
+      this.isLoading = false;
+      this.backendCheckSubscription.unsubscribe();
+      this.cdr.detectChanges();
+    });
   }
 
   private handleBackendNotReady(err: any) {

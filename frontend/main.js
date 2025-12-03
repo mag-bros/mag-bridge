@@ -12,8 +12,10 @@ log.info(`=== MagBridge configuration ===\n${configToString(cfg)}`);
 
 let backendProcess;
 
+let mainWindow = null;
+
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 1000,
     webPreferences: {
@@ -23,14 +25,21 @@ function createWindow() {
     },
   });
 
-  log.bindWindow(win, 'main');
+  log.bindWindow(mainWindow, 'main');
 
   if (!cfg.isRelease) {
-    win.loadURL('http://localhost:4200');
-    win.webContents.openDevTools();
+    mainWindow.loadURL('http://localhost:4200');
+    mainWindow.webContents.openDevTools();
   } else {
-    win.loadFile(path.join(__dirname, 'build/frontend/browser/index.html'));
+    mainWindow.loadFile(
+      path.join(__dirname, 'build/frontend/browser/index.html'),
+    );
   }
+
+  // optional, but good hygiene:
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 }
 
 function startProdBackend() {
