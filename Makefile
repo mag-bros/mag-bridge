@@ -1,7 +1,7 @@
 # Commands
 SHELL := /bin/bash
 PYTHON ?= python
-NPM ?= npm
+NPM ?= npm --prefix "$(FRONTEND_SRC)"
 NPX ?= npx
 
 .ONESHELL:
@@ -66,9 +66,9 @@ build-backend:
 build: build-backend
 	$(RM) "$(FRONTEND_TARGET)" "$(PACKAGE_TARGET)"
 	@echo "⧗ Installing frontend deps"
-	$(NPM) ci --prefix "$(FRONTEND_SRC)"
+	$(NPM) ci"
 	@echo "⧗ Building Angular"
-	$(NPM) run build-angular --prefix "$(FRONTEND_SRC)"
+	$(NPM) run build:prod"
 	@echo "⧗ Packaging Electron ($(EB_PLATFORM) $(EB_EXTRA))"
 	cd "$(FRONTEND_SRC)" && $(NPX) electron-builder $(EB_PLATFORM) $(EB_EXTRA) && \
 	  echo "✓ Frontend packaged under $(PACKAGE_TARGET)"
@@ -81,11 +81,15 @@ dev:
 	$(MKDIR) "$(LOG_DIR)"
 	-rm -f "$(LOG_FILE)"
 	@echo "⧗ Starting developer mode (Running Frontend with Backend) (logs: $(LOG_FILE))"
-	$(NPM) run dev --prefix "$(FRONTEND_SRC)"
+	$(NPM) run dev
 
 backend:
 	@echo "⧗ Starting Backend (logs: $(LOG_FILE))"
-	$(NPM) run dev-backend --prefix "$(FRONTEND_SRC)"
+	$(NPM) run dev-backend"
+
+install:
+	@echo "⧗ Starting Backend (logs: $(LOG_FILE))"
+	$(NPM) install"
 
 run:
 	$(MKDIR) "$(LOG_DIR)"
@@ -130,3 +134,13 @@ info:
 clean:
 	@echo "⧗ Cleaning build outputs"
 	$(RM) "$(BACKEND_TARGET)" "$(FRONTEND_TARGET)" "$(PACKAGE_TARGET)"
+
+npm-update:
+	@echo "🔍 Checking for npm dependency updates..."
+# --upgradeAll for major version upgrades
+# --upgrade updates to the newest version allowed by the semver range in package.json
+	cd "$(FRONTEND_SRC)" && $(NPX) npm-check-updates --packageFile package.json --upgrade; echo "📦 Installing updated dependencies..."
+	@$(NPM) install && echo "✅ npm dependencies updated." || echo "❌ npm dependencies update FAIL."
+
+list-outdated:
+	@$(NPM) outdated

@@ -17,7 +17,6 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "build/frontend/browser",
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
@@ -41,6 +40,8 @@
           },
           "configurations": {
             "production": {
+              "outputPath": "build/frontend",
+              "baseHref": "./",
               "budgets": [
                 {
                   "type": "initial",
@@ -60,6 +61,8 @@
               "namedChunks": false
             },
             "development": {
+              "outputPath": "build/frontend",
+              "baseHref": "./",
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": {

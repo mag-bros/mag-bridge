@@ -74,7 +74,7 @@ function startDevBackend() {
     FORCE_COLOR: '1',
   };
 
-  log.info('Spawning backend (dev)', {
+  log.info('Spawning managed backend (dev)', {
     cmd: cfg.python,
     args: args.join(' '),
     cwd: cfg.cwd,

@@ -48,10 +48,10 @@ function ensureFile(filePath) {
 
 // Normalize backend (uvicorn/gunicorn) style lines, stripping redundant prefixes
 function normalizeBackendLine(raw) {
-  let line = String(raw).replace(/\r/g, '').trim();
+  // Strip ANSI so [INFO] etc. are visible
+  let line = stripAnsi(String(raw)).replace(/\r/g, '').trim();
   if (!line) return null;
 
-  // Extract possible level keyword
   const m = line.match(/^\s*(INFO|ERROR|WARNING|WARN|DEBUG)\s*:?\s*/i);
   let lvl = null;
   if (m) {
@@ -178,10 +178,12 @@ function createLogger({
       ipcMain.on(channel, (_evt, payload) => {
         const { level = 'info', args = [] } = payload || {};
 
-        // Convert any value into a printable string
         const msg = args
           .map(x => (typeof x === 'object' ? JSON.stringify(x) : String(x)))
-          .join(' ');
+          .join(' ')
+          .trim();
+
+        if (!msg) return; // drop totally empty messages
 
         switch (level) {
           case 'error':
@@ -211,9 +213,14 @@ function createLogger({
             line = line.replace(/^\s*(INFO|ERROR|WARNING|WARN|DEBUG)\s*:?\s*/i, '');
 
             let level;
-            if (lvl) level = lvl;
-            else if (stream === 'stderr') level = 'error';
-            else level = 'info';
+            if (lvl) {
+              level = lvl;
+            } else if (stream === 'stderr') {
+              // Uvicorn and similar log frameworks often send INFO to stderr
+              level = 'info';
+            } else {
+              level = 'info';
+            }
 
             if (level === 'error') api.error(line, { src: name, stream });
             else if (level === 'warn') api.warn(line, { src: name, stream });
