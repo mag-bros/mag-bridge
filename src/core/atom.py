@@ -21,6 +21,7 @@ class MBAtom:
         self.has_covalent_bond: bool = self._HasCovalentBond()
         self.total_degree: int = self.GetTotalDegree()
         self.charge: int | None = self.GetCharge()
+        self.pascal_values: dict = ConstDB.GetPascalValues(atom=self)
 
     def IsRing(self) -> bool:
         """Return True if the atom is in a ring consisting of 3 to 8 atoms.

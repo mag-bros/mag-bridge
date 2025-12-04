@@ -3,7 +3,10 @@ import pytest
 from src import DIAMAG_COMPOUND_ATOMS_SUBDIR, DIAMAG_COMPOUND_MOLECULES_SUBDIR
 from src.core.compound import MBCompound
 from src.loader import SDFLoader
-from tests.core.test_data import CALC_DIAMAG_CONTR_TEST_CASES, CalcDiamagContrTestCase
+from tests.core.test_data import (
+    CALC_DIAMAG_CONTR_TEST_CASES,
+    DiamagneticContributionTestSDF,
+)
 
 
 @pytest.mark.parametrize(
@@ -12,7 +15,7 @@ from tests.core.test_data import CALC_DIAMAG_CONTR_TEST_CASES, CalcDiamagContrTe
     ids=lambda p: f"<test:{p[0]}> {p[1].sdf_file}",
 )
 def test_calc_diamag_contr(
-    test_case_params: tuple[int, CalcDiamagContrTestCase],
+    test_case_params: tuple[int, DiamagneticContributionTestSDF],
 ) -> None:
     """Internal Integration Test testing the whole diamag calcs process.
     Logical components:
