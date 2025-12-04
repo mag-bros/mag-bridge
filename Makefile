@@ -138,6 +138,7 @@ clean:
 	$(RM) "$(BACKEND_TARGET)" "$(FRONTEND_TARGET)" "$(PACKAGE_TARGET)"
 
 npm-update:
+# npm update is an alternative, not sure what's the difference
 	@echo "🔍 Checking for npm dependency updates..."
 # --upgradeAll for major version upgrades
 # --upgrade updates to the newest version allowed by the semver range in package.json
@@ -146,3 +147,14 @@ npm-update:
 
 list-outdated:
 	@$(NPM) outdated
+
+update-lock:
+	@$(NPM) install --package-lock-only
+
+rebuild-node:
+	@echo "✨ Resetting frontend lockfile and dependencies…"
+	$(RM) "$(FRONTEND_SRC)/package-lock.json"
+	$(RM) -r "$(FRONTEND_SRC)/node_modules"
+	@$(NPM) install \
+		&& echo "✅ Lockfile regenerated and dependencies reinstalled" \
+		|| echo "❌ Failed to reset lockfile or reinstall dependencies"
