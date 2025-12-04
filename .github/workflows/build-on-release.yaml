@@ -71,8 +71,11 @@ jobs:
       PYTHONUNBUFFERED: "1"
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Record job start time
+        shell: bash
+        run: echo "JOB_START_TS=$(date +%s)" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v6
 
       - name: Derive app version from tag
         shell: bash
@@ -175,3 +178,45 @@ jobs:
           files: magbridge-${{ matrix.label }}.zip
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Record matrix build status
+        if: always()
+        shell: bash
+        env:
+          JOB_STATUS: ${{ job.status }}
+          MATRIX_LABEL: ${{ matrix.label }}
+        run: |
+          end_ts=$(date +%s)
+          duration=$(( end_ts - JOB_START_TS ))
+
+          echo "${MATRIX_LABEL},${JOB_STATUS},${duration}" > "build-status-${MATRIX_LABEL}.txt"
+          echo "Recorded status for ${MATRIX_LABEL}: ${JOB_STATUS}, duration=${duration}s"
+
+      - name: Upload build status artifact
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: build-status-${{ matrix.label }}
+          path: build-status-${{ matrix.label }}.txt
+
+  build-summary-and-notify:
+    name: Build Summary & Notify Discord
+    needs: [build-and-publish]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download status artifacts
+        uses: actions/download-artifact@v6
+        with:
+          pattern: build-status-*
+          merge-multiple: true
+
+      - uses: actions/checkout@v6
+
+      - name: Summarize status (Python)
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          PYTHONPATH: "${{ github.workspace }}"
+        id: summary
+        run: python .github/scripts/release_summary_hook.py
