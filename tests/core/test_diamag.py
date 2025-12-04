@@ -13,7 +13,7 @@ from tests.core.test_data import (
 )
 
 
-def _run_diamag_contr(
+def _run_diamag_contr_test(
     subdir: str,
     idx: int,
     test_case: DiamagneticContributionTestSDF,
@@ -48,11 +48,11 @@ def _params_for(subdir: str):
 
 
 @_params_for(subdir=DIAMAG_COMPOUND_ATOMS_SUBDIR)
-def test_calc_diamag_contr_atoms(
+def test_diamag_contr_calc_atoms(
     diamag_contr_params: tuple[int, DiamagneticContributionTestSDF],
 ) -> None:
     idx, test_case = diamag_contr_params
-    _run_diamag_contr(
+    _run_diamag_contr_test(
         subdir=DIAMAG_COMPOUND_ATOMS_SUBDIR,
         idx=idx,
         test_case=test_case,
@@ -60,11 +60,11 @@ def test_calc_diamag_contr_atoms(
 
 
 @_params_for(subdir=DIAMAG_COMPOUND_MOLECULES_SUBDIR)
-def test_calc_diamag_contr_molecules(
+def test_diamag_contr_calc_molecules(
     diamag_contr_params: tuple[int, DiamagneticContributionTestSDF],
 ) -> None:
     idx, test_case = diamag_contr_params
-    _run_diamag_contr(
+    _run_diamag_contr_test(
         subdir=DIAMAG_COMPOUND_MOLECULES_SUBDIR,
         idx=idx,
         test_case=test_case,
@@ -72,11 +72,11 @@ def test_calc_diamag_contr_molecules(
 
 
 @_params_for(subdir=DIAMAG_COMPOUND_CONSTITUTIVE_CORR_SUBDIR)
-def test_calc_diamag_contr_constitutive_corr(
+def test_diamag_contr_calc_constitutive_corr(
     diamag_contr_params: tuple[int, DiamagneticContributionTestSDF],
 ) -> None:
     idx, test_case = diamag_contr_params
-    _run_diamag_contr(
+    _run_diamag_contr_test(
         subdir=DIAMAG_COMPOUND_CONSTITUTIVE_CORR_SUBDIR,
         idx=idx,
         test_case=test_case,
