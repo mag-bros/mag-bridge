@@ -31,12 +31,12 @@ def test_calc_diamag_sdf_compounds(
 
     # Test Result
     try:
-        assert round(diamag_contr, 2) == sdf_test_compound.expected_diamag_total
+        assert round(diamag_contr, 2) == sdf_test_compound.expected_diamag_contr
         print(
             f'[INF] "{compound.source_file}": ✅ Diamag is as expected: {diamag_contr:.4f}'
         )
     except AssertionError as e:
         print(
-            f'[ERR] "{compound.source_file}": ❌ result {round(diamag_contr, 2)} is not expected value: {sdf_test_compound.expected_diamag_total}'
+            f'[ERR] "{compound.source_file}": ❌ result {round(diamag_contr, 2)} is not expected value: {sdf_test_compound.expected_diamag_contr}'
         )
         raise e
