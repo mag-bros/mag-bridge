@@ -4,7 +4,7 @@ from typing import Optional
 
 @dataclass(frozen=True)
 class CommonMolecule:
-    """Immutable descriptor of a common ion, ligand or solvent with SMILES, χ_dia and SDF file."""
+    """Immutable descriptor of a common polyatomic anion, ligand or solvent with SMILES, χ_dia and SDF file."""
 
     formula: str
     name: str

@@ -25,44 +25,56 @@ class MBMolecule:
         Uses Pascal constants for ring, open-chain, oxidation state, and charge terms.
         """
         mol_dia_contr = 0
+        common_mol_diamag: float | None = ConstProvider.GetCommonMolDiamagContr(
+            mol=self
+        )
 
         if verbose:
             print(f"- {repr(self)}")
 
-        # Iterate over all atoms within this molecule
-        for atom in self._atoms:
+        if common_mol_diamag is None:
+            # Iterate over all atoms within this molecule
+            for atom in self._atoms:
+                if verbose:
+                    print(atom)
+
+                # Retrieve Pascal constant data for this atom
+                pascal_values: dict = ConstProvider.GetPascalValues(atom=atom)
+
+                # Add charge constant for isolated ions (monoatomic species with net charge)
+                mol_dia_contr += pascal_values.get("charge", 0)
+
+                # Add ox-state constant for covalently bonded atom when neither ring nor open-chain constants apply
+                if atom.has_covalent_bond and all(
+                    key not in pascal_values for key in ["ring", "open_chain"]
+                ):
+                    mol_dia_contr += pascal_values.get("ox_state", 0)
+
+                # Add ring constant for N and C atoms located within a ring
+                if (
+                    atom.is_ring_relevant
+                    and atom.ox_state is None
+                    and atom.charge is None
+                ):
+                    mol_dia_contr += pascal_values.get("ring", 0)
+
+                # Add open-chain constant for C or N atoms in chain fragments
+                # or when no ring constant is defined for the atom type
+                if (
+                    not atom.is_ring_relevant
+                    and atom.ox_state is None
+                    and atom.charge is None
+                ):
+                    mol_dia_contr += pascal_values.get("open_chain", 0)
+
             if verbose:
-                print(atom)
+                print(f"Diamag: {mol_dia_contr:.4f} cm^3 mol^(-1) - {repr(self)}")
 
-            # Retrieve Pascal constant data for this atom
-            pascal_values: dict = ConstProvider.GetPascalValues(atom=atom)
+            return mol_dia_contr
 
-            # Add charge constant for isolated ions (monoatomic species with net charge)
-            mol_dia_contr += pascal_values.get("charge", 0)
-
-            # Add ox-state constant for covalently bonded atom when neither ring nor open-chain constants apply
-            if atom.has_covalent_bond and all(
-                key not in pascal_values for key in ["ring", "open_chain"]
-            ):
-                mol_dia_contr += pascal_values.get("ox_state", 0)
-
-            # Add ring constant for N and C atoms located within a ring
-            if atom.is_ring_relevant and atom.ox_state is None and atom.charge is None:
-                mol_dia_contr += pascal_values.get("ring", 0)
-
-            # Add open-chain constant for C or N atoms in chain fragments
-            # or when no ring constant is defined for the atom type
-            if (
-                not atom.is_ring_relevant
-                and atom.ox_state is None
-                and atom.charge is None
-            ):
-                mol_dia_contr += pascal_values.get("open_chain", 0)
-
-        if verbose:
-            print(f"Diamag: {mol_dia_contr:.4f} cm^3 mol^(-1) - {repr(self)}")
-
-        return mol_dia_contr
+        elif common_mol_diamag is not None:
+            mol_dia_contr += common_mol_diamag
+            return mol_dia_contr
 
     def ToRDKit(self) -> Mol:
         """Return the underlying RDKit Mol object."""

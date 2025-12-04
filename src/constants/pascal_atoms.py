@@ -2,7 +2,7 @@
 Lists of atoms for which it was specified that the atom may be part of a ring or has a defined oxidation state, according to 10.1021/ed085p532 (DOI)
 unit: 10^(-6) cm^3/mol
 Reference (DOI): 10.1021/ed085p532 (TABLES 1 and 6, and some ions from TABLE 3)
-This dictionary represents the diamagnetic values for elements in
+This dictionary represents the Pascal constants for elements in
 different bonding/oxidation_state/ionic_charge scenarios. Here's a breakdown of the values:
 """
 

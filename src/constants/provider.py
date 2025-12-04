@@ -1,6 +1,7 @@
+from tokenize import group
 from typing import TYPE_CHECKING
 
-from src.constants.common_molecules import COMMON_MOLECULES
+from src.constants.common_molecules import COMMON_MOLECULES, CommonMolecule
 from src.constants.misc import (
     METAL_CATIONS,
     RELEVANT_OXIDATION_ATOMS,
@@ -39,8 +40,11 @@ class ConstProvider:
         return RELEVANT_OXIDATION_ATOMS
 
     @staticmethod
-    def GetCommonMolDiamagContr(mol: "MBMolecule") -> float:
+    def GetCommonMolDiamagContr(mol: "MBMolecule") -> float | None:
         """Returns diamag contribution of common molecules."""
+        for group in COMMON_MOLECULES.values():
+            for cm in group:
+                if mol.ToSmiles() in cm.SMILES:
+                    return cm.diamag_sus
 
-        # TODO: Finish.
-        return ...
+        return None
