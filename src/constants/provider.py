@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from src.core.molecule import MBMolecule
 
 
-class ConstProvider:
+class ConstDB:
     @staticmethod
     def GetPascalValues(atom: "MBAtom") -> dict[str, float]:
         """Looks up relevant Pascal Constant data for given atom."""
