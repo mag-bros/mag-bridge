@@ -1,9 +1,9 @@
 import pytest
 
-from src import DIAMAG_COMPOUND_ATOMS_SUBDIR
+from src import DIAMAG_COMPOUND_ATOMS_SUBDIR, DIAMAG_COMPOUND_MOLECULES_SUBDIR
 from src.core.compound import MBCompound
 from src.loader import SDFLoader
-from tests.core.test_data import SDF_TEST_COMPOUNDS, SDFTestCompound
+from tests.core.test_data import SDF_TEST_COMPOUNDS, DiamagTestCase
 
 
 @pytest.mark.parametrize(
@@ -12,7 +12,7 @@ from tests.core.test_data import SDF_TEST_COMPOUNDS, SDFTestCompound
     ids=lambda p: f"<test:{p[0]}> {p[1].sdf_file}",
 )
 def test_calc_diamag_sdf_compounds(
-    test_compound_params: tuple[int, SDFTestCompound],
+    test_compound_params: tuple[int, DiamagTestCase],
 ) -> None:
     """Internal Integration Test testing the whole diamag calcs process.
     Logical components:
