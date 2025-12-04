@@ -158,3 +158,6 @@ rebuild-node:
 	@$(NPM) install \
 		&& echo "✅ Lockfile regenerated and dependencies reinstalled" \
 		|| echo "❌ Failed to reset lockfile or reinstall dependencies"
+	
+remove-quarantine:
+	sudo xattr -dr com.apple.quarantine "/Applications/MagBridge.app"
