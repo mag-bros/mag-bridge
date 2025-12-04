@@ -44,7 +44,7 @@ class ConstProvider:
         """Returns diamag contribution of common molecules."""
         for group in COMMON_MOLECULES.values():
             for cm in group:
-                if mol.ToSmiles() in cm.SMILES:
+                if mol.smiles in cm.SMILES:
                     return cm.diamag_sus
 
         return None

@@ -18,7 +18,7 @@ def _run_molecule_match(group: str, idx: int, cm: CommonMolecule) -> None:
     compound: MBCompound = SDFLoader.Load(cm.sdf_file, subdir=MOLECULE_MATCH_SUBDIR)
 
     sdf_compound_smiles: set[str] = {
-        mol.ToSmiles() for mol in compound.GetMols(to_rdkit=False)
+        mol.smiles for mol in compound.GetMols(to_rdkit=False)
     }
 
     # when comparing two sets with "==" the order of elements doesn't matter

@@ -16,7 +16,7 @@ class MBMolecule:
             raise TypeError(f"Expected rdkit.Chem.rdchem.Mol, got {type(mol)}")
         self._mol: Mol = mol
         self._atoms: list[MBAtom] = [MBAtom(a) for a in self._mol.GetAtoms()]
-        self.smiles = MolToSmiles(self._mol)
+        self.smiles = self.ToSmiles()
         self.source_file = source_file
         self.mol_index = mol_index
 
