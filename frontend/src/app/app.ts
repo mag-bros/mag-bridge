@@ -56,10 +56,8 @@ export class AppComponent {
 
   private handleBackendReady(res: any, startTime: number) {
     // ECONNREFUSED from main.js is mapped to `null`
-    window.stdout?.log('ANGULAR: handleBackendReady fired');
-
     if (res == null) {
-      window.stdout?.error('Backend not yet ready (connection refused)');
+      window.stdout?.error('Waiting for backend readiness...');
       return;
     }
 

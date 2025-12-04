@@ -1,12 +1,5 @@
-import time
-
-t0 = time.perf_counter()
-print(f"[BOOT] {t0:.4f} Python code starting", flush=True)
-
-print(f"[BOOT] {t0:.4f} importing sys...", flush=True)
 import sys
 
-print(f"[BOOT] {t0:.4f} importing click...", flush=True)
 import click
 
 
@@ -17,32 +10,17 @@ import click
 @click.option("--workers", default=1, show_default=True)
 def runserver(host: str, port: int, reload: bool, workers: int):
     """Run FastAPI using Uvicorn with CLI options."""
-    print(f"[BOOT] {t0:.4f} importing uvicorn...", flush=True)
     import uvicorn
 
-    is_release = getattr(sys, "frozen", False)
+    common_params = {"host": host, "port": port, "workers": workers}
 
-    if is_release:  # frozen user build
-        print(f"[BOOT] {t0:.4f} importing fastapi app...", flush=True)
+    is_prod = getattr(sys, "frozen", False)
+    if is_prod:  # frozen user build
         from backend import app
 
-        print(f"[BOOT] {t0:.4f} Starting uvicorn app...", flush=True)
-        uvicorn.run(
-            app,
-            host=host,
-            port=port,
-            reload=False,
-            workers=1,
-        )
-        print(f"[BOOT][SUCCESS] {t0:.4f} Uvicorn is up and running.", flush=True)
+        uvicorn.run(app, reload=False, **common_params)
     else:  # normal dev/runtime, full uvicorn features available
-        uvicorn.run(
-            "backend:app",
-            host=host,
-            port=port,
-            reload=reload,
-            workers=workers,
-        )
+        uvicorn.run("backend:app", reload=reload, **common_params)
 
 
 if __name__ == "__main__":

@@ -3,23 +3,22 @@ const path = require('path');
 const pkg = require('./package.json');
 
 function getAppConfig() {
-  const isRelease = (process.env.NODE_ENV || pkg.env?.NODE_ENV) === 'release';
-  const manageBackend = process.env.MANAGE_BACKEND == '1';
+  const isProd = (process.env.NODE_ENV || pkg.env?.NODE_ENV) === 'production';
 
   return {
     // environment
-    isRelease: isRelease,
+    isProd: isProd,
     nodeEnv: process.env.NODE_ENV || pkg.env?.NODE_ENV || 'production',
     runMode: process.env.RUN_MODE || pkg.env?.RUN_MODE || 'default',
     pkgEnv: pkg.env?.NODE_ENV || '(undefined)',
 
     // paths
-    backendExecutablePath: PathResolver.getBackendExecutablePath(isRelease) || '(undefined)',
-    userSdfDir: PathResolver.userSdfDir(isRelease),
-    logFile: PathResolver.logFile(isRelease),
+    backendExecutablePath: PathResolver.getBackendExecutablePath(isProd) || '(undefined)',
+    userSdfDir: PathResolver.userSdfDir(isProd),
+    logFile: PathResolver.logFile(isProd),
 
     // core backend control
-    manageBackend: manageBackend,
+    manageBackend: process.env.MANAGE_BACKEND == '1' || true,
     python: process.env.BACKEND_CMD || (process.platform === 'win32' ? 'python' : 'python3'),
     cwd: process.env.BACKEND_CWD || path.join(__dirname, '..'),
 
@@ -41,33 +40,30 @@ function getAppConfig() {
   };
 }
 
-
 const PathResolver = {
-  baseDir(isRelease) {
+  baseDir(isProd) {
     // Linux/mac example: /home/user/magbridge
-    return path.join(os.homedir(), isRelease ? 'magbridge' : 'magbridge-dev');
+    return path.join(os.homedir(), isProd ? 'magbridge' : 'magbridge-dev');
   },
 
-  userSdfDir(isRelease) {
+  userSdfDir(isProd) {
     // Linux/mac example: /home/user/magbridge/userdata/sdf
-    return path.join(this.baseDir(isRelease), 'userdata', 'sdf');
+    return path.join(this.baseDir(isProd), 'userdata', 'sdf');
   },
 
-  logFile(isRelease) {
+  logFile(isProd) {
     // Linux/mac example: /home/user/magbridge/app.log
-    return path.join(this.baseDir(isRelease), 'app.log');
+    return path.join(this.baseDir(isProd), 'app.log');
   },
 
-  getBackendExecutablePath(isRelease) {
-    if (isRelease) {
-      let b = path.join(
+  getBackendExecutablePath(isProd) {
+    if (isProd) {
+      return path.join(
         process.resourcesPath,
         'backend',
+        'backend_app',
         process.platform === 'win32' ? 'backend_app.exe' : 'backend_app'
       );
-      console.log('Resolved backend path', { path: b });
-
-      return b
     }
 
     return 'N/A - backend managed by developer';

@@ -1,5 +1,5 @@
 export interface AppConfigShape {
-  isRelease: boolean;
+  isProd: boolean;
   config: {
     sdf_dir: string;
     themes: Record<string, unknown>;
@@ -29,7 +29,7 @@ const rawConfig: AppConfigShape = (() => {
 })();
 
 export class AppConfig {
-  static readonly isRelease = rawConfig.isRelease;
+  static readonly isProd = rawConfig.isProd;
   static readonly config = rawConfig.config;
   static readonly userSdfDir = rawConfig.config.sdf_dir;
 }

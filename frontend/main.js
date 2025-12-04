@@ -27,13 +27,13 @@ function createWindow() {
 
   log.bindWindow(mainWindow, 'main');
 
-  if (!cfg.isRelease) {
-    mainWindow.loadURL('http://localhost:4200');
-    mainWindow.webContents.openDevTools();
-  } else {
+  if (cfg.isProd) {
     mainWindow.loadFile(
       path.join(__dirname, 'build/frontend/browser/index.html'),
     );
+  } else {
+    mainWindow.loadURL('http://localhost:4200');
+    mainWindow.webContents.openDevTools();
   }
 
   // optional, but good hygiene:
@@ -43,12 +43,13 @@ function createWindow() {
 }
 
 function startProdBackend() {
-  log.info('Spawning backend from executable', { path: cfg.backendExecutablePath });
+  log.info('Spawning backend from executable...', { path: cfg.backendExecutablePath });
 
   backendProcess = spawn(cfg.backendExecutablePath, {
     stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, PYTHONUNBUFFERED: '1' },
   });
+  log.info('Backend process spawned.', { path: cfg.backendExecutablePath });
 
   log.hookChildProcess(backendProcess, { name: 'backend' });
 }
@@ -94,6 +95,7 @@ function startDevBackend() {
     stdio: ['ignore', 'pipe', 'pipe'],
     env,
   });
+  log.info('Backend process spawned.');
 
   log.hookChildProcess(backendProcess, { name: 'backend' });
 }
@@ -101,13 +103,13 @@ function startDevBackend() {
 function onBackendReady() {
   try {
     if (cfg.manageBackend) {
-      if (cfg.isRelease) {
+      if (cfg.isProd) {
         startProdBackend();
       } else {
         startDevBackend();
       }
     } else {
-      log.warn('BACKEND_EXTERNAL=1 — not spawning backend (assuming managed externally)');
+      log.warn('Backend managed externally setting found.');
     }
   } catch (err) {
     log.error(`backend spawn error: ${err?.message || err}`, { src: 'backend' });
