@@ -137,6 +137,11 @@ git push
 git pull
 ```
 
+# Git reset one file hack
+```
+git checkout <BRANCH_NAME>  -- tests/core/test_data.py
+```
+
 # Git Branches
 ### 1. check available branches
 

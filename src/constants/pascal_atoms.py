@@ -1,46 +1,11 @@
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from src.core.atom import MBAtom
-
-
-class ConstProvider:
-    @staticmethod
-    def GetPascalValues(atom: "MBAtom") -> dict[str, float]:
-        """Looks up relevant Pascal Constant data for given atom."""
-        covalent = PASCAL_CONST.get(atom.symbol, {}).get("covalent", {})
-        ionic = PASCAL_CONST.get(atom.symbol, {}).get("ionic", {})
-
-        values = {
-            "open_chain": covalent.get("open_chain"),
-            "ring": covalent.get("ring"),
-            "ox_state": covalent.get("ox_state", {}).get(atom.ox_state),
-            "charge": ionic.get("charge", {}).get(atom.charge),
-        }
-
-        # Remove keys that are not present. Missing key means that no data was found for given atom.
-        return {k: v for k, v in values.items() if v is not None}
-
-    @staticmethod
-    def GetRelevantRingAtoms() -> list[str]:
-        return RELEVANT_RING_ATOMS
-
-    @staticmethod
-    def GetRelevantOxidationAtoms() -> list[str]:
-        return RELEVANT_OXIDATION_ATOMS
-
-
-"""Lists of atoms for which it was specified that the atom may be part of a ring or has a defined oxidation state, according to 10.1021/ed085p532 (DOI)"""
-RELEVANT_OXIDATION_ATOMS = ["As", "Hg", "Pb"]
-RELEVANT_RING_ATOMS = ["N", "C"]
-
-
 """
+Lists of atoms for which it was specified that the atom may be part of a ring or has a defined oxidation state, according to 10.1021/ed085p532 (DOI)
 unit: 10^(-6) cm^3/mol
-Reference (DOI): 10.1021/ed085p532
-This dictionary represents the diamagnetic values for elements in
+Reference (DOI): 10.1021/ed085p532 (TABLES 1 and 6, and some ions from TABLE 3)
+This dictionary represents the Pascal constants for elements in
 different bonding/oxidation_state/ionic_charge scenarios. Here's a breakdown of the values:
 """
+
 PASCAL_CONST = {
     "C": {
         "covalent": {
@@ -1072,55 +1037,3 @@ PASCAL_CONST = {
         },
     },
 }
-
-METAL_CATIONS = [
-    "Au",
-    "Ba",
-    "Be",
-    "Cd",
-    "Ce",
-    "Co",
-    "Cr",
-    "Cs",
-    "Cu",
-    "Dy",
-    "Er",
-    "Eu",
-    "Fe",
-    "Ga",
-    "Ge",
-    "Gd",
-    "Hf",
-    "Ho",
-    "In",
-    "Ir",
-    "La",
-    "Lu",
-    "Mn",
-    "Mo",
-    "Nb",
-    "Ni",
-    "Os",
-    "Pd",
-    "Pm",
-    "Pr",
-    "Pt",
-    "Rb",
-    "Re",
-    "Rh",
-    "Ru",
-    "Sc",
-    "Sm",
-    "Sr",
-    "Ta",
-    "Tb",
-    "Th",
-    "Ti",
-    "Tm",
-    "U",
-    "V",
-    "W",
-    "Y",
-    "Yb",
-    "Zr",
-]

@@ -18,6 +18,7 @@
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.tabSize": 4,
     "editor.formatOnType": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.codeActionsOnSave": {
       "source.organizeImports.ruff": "explicit",
       "source.fixAll.ruff": "explicit"
