@@ -11,7 +11,8 @@ from src.constants.pascal_atoms import PASCAL_CONST
 
 if TYPE_CHECKING:
     from src.core.atom import MBAtom
-    from src.core.molecule import MBMolecule
+
+COMMON_DIAMAG_NOT_MATCHED = 0
 
 
 class ConstDB:
@@ -40,11 +41,11 @@ class ConstDB:
         return RELEVANT_OXIDATION_ATOMS
 
     @staticmethod
-    def GetCommonMolDiamagContr(mol: "MBMolecule") -> float | None:
-        """Returns diamag contribution of common molecules."""
+    def GetCommonMolDiamagContr(smiles: str) -> float:
+        """Returns diamag contribution of common molecules for given SMILES."""
         for group in COMMON_MOLECULES.values():
             for cm in group:
-                if mol.smiles in cm.SMILES:
+                if smiles in cm.SMILES:
                     return cm.diamag_sus
 
-        return None
+        return COMMON_DIAMAG_NOT_MATCHED
