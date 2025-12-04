@@ -1,5 +1,4 @@
 {
-  "editor.defaultFormatter": "trunk.io",
   "editor.largeFileOptimizations": false,
   "editor.unicodeHighlight.ambiguousCharacters": false,
   "editor.minimap.enabled": false,
@@ -7,17 +6,16 @@
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
   "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
-
   "python.languageServer": "Pylance",
   "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
   "python.analysis.indexing": true,
   "python.analysis.autoImportCompletions": true,
   "python.analysis.languageServerMode": "full",
-
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
   "[python]": {
     "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.tabSize": 4,
     "editor.formatOnType": true,
     "editor.defaultFormatter": "charliermarsh.ruff",
@@ -38,10 +36,12 @@
     "editor.formatOnSave": true
   },
   "[jsonc]": {
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[json]": {
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[toml]": {
     "editor.formatOnSave": true,
@@ -57,7 +57,8 @@
     "editor.formatOnSave": true
   },
   "[yaml]": {
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "redhat.vscode-yaml"
   },
   "[typescript]": {
     "editor.formatOnSave": true

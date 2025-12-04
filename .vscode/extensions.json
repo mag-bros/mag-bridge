@@ -1,6 +1,7 @@
 {
   "recommendations": [
-    "trunk.io",
+    "redhat.vscode-yaml",
+    "charliermarsh.ruff",
     "ms-python.python",
     "ms-python.vscode-pylance",
     "ms-toolsai.jupyter",
