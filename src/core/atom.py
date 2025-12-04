@@ -2,7 +2,7 @@ from typing import Any
 
 from rdkit.Chem import Atom
 
-from src.constants.provider import METAL_CATIONS, ConstProvider
+from src.constants.provider import METAL_CATIONS, ConstDB
 
 
 class MBAtom:
@@ -21,6 +21,7 @@ class MBAtom:
         self.has_covalent_bond: bool = self._HasCovalentBond()
         self.total_degree: int = self.GetTotalDegree()
         self.charge: int | None = self.GetCharge()
+        self.pascal_values: dict = ConstDB.GetPascalValues(atom=self)
 
     def IsRing(self) -> bool:
         """Return True if the atom is in a ring consisting of 3 to 8 atoms.
@@ -31,7 +32,7 @@ class MBAtom:
     def IsRingRelevant(self) -> bool:
         """Return True if C or N atom is part of a ring."""
         if (
-            self._atom.GetSymbol() in ConstProvider.GetRelevantRingAtoms()
+            self._atom.GetSymbol() in ConstDB.GetRelevantRingAtoms()
             and self._IsInRing()
         ):
             return self._atom.IsInRing()
@@ -42,7 +43,7 @@ class MBAtom:
         """Return oxidation number only for relevant atoms"""
         if (
             self._atom.HasProp("OxidationNumber")
-            and self._atom.GetSymbol() in ConstProvider.GetRelevantOxidationAtoms()
+            and self._atom.GetSymbol() in ConstDB.GetRelevantOxidationAtoms()
             and self._atom.GetTotalDegree() > 0
         ):
             return self._atom.GetIntProp("OxidationNumber")
