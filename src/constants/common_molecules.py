@@ -44,7 +44,7 @@ As a result, the generated SMILES for BrO3-, ClO3-, ClO4-, IO3- and IO4- ions do
 Here's a breakdown of the values:
 """
 
-COMMON_MOLECULES = {
+COMMON_MOLECULES: dict[str, list[CommonMolecule]] = {
     "ions": [
         CommonMolecule(
             formula="AsO3(3-)",

@@ -55,7 +55,7 @@ class DiamagneticContributionTestSDF:
         return ", ".join(parts)
 
 
-CALC_DIAMAG_CONTR_TEST_CASES = {
+CALC_DIAMAG_CONTR_TEST_CASES: dict[str, list[DiamagneticContributionTestSDF]] = {
     DIAMAG_COMPOUND_ATOMS_SUBDIR: [
         DiamagneticContributionTestSDF(
             sdf_file="2-methylpropan-1-ol.sdf",
