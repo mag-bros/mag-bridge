@@ -47,7 +47,7 @@ else
   PATH_SEP := :
 endif
 
-.PHONY: build build-backend dev backend run logs info  clean
+.PHONY: build build-backend dev backend run logs info clean list-outdated
 
 build-backend:
 	$(RM) "$(BACKEND_TARGET)"
@@ -146,7 +146,7 @@ npm-update:
 	@$(NPM) install && echo "✅ npm dependencies updated." || echo "❌ npm dependencies update FAIL."
 
 list-outdated:
-	@$(NPM) outdated
+	@$(NPM) outdated --long || true
 
 update-lock:
 	@$(NPM) install --package-lock-only

@@ -47,12 +47,14 @@ const PathResolver = {
   },
 
   userSdfDir(isProd) {
-    // Linux/mac example: /home/user/magbridge/userdata/sdf
+    // Linux example: /home/user/magbridge/userdata/sdf
+    // Mac example:   /Users/user/magbridge/userdata/sdf
     return path.join(this.baseDir(isProd), 'userdata', 'sdf');
   },
 
   logFile(isProd) {
-    // Linux/mac example: /home/user/magbridge/app.log
+    // Linux example: /home/user/magbridge/app.log
+    // Mac example:   /Users/user/magbridge/app.log
     return path.join(this.baseDir(isProd), 'app.log');
   },
 
