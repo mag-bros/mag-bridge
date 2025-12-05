@@ -229,6 +229,6 @@ jobs:
       - name: Release Summary Hook (Python)
         id: summary
         env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          DISCORD_RELEASE_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
           PYTHONPATH: "${{ github.workspace }}/.github"
         run: python .github/scripts/release_summary_hook.py
