@@ -15,46 +15,46 @@ jobs:
       max-parallel: 6
       matrix:
         include:
-          # Linux x64
-          - os: ubuntu-latest
-            label: linux-x86_64
-            arch: x86_64
-            eb_platform: --linux
-            python_version: "3.13"
-            node_version: "20"
+          # # Linux x64
+          # - os: ubuntu-latest
+          #   label: linux-x86_64
+          #   arch: x86_64
+          #   eb_platform: --linux
+          #   python_version: "3.13"
+          #   node_version: "20"
 
-          # Linux arm64
-          - os: ubuntu-24.04-arm
-            label: linux-arm64
-            arch: arm64
-            eb_platform: --linux
-            python_version: "3.13"
-            node_version: "20"
-
-          # Windows x86_64
-          - os: windows-latest
-            label: windows-x86_64
-            arch: x86_64
-            eb_platform: --win
-            python_version: "3.13"
-            node_version: "20"
-
-          # On PyPI, the latest published rdkit version is 2024.9.4, not 2025.3.6.
-          # # Windows arm64
-          # - os: windows-11-arm
-          #   label: windows-arm64
+          # # Linux arm64
+          # - os: ubuntu-24.04-arm
+          #   label: linux-arm64
           #   arch: arm64
+          #   eb_platform: --linux
+          #   python_version: "3.13"
+          #   node_version: "20"
+
+          # # Windows x86_64
+          # - os: windows-latest
+          #   label: windows-x86_64
+          #   arch: x86_64
           #   eb_platform: --win
           #   python_version: "3.13"
           #   node_version: "20"
 
-          # macOS Intel (x86_64)
-          - os: macos-13
-            label: macos-x86_64
-            arch: x86_64
-            eb_platform: --mac
-            python_version: "3.13"
-            node_version: "20"
+          # # On PyPI, the latest published rdkit version is 2024.9.4, not 2025.3.6.
+          # # # Windows arm64
+          # # - os: windows-11-arm
+          # #   label: windows-arm64
+          # #   arch: arm64
+          # #   eb_platform: --win
+          # #   python_version: "3.13"
+          # #   node_version: "20"
+
+          # # macOS Intel (x86_64)
+          # - os: macos-13
+          #   label: macos-x86_64
+          #   arch: x86_64
+          #   eb_platform: --mac
+          #   python_version: "3.13"
+          #   node_version: "20"
 
           # macOS Apple Silicon (arm64)
           - os: macos-latest
@@ -93,55 +93,54 @@ jobs:
           echo "⧗ Derived version: $VERSION"
           echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
 
-      # - name: Set up Node.js
-      #   uses: actions/setup-node@v6
-      #   with:
-      #     node-version: ${{ matrix.node_version }}
-      #     cache: "npm"
-      #     cache-dependency-path: frontend/package-lock.json
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node_version }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
 
-      # - name: Set up Python
-      #   uses: actions/setup-python@v6
-      #   with:
-      #     python-version: ${{ matrix.python_version }}
-      #     cache: "pip"
-      #     cache-dependency-path: |
-      #       requirements.txt
-      #       requirements-dev.txt
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python_version }}
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
-      # Temporarily disabled some slow build steps for testing failure handling
-      # - name: Install backend dependencies
-      #   shell: bash
-      #   run: |
-      #     python -m pip install --upgrade pip
-      #     pip install -r requirements.txt
-      #     pip install -r requirements-dev.txt
+      - name: Install backend dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
 
-      # - name: Install make (Windows only)
-      #   if: runner.os == 'Windows'
-      #   run: choco install make -y
+      - name: Install make (Windows only)
+        if: runner.os == 'Windows'
+        run: choco install make -y
 
-      # - name: Install system fpm (Linux ARM only)
-      #   if: runner.os == 'Linux' && matrix.arch == 'arm64'
-      #   run: |
-      #     sudo apt-get update -y
-      #     sudo apt-get install -y ruby ruby-dev build-essential
-      #     sudo gem install --no-document fpm
-      #     echo "USE_SYSTEM_FPM=true" >> "$GITHUB_ENV"
+      - name: Install system fpm (Linux ARM only)
+        if: runner.os == 'Linux' && matrix.arch == 'arm64'
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ruby ruby-dev build-essential
+          sudo gem install --no-document fpm
+          echo "USE_SYSTEM_FPM=true" >> "$GITHUB_ENV"
 
-      # - name: Build backend & Electron app
-      #   shell: bash
-      #   run: |
-      #     # ARCH and EB_PLATFORM available via env
-      #     make build \
-      #       EB_PLATFORM="${{ matrix.eb_platform }}" \
-      #       EB_EXTRA="--publish never -c.extraMetadata.version=${APP_VERSION}"
+      - name: Build backend & Electron app
+        shell: bash
+        run: |
+          # ARCH and EB_PLATFORM available via env
+          make build \
+            EB_PLATFORM="${{ matrix.eb_platform }}" \
+            EB_EXTRA="--publish never -c.extraMetadata.version=${APP_VERSION}"
 
       - name: Build backend & Electron app
         shell: bash
         run: |
           # --- RANDOM FAILURE INJECTOR ---
-          if (( RANDOM % 100 < 11 )); then
+          if (( RANDOM % 100 < 5 )); then
             echo "❌ Simulated RANDOM FAILURE (95% probability)"
             exit 1
           else
