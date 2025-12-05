@@ -91,7 +91,7 @@ COMMON_MOLECULES: dict[str, list[CommonMolecule]] = {
         CommonMolecule(
             formula="ClO4(-)",
             name="chlorate(VII)",
-            SMILES={"[O-][Cl+3]([O-]([O-])[O-]"},
+            SMILES={"[O-][Cl+3]([O-])([O-])[O-]"},
             diamag_sus=-32.0,
             sdf_file="ClO4-.sdf",
         ),
@@ -105,7 +105,7 @@ COMMON_MOLECULES: dict[str, list[CommonMolecule]] = {
         CommonMolecule(
             formula="C5H5(-)",
             name="cyclopentadienyl",
-            SMILES={"c1cc[c-]c1"},
+            SMILES={"c1cc[cH-]c1"},
             diamag_sus=-65,
             sdf_file="C5H5-.sdf",
         ),
