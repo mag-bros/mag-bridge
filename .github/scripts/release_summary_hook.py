@@ -4,12 +4,27 @@ import os
 import sys
 from dataclasses import dataclass
 
+from scripts.messages import ReleaseSummaryMessage
+from scripts.notify import send_notification
+
 
 @dataclass
 class JobStatus:
     label: str
     status: str
     duration: int
+
+
+def get_discord_webhook() -> str:
+    """Load Discord webhook URL from environment variable."""
+    webhook: str | None = os.environ.get("DISCORD_RELEASE_WEBHOOK")
+
+    if not webhook or not webhook.strip():
+        raise RuntimeError(
+            "DISCORD_RELEASE_WEBHOOK secret is missing or empty, please set it first and try again."
+        )
+
+    return webhook.strip()
 
 
 def read_status_file(path: str) -> JobStatus | None:
@@ -76,7 +91,9 @@ def main() -> int:
                     "*No build-status-*.txt artifacts found.*",
                 ],
             )
-        send_notification(summary_text)
+        send_notification(
+            message=ReleaseSummaryMessage(webhook_url=get_discord_webhook())
+        )
         return 1
 
     print(f"Collected {len(files)} status files:")
@@ -108,7 +125,9 @@ def main() -> int:
                     "*No valid status entries parsed.*",
                 ],
             )
-        send_notification(summary_text)
+        send_notification(
+            message=ReleaseSummaryMessage(webhook_url=get_discord_webhook())
+        )
         return 1
 
     success = sum(1 for s in statuses if s.status == "success")
@@ -146,11 +165,8 @@ def main() -> int:
             ],
         )
 
-    from scripts.messages import ReleaseSummaryMessage
-    from scripts.notify import send_notification
-
     # TODO:: Finish the ReleaseSummaryMessage with proper content
-    send_notification(message=ReleaseSummaryMessage())
+    send_notification(message=ReleaseSummaryMessage(webhook_url=get_discord_webhook()))
 
     return 0
 
