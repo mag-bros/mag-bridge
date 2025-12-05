@@ -146,9 +146,12 @@ def main() -> int:
             ],
         )
 
-    from scripts.notify import send_discord_message
+    from scripts.messages import ReleaseSummaryMessage
+    from scripts.notify import send_notification
 
-    send_notification(message={})  # TODO::
+    # TODO:: Finish the ReleaseSummaryMessage with proper content
+    send_notification(message=ReleaseSummaryMessage())
+
     return 0
 
 

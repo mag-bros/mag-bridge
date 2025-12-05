@@ -1,5 +1,6 @@
 import os
-from webbrowser import get
+
+from scripts.messages import DiscordMessage
 
 """Script to notify a Discord channel about the release build summary."""
 
@@ -14,9 +15,8 @@ def get_discord_webhook() -> str:
     return webhook.strip()
 
 
-def send_discord_message(message: object) -> None:
+def send_notification(message: DiscordMessage) -> None:
     """TODO::
-    - start with creating ReleaseSummaryMessage class to hold all data in one place
     - Include a nice visual summary of the build results
     - Both informational and naming patterns - see our others Discord notifications
     """
