@@ -42,7 +42,7 @@ def case_params():
 
 
 @case_params()
-def test_core_roundtrip_string(case):
+def test_encryption_roundtrip_string(case):
     _, payload = case
     plaintext = payload["plaintext"]
     password = "test-password"
@@ -59,7 +59,7 @@ def test_core_roundtrip_string(case):
 
 
 @case_params()
-def test_core_roundtrip_file(case):
+def test_encryption_roundtrip_file(case):
     _, payload = case
     plaintext = payload["plaintext"]
     password = "test-password"
