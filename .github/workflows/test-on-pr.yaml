@@ -88,7 +88,6 @@ jobs:
           script: |
             const marker = '<!-- mb-coverage-comment -->';
             const fs = require('fs');
-            const exec = require('@actions/exec');
 
             // read pytest exit code
             let exitCode = 1;
