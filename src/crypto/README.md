@@ -3,42 +3,42 @@
 
 # 1. Encode Secret Data
 ```bash
-python ./.github/scripts/secrets/encrypt.py --name discord_release_webhook
+python src/crypto/crypto.py encrypt --name discord_release_webhook
 ```
 ```
 Enter/paste your secret below, then press Ctrl+D:
-mysuppoerpassword123
+superpassword
 Password: 
-Confirm password: 
+Repeat for confirmation: 
 Encrypted -> encrypted_discord_release_webhook.enc
 (Cipher: AES-256-GCM, key derived via PBKDF2-HMAC-SHA256)
 (Base64-encoded ciphertext)
 
-27PYB5kD+lEY+Rx8H1zTNN1g5Old33nXQklkZht3yM3383xE1AqCmWP/V/52J9lxbmC+Xc6k2kvRmTkuEUZOh48=
+9kaGXWZKpc827zoexbPcJY0Ky2gifbjH+pScD9KSFfoCFD2VJ95xL+pLatznlmWY7lzgYrxB2xsYGA==
 ```
 # 2. Decode Secret Data
 ## 2.1 Decode using file
 ```bash
-python ./.github/scripts/secrets/decrypt.py encrypted_discord_release_webhook.enc 
+python src/crypto/crypto.py decrypt encrypted_discord_release_webhook.enc
 ```
 ```bash
 Password: 
-Decrypted -> decrypted_20251205_040857.dat
+Decrypted -> decrypted_20251205_060657.dec
 Secret content:
 
-mysuppoerpassword123
+superpassword
 ```
 
 ## 2.2 Decode using paste
 ```bash
-python ./.github/scripts/secrets/decrypt.py 
+python src/crypto/crypto.py decrypt
 ```
 ```bash
 Enter/paste encrypted base64 text below, then press Ctrl+D:
-27PYB5kD+lEY+Rx8H1zTNN1g5Old33nXQklkZht3yM3383xE1AqCmWP/V/52J9lxbmC+Xc6k2kvRmTkuEUZOh48=
+9kaGXWZKpc827zoexbPcJY0Ky2gifbjH+pScD9KSFfoCFD2VJ95xL+pLatznlmWY7lzgYrxB2xsYGA==
 Password: 
-Decrypted -> decrypted_20251205_040825.dat
+Decrypted -> decrypted_20251205_060800.dec
 Secret content:
 
-mysuppoerpassword123
+superpassword
 ```

@@ -16,27 +16,11 @@ _CLICK_PARAMS = [
         "No input received.",
     ),
     (
-        # NOTE: 'decrypt' is parsed as INPUT_FILE, so this actually runs encrypt_core
-        "decrypt_as_legacy_encrypt_with_stdin",
-        ["decrypt"],
-        "not@@@base64\n",
-        True,  # encrypt succeeds, we expect success
-        "Encrypted ->",  # we just assert it did encrypt
-    ),
-    (
         "decrypt_no_input",
         ["decrypt"],  # stdin empty -> encrypt_core sees no input -> error
         "",
         False,
         "No input received.",
-    ),
-    (
-        # decrypt a b c  -> decrypt, a are group args; b is treated as COMMAND name
-        "decrypt_too_many_args",
-        ["decrypt", "a", "b", "c"],
-        "",
-        False,
-        "Error: No such command 'b'.",
     ),
 ]
 

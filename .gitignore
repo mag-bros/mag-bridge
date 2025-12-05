@@ -6,7 +6,7 @@ images/
 # C extensions
 *.so
 *.enc
-*.dat
+*.dec
 
 # Electron node modules
 frontend/node_modules
