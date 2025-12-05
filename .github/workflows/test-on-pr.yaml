@@ -36,7 +36,6 @@ jobs:
           pytest --cov=src \
                 --cov-branch \
                 --cov-report=xml \
-                --cov-report=term-missing \
                 --cov-report=html \
                 | tee pytest-output.log
 
@@ -44,12 +43,20 @@ jobs:
         if: always()
         run: |
           echo "## Pytest Summary" >> "$GITHUB_STEP_SUMMARY"
-          # grab the last line with the totals (e.g. '46 passed, 2 failed...')
-          tail -n 20 pytest-output.log | sed -n '/^=*=*/p' >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
 
+          # Find the last pytest summary line like:
+          # "================== 121 passed, 1 skipped in 5.16s =================="
+          summary_line=$(grep -E '^=+ .* in .+s =+$' pytest-output.log | tail -n 1 || true)
+
+          if [ -n "$summary_line" ]; then
+            echo "\`$summary_line\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "_No pytest summary line found._" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "## Test Coverage" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
           coverage report >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
