@@ -225,7 +225,7 @@ def mbcrypto(
 
     Backward compatibility:
     - Calling without a subcommand behaves like 'encrypt':
-        python MBCrypto.py --name foo [INPUT_FILE] [OUTPUT_FILE]
+        python crypto.py --name foo [INPUT_FILE] [OUTPUT_FILE]
     """
     # If no subcommand was invoked -> behave like legacy encrypt.py
     if ctx.invoked_subcommand is None:
