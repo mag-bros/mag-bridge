@@ -81,7 +81,8 @@ jobs:
             pytest-output.log
             coverage.xml
 
-      - uses: actions/github-script@v8
+      - name: Post test & coverage summary as PR comment
+        uses: actions/github-script@v8
         if: always()
         with:
           github-token: ${{ github.token }}
