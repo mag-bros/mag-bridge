@@ -93,42 +93,42 @@ jobs:
           echo "⧗ Derived version: $VERSION"
           echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ matrix.node_version }}
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
+      # - name: Set up Node.js
+      #   uses: actions/setup-node@v6
+      #   with:
+      #     node-version: ${{ matrix.node_version }}
+      #     cache: "npm"
+      #     cache-dependency-path: frontend/package-lock.json
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python_version }}
-          cache: "pip"
-          cache-dependency-path: |
-            requirements.txt
-            requirements-dev.txt
+      # - name: Set up Python
+      #   uses: actions/setup-python@v6
+      #   with:
+      #     python-version: ${{ matrix.python_version }}
+      #     cache: "pip"
+      #     cache-dependency-path: |
+      #       requirements.txt
+      #       requirements-dev.txt
 
-      - name: Install backend dependencies
-        shell: bash
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+      # Temporarily disabled some slow build steps for testing failure handling
+      # - name: Install backend dependencies
+      #   shell: bash
+      #   run: |
+      #     python -m pip install --upgrade pip
+      #     pip install -r requirements.txt
+      #     pip install -r requirements-dev.txt
 
-      - name: Install make (Windows only)
-        if: runner.os == 'Windows'
-        run: choco install make -y
+      # - name: Install make (Windows only)
+      #   if: runner.os == 'Windows'
+      #   run: choco install make -y
 
-      - name: Install system fpm (Linux ARM only)
-        if: runner.os == 'Linux' && matrix.arch == 'arm64'
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y ruby ruby-dev build-essential
-          sudo gem install --no-document fpm
-          echo "USE_SYSTEM_FPM=true" >> "$GITHUB_ENV"
+      # - name: Install system fpm (Linux ARM only)
+      #   if: runner.os == 'Linux' && matrix.arch == 'arm64'
+      #   run: |
+      #     sudo apt-get update -y
+      #     sudo apt-get install -y ruby ruby-dev build-essential
+      #     sudo gem install --no-document fpm
+      #     echo "USE_SYSTEM_FPM=true" >> "$GITHUB_ENV"
 
-      # Temporarily disabled actual build step for testing failure handling
       # - name: Build backend & Electron app
       #   shell: bash
       #   run: |
@@ -141,7 +141,7 @@ jobs:
         shell: bash
         run: |
           # --- RANDOM FAILURE INJECTOR ---
-          if (( RANDOM % 100 < 95 )); then
+          if (( RANDOM % 100 < 11 )); then
             echo "❌ Simulated RANDOM FAILURE (95% probability)"
             exit 1
           else
@@ -231,5 +231,5 @@ jobs:
         id: summary
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
-          PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/.github/scripts"
+          PYTHONPATH: "${{ github.workspace }}/.github"
         run: python .github/scripts/release_summary_hook.py

@@ -4,8 +4,6 @@ import os
 import sys
 from dataclasses import dataclass
 
-from scripts.notify import send_discord_message
-
 
 @dataclass
 class JobStatus:
@@ -147,6 +145,8 @@ def main() -> int:
                 "```",
             ],
         )
+
+    from scripts.notify import send_discord_message
 
     send_notification(message={})  # TODO::
     return 0
