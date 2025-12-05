@@ -8,6 +8,10 @@ concurrency:
   group: pr-tests-${{ github.event.pull_request.head.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   pytest:
     runs-on: ubuntu-latest
@@ -52,6 +56,7 @@ jobs:
       - uses: actions/github-script@v8
         if: always()
         with:
+          github-token: ${{ github.token }}
           script: |
             const marker = '<!-- mb-coverage-comment -->';
 
