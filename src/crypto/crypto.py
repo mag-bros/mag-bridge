@@ -189,8 +189,8 @@ def decrypt_core(input_file: Optional[str], output_file: Optional[str]) -> None:
     out_path = _determine_decrypt_out_path(output_file)
 
     # Write plaintext to file for safety / tooling
-    with open(out_path, "wb") as f:
-        f.write(plaintext)
+    # with open(out_path, "wb") as f:
+    #     f.write(plaintext)
 
     click.echo(f"Decrypted -> {out_path}\nSecret content:\n")
     try:
