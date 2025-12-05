@@ -60,7 +60,7 @@ def append_lines(path: str | None, lines: list[str]) -> None:
 
 def format_summary(success: int, failure: int, total: int, avg_duration: int) -> str:
     return (
-        "Matrix build summary\n"
+        "Build Release Summary\n"
         f"- Total runs: {total}\n"
         f"- Success: {success}\n"
         f"- Failure / cancelled: {failure}\n"
@@ -86,7 +86,7 @@ def main() -> int:
             append_lines(
                 github_summary,
                 [
-                    "## Matrix build summary",
+                    "## Build Release Summary",
                     "",
                     "*No build-status-*.txt artifacts found.*",
                 ],
@@ -120,7 +120,7 @@ def main() -> int:
             append_lines(
                 github_summary,
                 [
-                    "## Matrix build summary",
+                    "## Build Release Summary",
                     "",
                     "*No valid status entries parsed.*",
                 ],
@@ -151,7 +151,7 @@ def main() -> int:
         append_lines(
             github_summary,
             [
-                "## Matrix build summary",
+                "## Build Release Summary",
                 "",
                 f"- Total runs: **{total}**",
                 f"- Success: **{success}**",
