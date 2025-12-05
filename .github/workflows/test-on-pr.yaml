@@ -68,7 +68,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "## Test Coverage" >> "$GITHUB_STEP_SUMMARY"
           echo '```text' >> "$GITHUB_STEP_SUMMARY"
-          coverage report >> "$GITHUB_STEP_SUMMARY"
+          coverage report --show-missing >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload test & coverage artifacts
