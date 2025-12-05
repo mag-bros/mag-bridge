@@ -206,17 +206,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v6
+
       - name: Download status artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           pattern: build-status-*
           merge-multiple: true
+          path: .
 
-      - uses: actions/checkout@v6
-
-      - name: Summarize status (Python)
+      - name: Release Summary Hook (Python)
+        id: summary
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
           PYTHONPATH: "${{ github.workspace }}"
-        id: summary
         run: python .github/scripts/release_summary_hook.py

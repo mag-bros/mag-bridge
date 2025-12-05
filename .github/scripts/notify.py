@@ -5,7 +5,7 @@ from webbrowser import get
 
 
 def get_discord_webhook() -> str:
-    """Load Discord webhook URL from environment in a safe way."""
+    """Load Discord webhook URL from environment variable."""
     webhook: str | None = os.environ.get("DISCORD_WEBHOOK_URL")
 
     if not webhook or not webhook.strip():
@@ -14,9 +14,9 @@ def get_discord_webhook() -> str:
     return webhook.strip()
 
 
-def send_discord_message(webhook_url: str, message: str) -> None:
+def send_discord_message(message: object) -> None:
     """TODO::
-    - start with creating ReleaseSummary class to hold all data in one place
+    - start with creating ReleaseSummaryMessage class to hold all data in one place
     - Include a nice visual summary of the build results
     - Both informational and naming patterns - see our others Discord notifications
     """
