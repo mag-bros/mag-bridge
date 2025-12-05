@@ -161,7 +161,7 @@ COMMON_MOLECULES: dict[str, list[CommonMolecule]] = {
         CommonMolecule(
             formula="NO3(-)",
             name="nitrate(V)",
-            SMILES={"O=[N+]([O-])[O-]"},
+            SMILES={"O=[N+([O-])[O-]"},
             diamag_sus=-18.9,
             sdf_file="NO3-.sdf",
         ),
