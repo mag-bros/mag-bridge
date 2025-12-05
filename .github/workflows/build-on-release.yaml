@@ -15,29 +15,29 @@ jobs:
       max-parallel: 6
       matrix:
         include:
-          # Linux x64
-          - os: ubuntu-latest
-            label: linux-x86_64
-            arch: x86_64
-            eb_platform: --linux
-            python_version: "3.13"
-            node_version: "20"
+          # # Linux x64
+          # - os: ubuntu-latest
+          #   label: linux-x86_64
+          #   arch: x86_64
+          #   eb_platform: --linux
+          #   python_version: "3.13"
+          #   node_version: "20"
 
-          # Linux arm64
-          - os: ubuntu-24.04-arm
-            label: linux-arm64
-            arch: arm64
-            eb_platform: --linux
-            python_version: "3.13"
-            node_version: "20"
+          # # Linux arm64
+          # - os: ubuntu-24.04-arm
+          #   label: linux-arm64
+          #   arch: arm64
+          #   eb_platform: --linux
+          #   python_version: "3.13"
+          #   node_version: "20"
 
-          # Windows x86_64
-          - os: windows-latest
-            label: windows-x86_64
-            arch: x86_64
-            eb_platform: --win
-            python_version: "3.13"
-            node_version: "20"
+          # # Windows x86_64
+          # - os: windows-latest
+          #   label: windows-x86_64
+          #   arch: x86_64
+          #   eb_platform: --win
+          #   python_version: "3.13"
+          #   node_version: "20"
 
           # On PyPI, the latest published rdkit version is 2024.9.4, not 2025.3.6.
           # # Windows arm64
@@ -49,12 +49,12 @@ jobs:
           #   node_version: "20"
 
           # macOS Intel (x86_64)
-          - os: macos-13
-            label: macos-x86_64
-            arch: x86_64
-            eb_platform: --mac
-            python_version: "3.13"
-            node_version: "20"
+          # - os: macos-13
+          #   label: macos-x86_64
+          #   arch: x86_64
+          #   eb_platform: --mac
+          #   python_version: "3.13"
+          #   node_version: "20"
 
           # macOS Apple Silicon (arm64)
           - os: macos-latest
