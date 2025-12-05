@@ -15,29 +15,29 @@ jobs:
       max-parallel: 6
       matrix:
         include:
-          # # Linux x64
-          # - os: ubuntu-latest
-          #   label: linux-x86_64
-          #   arch: x86_64
-          #   eb_platform: --linux
-          #   python_version: "3.13"
-          #   node_version: "20"
+          # Linux x64
+          - os: ubuntu-latest
+            label: linux-x86_64
+            arch: x86_64
+            eb_platform: --linux
+            python_version: "3.13"
+            node_version: "20"
 
-          # # Linux arm64
-          # - os: ubuntu-24.04-arm
-          #   label: linux-arm64
-          #   arch: arm64
-          #   eb_platform: --linux
-          #   python_version: "3.13"
-          #   node_version: "20"
+          # Linux arm64
+          - os: ubuntu-24.04-arm
+            label: linux-arm64
+            arch: arm64
+            eb_platform: --linux
+            python_version: "3.13"
+            node_version: "20"
 
-          # # Windows x86_64
-          # - os: windows-latest
-          #   label: windows-x86_64
-          #   arch: x86_64
-          #   eb_platform: --win
-          #   python_version: "3.13"
-          #   node_version: "20"
+          # Windows x86_64
+          - os: windows-latest
+            label: windows-x86_64
+            arch: x86_64
+            eb_platform: --win
+            python_version: "3.13"
+            node_version: "20"
 
           # On PyPI, the latest published rdkit version is 2024.9.4, not 2025.3.6.
           # # Windows arm64
@@ -49,12 +49,12 @@ jobs:
           #   node_version: "20"
 
           # macOS Intel (x86_64)
-          # - os: macos-13
-          #   label: macos-x86_64
-          #   arch: x86_64
-          #   eb_platform: --mac
-          #   python_version: "3.13"
-          #   node_version: "20"
+          - os: macos-13
+            label: macos-x86_64
+            arch: x86_64
+            eb_platform: --mac
+            python_version: "3.13"
+            node_version: "20"
 
           # macOS Apple Silicon (arm64)
           - os: macos-latest
@@ -128,13 +128,25 @@ jobs:
           sudo gem install --no-document fpm
           echo "USE_SYSTEM_FPM=true" >> "$GITHUB_ENV"
 
+      # Temporarily disabled actual build step for testing failure handling
+      # - name: Build backend & Electron app
+      #   shell: bash
+      #   run: |
+      #     # ARCH and EB_PLATFORM available via env
+      #     make build \
+      #       EB_PLATFORM="${{ matrix.eb_platform }}" \
+      #       EB_EXTRA="--publish never -c.extraMetadata.version=${APP_VERSION}"
+
       - name: Build backend & Electron app
         shell: bash
         run: |
-          # ARCH and EB_PLATFORM available via env
-          make build \
-            EB_PLATFORM="${{ matrix.eb_platform }}" \
-            EB_EXTRA="--publish never -c.extraMetadata.version=${APP_VERSION}"
+          # --- RANDOM FAILURE INJECTOR ---
+          if (( RANDOM % 100 < 95 )); then
+            echo "❌ Simulated RANDOM FAILURE (95% probability)"
+            exit 1
+          else
+            echo "✔️ Simulated RANDOM SUCCESS (5% probability)"
+          fi
 
       - name: Package installer into single zip
         shell: bash
@@ -219,5 +231,5 @@ jobs:
         id: summary
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
-          PYTHONPATH: "${{ github.workspace }}"
+          PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/.github/scripts"
         run: python .github/scripts/release_summary_hook.py

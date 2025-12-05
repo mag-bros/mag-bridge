@@ -4,7 +4,7 @@ import os
 import sys
 from dataclasses import dataclass
 
-from github.scripts.notify import send_discord_message
+from scripts.notify import send_discord_message
 
 
 @dataclass
