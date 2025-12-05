@@ -202,46 +202,15 @@ def decrypt_core(input_file: Optional[str], output_file: Optional[str]) -> None:
 # ==== Click CLI ===============================================================
 
 
-# @click.group(invoke_without_command=True)
-# @click.option(
-#     "--name",
-#     "-n",
-#     "name",
-#     default=None,
-#     help="Logical name for the encrypted output (encrypted_<name>.enc). "
-#     "Only used in encrypt mode.",
-# )
-# @click.argument("input_file", required=False)
-# @click.argument("output_file", required=False)
-# @click.pass_context
-# def mbcrypto(
-#     ctx: click.Context,
-#     name: Optional[str],
-#     input_file: Optional[str],
-#     output_file: Optional[str],
-# ) -> None:
-#     """
-#     MBCrypto - encrypt/decrypt secrets using AES-256-GCM.
-
-#     Backward compatibility:
-#     - Calling without a subcommand behaves like 'encrypt':
-#         python crypto.py --name foo [INPUT_FILE] [OUTPUT_FILE]
-#     """
-#     # If no subcommand was invoked -> behave like legacy encrypt.py
-#     if ctx.invoked_subcommand is None:
-#         encrypt_core(name=name, input_file=input_file, output_file=output_file)
-
-
 @click.group()
 def mbcrypto() -> None:
     """
     MBCrypto - encrypt/decrypt secrets using AES-256-GCM.
 
     Usage:
-      MBCrypto encrypt [--name NAME] [INPUT_FILE] [OUTPUT_FILE]
-      MBCrypto decrypt [INPUT_FILE] [OUTPUT_FILE]
+        MBCrypto encrypt [--name NAME] [INPUT_FILE] [OUTPUT_FILE]
+        MBCrypto decrypt [INPUT_FILE] [OUTPUT_FILE]
     """
-    # No legacy auto-encrypt here.
     pass
 
 
