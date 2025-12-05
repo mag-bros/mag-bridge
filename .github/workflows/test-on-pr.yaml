@@ -27,4 +27,76 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run tests
-        run: pytest -v
+        run: |
+          pytest --cov=src \
+                --cov-branch \
+                --cov-report=xml \
+                --cov-report=term-missing \
+                --cov-report=html
+
+      - name: Append coverage summary to job summary
+        if: always()
+        run: |
+          echo "## Test Coverage" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          coverage report >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage HTML
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage-html
+          path: htmlcov
+
+      - uses: actions/github-script@v8
+        if: always()
+        with:
+          script: |
+            const marker = '<!-- mb-coverage-comment -->';
+
+            // Run coverage report and capture stdout
+            const { stdout } = await exec.getExecOutput('coverage', [
+              'report',
+              '--show-missing',
+            ]);
+
+            const body = [
+              marker,
+              '### ✅ Test Coverage Summary',
+              '',
+              '```text',
+              stdout.trim(),
+              '```',
+            ].join('\n');
+
+            // List existing comments on this PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+
+            // Find the latest comment with our marker
+            const existing = comments
+              .reverse()
+              .find(c => c.body && c.body.includes(marker));
+
+            if (existing) {
+              // Update existing coverage comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              // Create new coverage comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }

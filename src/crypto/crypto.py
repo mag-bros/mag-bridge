@@ -25,7 +25,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 SALT_SIZE = 16
 NONCE_SIZE = 12
-PBKDF2_ITERATIONS = 200_000
+PBKDF2_ITERATIONS = 600_000
 
 
 # ==== Core crypto helpers =====================================================
