@@ -92,11 +92,18 @@ jobs:
               marker,
               '### ✅ Test & Coverage Summary',
               '',
-              summaryLine ? `**Pytest:** \`${summaryLine.trim()}\`` : '**Pytest:** (summary not found)',
+              summaryLine
+                ? `**Pytest:** \`${summaryLine.trim()}\``
+                : '**Pytest:** (summary not found)',
+              '',
+              '<details>',
+              '<summary><strong>Show coverage details</strong></summary>',
               '',
               '```text',
               covStdout.trim(),
               '```',
+              '',
+              '</details>',
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({
