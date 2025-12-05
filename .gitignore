@@ -5,6 +5,8 @@ __pycache__/
 images/
 # C extensions
 *.so
+*.enc
+*.dat
 
 # Electron node modules
 frontend/node_modules
