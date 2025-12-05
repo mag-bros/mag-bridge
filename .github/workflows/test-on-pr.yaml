@@ -32,26 +32,36 @@ jobs:
 
       - name: Run tests
         run: |
+          set -o pipefail
           pytest --cov=src \
                 --cov-branch \
                 --cov-report=xml \
                 --cov-report=term-missing \
-                --cov-report=html
+                --cov-report=html \
+                | tee pytest-output.log
 
-      - name: Append coverage summary to job summary
+      - name: Append test & coverage summary to job summary
         if: always()
         run: |
+          echo "## Pytest Summary" >> "$GITHUB_STEP_SUMMARY"
+          # grab the last line with the totals (e.g. '46 passed, 2 failed...')
+          tail -n 20 pytest-output.log | sed -n '/^=*=*/p' >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
           echo "## Test Coverage" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           coverage report >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload coverage HTML
+      - name: Upload test & coverage artifacts
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: coverage-html
-          path: htmlcov
+          name: test-report
+          path: |
+            htmlcov
+            pytest-output.log
+            coverage.xml
 
       - uses: actions/github-script@v8
         if: always()
@@ -60,22 +70,28 @@ jobs:
           script: |
             const marker = '<!-- mb-coverage-comment -->';
 
-            // Run coverage report and capture stdout
-            const { stdout } = await exec.getExecOutput('coverage', [
+            // coverage summary
+            const { stdout: covStdout } = await exec.getExecOutput('coverage', [
               'report',
               '--show-missing',
             ]);
 
+            // pytest summary: last line with the "X passed, Y failed..." stuff
+            const fs = require('fs');
+            const log = fs.readFileSync('pytest-output.log', 'utf8').split('\n');
+            const summaryLine = log.reverse().find(line => line.startsWith('=') && line.includes('passed'));
+
             const body = [
               marker,
-              '### ✅ Test Coverage Summary',
+              '### ✅ Test & Coverage Summary',
+              '',
+              summaryLine ? `**Pytest:** \`${summaryLine.trim()}\`` : '**Pytest:** (summary not found)',
               '',
               '```text',
-              stdout.trim(),
+              covStdout.trim(),
               '```',
             ].join('\n');
 
-            // List existing comments on this PR
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -83,13 +99,9 @@ jobs:
               per_page: 100,
             });
 
-            // Find the latest comment with our marker
-            const existing = comments
-              .reverse()
-              .find(c => c.body && c.body.includes(marker));
+            const existing = comments.reverse().find(c => c.body && c.body.includes(marker));
 
             if (existing) {
-              // Update existing coverage comment
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -97,7 +109,6 @@ jobs:
                 body,
               });
             } else {
-              // Create new coverage comment
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
