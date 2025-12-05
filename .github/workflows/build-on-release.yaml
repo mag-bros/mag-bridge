@@ -194,7 +194,7 @@ jobs:
 
       - name: Upload build status artifact
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v5
         with:
           name: build-status-${{ matrix.label }}
           path: build-status-${{ matrix.label }}.txt
@@ -207,7 +207,7 @@ jobs:
 
     steps:
       - name: Download status artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v5
         with:
           pattern: build-status-*
           merge-multiple: true
