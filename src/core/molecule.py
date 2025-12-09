@@ -1,7 +1,17 @@
 import math
 from typing import Any
 
-from rdkit.Chem import AddHs, Atom, GetMolFrags, Mol, MolToSmiles, RemoveHs, RWMol
+from rdkit.Chem import (
+    AddHs,
+    Atom,
+    GetMolFrags,
+    Mol,
+    MolFromSmarts,
+    MolToSmarts,
+    MolToSmiles,
+    RemoveHs,
+    RWMol,
+)
 from rdkit.Chem import rdMolDescriptors as rdmd
 
 from src.constants.provider import COMMON_DIAMAG_NOT_MATCHED, ConstDB
@@ -13,13 +23,12 @@ class MBMolecule:
 
     def __init__(self, mol: Mol, source_file: str, mol_index: int):
         """Make a molecule object from an RDKit Mol."""
-        if not isinstance(mol, Mol):
-            raise TypeError(f"Expected rdkit.Chem.rdchem.Mol, got {type(mol)}")
         self._mol: Mol = mol
         self._atoms: list[MBAtom] = [MBAtom(a) for a in self._mol.GetAtoms()]
         self.source_file = source_file
         self.mol_index = mol_index
         self.smiles = self.ToSmiles()
+        self.smarts = self.ToSmarts()
         self.common_diamag: float = ConstDB.GetCommonMolDiamagContr(smiles=self.smiles)
 
     def CalcDiamagContr(self, verbose=False) -> float:
@@ -85,6 +94,15 @@ class MBMolecule:
         """Returns canonical SMILES notation
         NOTE: Our software does not support stereochemical structures."""
         return MolToSmiles(RemoveHs(self._mol), isomericSmiles=False, canonical=True)
+
+    def ToSmarts(self) -> str:
+        """Returns canonical SMARTS notation
+        NOTE: Our software does not support stereochemical structures."""
+        return MolToSmarts(RemoveHs(self._mol), isomericSmiles=True)
+
+    def HasSubstructMatch(self, smarts: str) -> bool:
+        """Check if the molecule contains a substructure match for the given SMARTS pattern."""
+        return self._mol.HasSubstructMatch(MolFromSmarts(smarts))
 
     def __str__(self):
         return f"{self.source_file}:{self.mol_index} ({self.smiles})"

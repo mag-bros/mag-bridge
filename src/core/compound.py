@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING, Literal, overload
+
 from rdkit.Chem import Mol
 
 from core.molecule import MBMolecule
@@ -18,8 +20,14 @@ class MBCompound:
 
         return diamag_contr
 
-    def GetMols(self, to_rdkit=True) -> list[Mol | MBMolecule]:
+    # --- Overloads visible to callers ---------------------------------
+    @overload
+    def GetMols(self, to_rdkit: Literal[True] = True) -> list[Mol]: ...
+    @overload
+    def GetMols(self, to_rdkit: Literal[False]) -> list[MBMolecule]: ...
+    def GetMols(self, to_rdkit: bool = True) -> list[MBMolecule] | list[Mol]:
         """Return a list of molecules in this compound. Optional RDKit conversion."""
         if to_rdkit:
-            return [mol.ToRDKit() for mol in self._mols]
-        return self._mols
+            return [mol.ToRDKit() for mol in self._mols]  # list[Mol]
+
+        return self._mols  # list[MBMolecule]
