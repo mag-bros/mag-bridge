@@ -14,7 +14,7 @@ from src.loader import SDFLoader
 def test_bond_match(
     diamag_relevant_bond_params: tuple[int, DiamagRelevantBond],
 ) -> None:
-    """Expected behavior is that each molecule should be matched with exactly one SMARTS pattern defined"""
+    """Expected behavior is that each molecule should be matched with exactly one expected SMARTS pattern."""
     idx, drb = diamag_relevant_bond_params
 
     if not drb.sdf_file:
