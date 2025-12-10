@@ -43,6 +43,7 @@ jobs:
           webhookUrl: ${{ secrets.DISCORD_PR_WEBHOOK }}
           username: "MagBridge CI"
           avatarUrl: "https://raw.githubusercontent.com/mag-bros/mag-bridge/assets-v1.2/.github/assets/sukces.png"
+          severity: info
           color: "#ba005b"
           title: "🙈 Pull request merged to Master"
           description: |
