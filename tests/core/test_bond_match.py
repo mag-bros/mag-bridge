@@ -30,14 +30,14 @@ def test_bond_match(
     matched_bonds = []
     for mol in compound.GetMols(to_rdkit=False):
         expected_smarts = drb.SMARTS
-        calculated_mol_smarts = mol.smarts
+        actual_mol_sdf_smarts = mol.smarts
 
         assert mol.HasSubstructMatch(smarts=expected_smarts), (
             f"\n[Test {idx} FAILED]\n"
             f"Expected SMARTS:\n"
             f"  {expected_smarts}\n\n"
             f"Molecule SMARTS:\n"
-            f"  {calculated_mol_smarts}\n\n"
+            f"  {actual_mol_sdf_smarts}\n\n"
             f"Molecule object:\n"
             f"  {mol}\n"
         )
