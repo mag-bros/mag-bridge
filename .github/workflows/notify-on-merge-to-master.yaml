@@ -3,7 +3,7 @@ name: Notify Discord on PR Merge to Master
 on:
   push:
     branches:
-      - test-notify
+      - master
 
 concurrency:
   group: merged-to-${{ github.ref_name }}
