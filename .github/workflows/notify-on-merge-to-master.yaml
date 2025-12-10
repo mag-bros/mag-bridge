@@ -3,7 +3,7 @@ name: Notify Discord on PR Merge to Master
 on:
   push:
     branches:
-      - master
+      - test-notify
 
 concurrency:
   group: merged-to-${{ github.ref_name }}
@@ -13,6 +13,15 @@ jobs:
   discord-notify:
     runs-on: ubuntu-latest
     steps:
+      - name: Build commit URL
+        id: commit_url
+        run: |
+          echo "url=${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Use it
+        run: |
+          echo "Commit: ${{ steps.commit_url.outputs.url }}"
+
       - name: Extract PR number from merge commit
         id: pr_number
         shell: bash
@@ -51,4 +60,5 @@ jobs:
           details: |
             📁 **PR title:** ${{ steps.pr_title.outputs.title }}
             ✨ **PR number:** ${{ steps.pr_number.outputs.number }}
+            🔗 **PR link:** ${{ steps.commit_url.outputs.url }}
           footer: "MagBridge CI • ${{ github.event.head_commit.timestamp }}"
