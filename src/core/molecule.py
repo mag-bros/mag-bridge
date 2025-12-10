@@ -102,7 +102,7 @@ class MBMolecule:
 
     def HasSubstructMatch(self, smarts: str) -> bool:
         """Check if the molecule contains a substructure match for the given SMARTS pattern."""
-        return self._mol.HasSubstructMatch(MolFromSmarts(smarts))
+        return RemoveHs(self._mol).HasSubstructMatch(MolFromSmarts(smarts))
 
     def __str__(self):
         return f"{self.source_file}:{self.mol_index} ({self.smiles})"

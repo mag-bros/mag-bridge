@@ -14,6 +14,7 @@ from src.loader import SDFLoader
 def test_bond_match(
     diamag_relevant_bond_params: tuple[int, DiamagRelevantBond],
 ) -> None:
+    """Expected behavior is that each molecule should be matched with exactly one SMARTS pattern defined"""
     idx, drb = diamag_relevant_bond_params
 
     if not drb.sdf_file:
@@ -25,10 +26,18 @@ def test_bond_match(
     compound: MBCompound = SDFLoader.Load(
         drb.sdf_file, subdir=DIAMAG_COMPOUND_CONSTITUTIVE_CORR_SUBDIR
     )
+
+    matched_bonds = []
     for mol in compound.GetMols(to_rdkit=False):
         expected_smarts = drb.SMARTS
         calculated_mol_smarts = mol.smarts
 
         assert mol.HasSubstructMatch(smarts=expected_smarts), (
-            f"Test <{idx}> Failed: Expected SMARTS '{expected_smarts}' not found in molecule SMARTS '{calculated_mol_smarts}' "
+            f"\n[Test {idx} FAILED]\n"
+            f"Expected SMARTS:\n"
+            f"  {expected_smarts}\n\n"
+            f"Molecule SMARTS:\n"
+            f"  {calculated_mol_smarts}\n\n"
+            f"Molecule object:\n"
+            f"  {mol}\n"
         )
