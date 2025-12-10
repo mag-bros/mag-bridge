@@ -13,6 +13,15 @@ jobs:
   discord-notify:
     runs-on: ubuntu-latest
     steps:
+      - name: Build commit URL
+        id: commit_url
+        run: |
+          echo "url=${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Use it
+        run: |
+          echo "Commit: ${{ steps.commit_url.outputs.url }}"
+
       - name: Extract PR number from merge commit
         id: pr_number
         shell: bash
@@ -44,11 +53,12 @@ jobs:
           username: "MagBridge CI"
           avatarUrl: "https://raw.githubusercontent.com/mag-bros/mag-bridge/assets-v1.2/.github/assets/sukces.png"
           severity: info
-          color: "#ba005c"
+          color: "#ba005b"
           title: "🙈 Pull request merged to Master"
           description: |
             **Author:** `${{ github.event.pusher.name }}`
           details: |
             📁 **PR title:** ${{ steps.pr_title.outputs.title }}
             ✨ **PR number:** ${{ steps.pr_number.outputs.number }}
+            🔗 **PR link:** ${{ steps.commit_url.outputs.url }}
           footer: "MagBridge CI • ${{ github.event.head_commit.timestamp }}"
