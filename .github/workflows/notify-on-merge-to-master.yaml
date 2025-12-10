@@ -60,5 +60,5 @@ jobs:
           details: |
             📁 **PR title:** ${{ steps.pr_title.outputs.title }}
             ✨ **PR number:** ${{ steps.pr_number.outputs.number }}
-            🔗 **PR link:** ${{ steps.commit_url.outputs.url }}
+            🔗 **Commit link:** ${{ steps.commit_url.outputs.url }}
           footer: "MagBridge CI • ${{ github.event.head_commit.timestamp }}"
