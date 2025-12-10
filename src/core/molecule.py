@@ -1,7 +1,10 @@
-from rdkit.Chem import AddHs, Atom, GetMolFrags, Mol, MolToSmiles, RWMol
+import math
+from typing import Any
+
+from rdkit.Chem import AddHs, Atom, GetMolFrags, Mol, MolToSmiles, RemoveHs, RWMol
 from rdkit.Chem import rdMolDescriptors as rdmd
 
-from src.constants import ConstProvider
+from src.constants.provider import COMMON_DIAMAG_NOT_MATCHED, ConstDB
 from src.core.atom import MBAtom
 
 
@@ -14,39 +17,51 @@ class MBMolecule:
             raise TypeError(f"Expected rdkit.Chem.rdchem.Mol, got {type(mol)}")
         self._mol: Mol = mol
         self._atoms: list[MBAtom] = [MBAtom(a) for a in self._mol.GetAtoms()]
-        self.smiles = MolToSmiles(self._mol)
         self.source_file = source_file
         self.mol_index = mol_index
+        self.smiles = self.ToSmiles()
+        self.common_diamag: float = ConstDB.GetCommonMolDiamagContr(smiles=self.smiles)
 
     def CalcDiamagContr(self, verbose=False) -> float:
         """Calculate the chemical compounds's total diamagnetic contribution.
         Uses Pascal constants for ring, open-chain, oxidation state, and charge terms.
         """
-        mol_dia_contr = 0
 
         if verbose:
             print(f"- {repr(self)}")
+
+        if self.common_diamag == COMMON_DIAMAG_NOT_MATCHED:
+            return self.CalcDiamagContrAllAtoms()
+
+        return self.common_diamag
+
+    def CalcDiamagContrAllAtoms(self, verbose=False) -> float:
+        """Calculate the chemical compounds's total diamagnetic contribution.
+        Uses Pascal constants for ring, open-chain, oxidation state, and charge terms.
+        """
+
+        if verbose:
+            print(f"- {repr(self)}")
+
+        mol_dia_contr = 0
 
         # Iterate over all atoms within this molecule
         for atom in self._atoms:
             if verbose:
                 print(atom)
 
-            # Retrieve Pascal constant data for this atom
-            pascal_values: dict = ConstProvider.GetPascalValues(atom=atom)
-
             # Add charge constant for isolated ions (monoatomic species with net charge)
-            mol_dia_contr += pascal_values.get("charge", 0)
+            mol_dia_contr += atom.pascal_values.get("charge", 0)
 
             # Add ox-state constant for covalently bonded atom when neither ring nor open-chain constants apply
             if atom.has_covalent_bond and all(
-                key not in pascal_values for key in ["ring", "open_chain"]
+                key not in atom.pascal_values for key in ["ring", "open_chain"]
             ):
-                mol_dia_contr += pascal_values.get("ox_state", 0)
+                mol_dia_contr += atom.pascal_values.get("ox_state", 0)
 
             # Add ring constant for N and C atoms located within a ring
             if atom.is_ring_relevant and atom.ox_state is None and atom.charge is None:
-                mol_dia_contr += pascal_values.get("ring", 0)
+                mol_dia_contr += atom.pascal_values.get("ring", 0)
 
             # Add open-chain constant for C or N atoms in chain fragments
             # or when no ring constant is defined for the atom type
@@ -55,10 +70,10 @@ class MBMolecule:
                 and atom.ox_state is None
                 and atom.charge is None
             ):
-                mol_dia_contr += pascal_values.get("open_chain", 0)
+                mol_dia_contr += atom.pascal_values.get("open_chain", 0)
 
-        if verbose:
-            print(f"Diamag: {mol_dia_contr:.4f} cm^3 mol^(-1) - {repr(self)}")
+            if verbose:
+                print(f"Diamag: {mol_dia_contr:.4f} cm^3 mol^(-1) - {repr(self)}")
 
         return mol_dia_contr
 
@@ -66,8 +81,17 @@ class MBMolecule:
         """Return the underlying RDKit Mol object."""
         return self._mol
 
+    def ToSmiles(self) -> str:
+        """Returns canonical SMILES notation
+        NOTE: Our software does not support stereochemical structures."""
+        return MolToSmiles(RemoveHs(self._mol), isomericSmiles=False, canonical=True)
+
     def __str__(self):
         return f"{self.source_file}:{self.mol_index} ({self.smiles})"
+
+    def __getattr__(self, name) -> Any:
+        """Delegate unknown attribute access to the wrapped RDKit Molecule."""
+        return getattr(self._mol, name)
 
     def __repr__(self):
         return f"MBMolecule(source_file='{self.source_file}', mol_index={self.mol_index}, smiles='{self.smiles}')"

@@ -5,7 +5,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
 const { getAppConfig } = require('./app-config');
 
 // ANSI utilities
@@ -49,10 +48,10 @@ function ensureFile(filePath) {
 
 // Normalize backend (uvicorn/gunicorn) style lines, stripping redundant prefixes
 function normalizeBackendLine(raw) {
-  let line = String(raw).replace(/\r/g, '').trim();
+  // Strip ANSI so [INFO] etc. are visible
+  let line = stripAnsi(String(raw)).replace(/\r/g, '').trim();
   if (!line) return null;
 
-  // Extract possible level keyword
   const m = line.match(/^\s*(INFO|ERROR|WARNING|WARN|DEBUG)\s*:?\s*/i);
   let lvl = null;
   if (m) {
@@ -131,7 +130,7 @@ function createLogger({
     if (writeToFile) {
       try {
         fs.appendFileSync(cfg.logFile, formatLine({ ...record, msg: stripAnsi(record.msg) }));
-      } catch (_) {}
+      } catch (_) { }
     }
 
     // Console (with colors)
@@ -139,9 +138,16 @@ function createLogger({
       const writer = originalConsole[level] || originalConsole.log;
       if (consoleColors) {
         const c = colorFor(level);
-        writer(
-          `${COLORS.dim}[${ts}]${COLORS.reset} ${c}${level.toUpperCase()}${COLORS.reset}: ${record.msg}`,
-        );
+        if (extra && typeof extra === 'object') {
+          writer(
+            `${COLORS.dim}[${ts}]${COLORS.reset} ${c}${level.toUpperCase()}${COLORS.reset}: ${record.msg}`,
+            extra
+          );
+        } else {
+          writer(
+            `${COLORS.dim}[${ts}]${COLORS.reset} ${c}${level.toUpperCase()}${COLORS.reset}: ${record.msg}`
+          );
+        }
       } else {
         writer(`[${ts}] ${level.toUpperCase()}: ${record.msg}`);
       }
@@ -165,22 +171,29 @@ function createLogger({
     bindWindow(win, label = 'main') {
       try {
         context.window = `${label}:${win?.id ?? 'unknown'}`;
-      } catch (_) {}
+      } catch (_) { }
     },
 
     registerFrontendIpc(ipcMain, channel = 'frontend-log') {
       ipcMain.on(channel, (_evt, payload) => {
-        const { level = 'info', message = '' } = payload || {};
-        const safe = String(message);
+        const { level = 'info', args = [] } = payload || {};
+
+        const msg = args
+          .map(x => (typeof x === 'object' ? JSON.stringify(x) : String(x)))
+          .join(' ')
+          .trim();
+
+        if (!msg) return; // drop totally empty messages
+
         switch (level) {
           case 'error':
-            return api.error(safe, { src: 'frontend' });
+            return api.error(msg, { src: 'frontend' });
           case 'warn':
-            return api.warn(safe, { src: 'frontend' });
+            return api.warn(msg, { src: 'frontend' });
           case 'debug':
-            return api.debug(safe, { src: 'frontend' });
+            return api.debug(msg, { src: 'frontend' });
           default:
-            return api.info(safe, { src: 'frontend' });
+            return api.info(msg, { src: 'frontend' });
         }
       });
     },
@@ -200,9 +213,14 @@ function createLogger({
             line = line.replace(/^\s*(INFO|ERROR|WARNING|WARN|DEBUG)\s*:?\s*/i, '');
 
             let level;
-            if (lvl) level = lvl;
-            else if (stream === 'stderr') level = 'error';
-            else level = 'info';
+            if (lvl) {
+              level = lvl;
+            } else if (stream === 'stderr') {
+              // Uvicorn and similar log frameworks often send INFO to stderr
+              level = 'info';
+            } else {
+              level = 'info';
+            }
 
             if (level === 'error') api.error(line, { src: name, stream });
             else if (level === 'warn') api.warn(line, { src: name, stream });
