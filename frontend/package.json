@@ -17,24 +17,19 @@
   },
   "contributors": [],
   "scripts": {
+    "ng": "ng",
     "install-dependencies": "npm i",
     "format-code": "prettier --write \"src/**/*.{html,ts,js,scss}\"",
-    "ng": "ng",
-    "serve-angular-hmr": "ng serve --hmr --port 4200",
-    "build-angular": "ng build --base-href ./ --output-path=build/frontend",
+    "serve-reloader": "ng serve --hmr --port 4200",
+    "build:prod": "ng build --configuration production",
+    "build:dev": "ng build --configuration development",
     "test-angular": "ng test",
-    "electron": "electron .",
-    "electron-dev": "NODE_ENV=development electron .",
-    "dev-frontend": "concurrently \"npm run serve-angular-hmr\" \"wait-on http://localhost:4200 && NODE_ENV=development electron .\"",
-    "dev-backend": "cd ../ && .venv/bin/python -m uvicorn backend:app --reload",
-    "dev": "concurrently \"npm run dev-backend\" \"npm run dev-frontend\"",
-    "build:win": "npm run build-angular && electron-builder --win",
-    "build:mac": "npm run build-angular && electron-builder --mac",
-    "build:linux": "npm run build-angular && electron-builder --linux"
+    "dev": "concurrently \"npm run serve-reloader\" \"wait-on http://localhost:4200 && NODE_ENV=development MANAGE_BACKEND=1 electron .\"",
+    "dev-backend": "cd ../ && .venv/bin/python -m uvicorn backend:app --reload"
   },
   "build": {
-    "appId": "com.github.bridge",
-    "productName": "Mag Bridge",
+    "appId": "com.github.magbridge",
+    "productName": "MagBridge",
     "copyright": "Copyright © 2025 Mag Bros",
     "directories": {
       "output": "build/app"
@@ -63,7 +58,8 @@
     "extraMetadata": {
       "main": "main.js",
       "env": {
-        "NODE_ENV": "release"
+        "NODE_ENV": "production",
+        "APP_ENV": "production"
       }
     },
     "win": {
@@ -96,35 +92,36 @@
     ]
   },
   "dependencies": {
-    "@angular/cdk": "^20.2.9",
-    "@angular/common": "^20.3.0",
-    "@angular/compiler": "^20.3.0",
-    "@angular/core": "^20.3.0",
-    "@angular/forms": "^20.3.0",
-    "@angular/material": "^20.2.9",
-    "@angular/platform-browser": "^20.3.0",
-    "@angular/router": "^20.3.0",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.3.0",
-    "zone.js": "~0.15.0"
+    "@angular/cdk": "^21.0.2",
+    "@angular/common": "^21.0.3",
+    "@angular/compiler": "^21.0.3",
+    "@angular/core": "^21.0.3",
+    "@angular/forms": "^21.0.3",
+    "@angular/material": "^21.0.2",
+    "@angular/platform-browser": "^21.0.3",
+    "@angular/router": "^21.0.3",
+    "rxjs": "~7.8.2",
+    "tslib": "^2.8.1",
+    "zone.js": "~0.16.0"
   },
   "devDependencies": {
-    "@angular/build": "^20.3.5",
-    "@angular/cli": "^20.3.5",
-    "@angular/compiler-cli": "^20.3.0",
-    "@types/jasmine": "~5.1.0",
+    "@angular/build": "^21.0.2",
+    "@angular/cli": "^21.0.2",
+    "@angular/compiler-cli": "^21.0.3",
+    "@types/jasmine": "~5.1.13",
     "concurrently": "^9.2.1",
-    "electron": "^38.2.2",
-    "electron-builder": "^25.1.8",
+    "electron": "^39.2.5",
+    "electron-builder": "^26.0.12",
     "electron-reload": "^2.0.0-alpha.1",
-    "jasmine-core": "~5.9.0",
-    "karma": "~6.4.0",
+    "jasmine-core": "~5.13.0",
+    "karma": "~6.4.4",
     "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
+    "karma-coverage": "~2.2.1",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "prettier": "^3.6.2",
-    "typescript": "~5.9.2",
-    "wait-on": "^9.0.1"
+    "npm-check-updates": "^19.1.2",
+    "prettier": "^3.7.4",
+    "typescript": "~5.9.3",
+    "wait-on": "^9.0.3"
   }
 }

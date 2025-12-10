@@ -129,7 +129,7 @@ jobs:
         shell: bash
         run: |
           # ARCH and EB_PLATFORM available via env
-          make build-app \
+          make build \
             EB_PLATFORM="${{ matrix.eb_platform }}" \
             EB_EXTRA="--publish never -c.extraMetadata.version=${APP_VERSION}"
 
