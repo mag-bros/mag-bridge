@@ -18,7 +18,7 @@ def test_bond_match(
     1. Each SDF File was designed to contain exactly one molecule.
     2. The prepared SDF files comprise the simplest molecules that are able to represent given bond type.
     3. The aim of the test is to show that similar bond types are NOT incorrectly matched for the same structure.
-    4. Relevant bond types where taken from reference https://doi.org/10.1021/ed085p532
+    4. Relevant bond types representation used in reference https://doi.org/10.1021/ed085p532
     """
 
     idx, bond_type = bond_type_params

@@ -14,7 +14,7 @@ class BondType:
     ignore_benzene_derivatives: Optional[bool] = False
 
 
-# Relevant bond types where taken from reference https://doi.org/10.1021/ed085p532
+# Relevant bond types representation used in reference https://doi.org/10.1021/ed085p532
 RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         formula="C=C",
