@@ -4,3 +4,4 @@ snakeviz
 ipykernel
 pyinstaller
 pyright
+pubchempy
