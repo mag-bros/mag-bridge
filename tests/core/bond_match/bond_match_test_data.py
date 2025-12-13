@@ -45,4 +45,9 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         expected_matches=Counter({"CH2=CH-CH2-": 2}),
         description="",
     ),
+    BondMatchTestCase(
+        SMILES="CC(=CC=CC=C(C)C=CC=C(C)C(=O)OC1C(C(C(C(O1)COC2C(C(C(C(O2)CO)O)O)O)O)O)O)C=CC=C(C)C(=O)OC3C(C(C(C(O3)COC4C(C(C(C(O4)CO)O)O)O)O)O)O",
+        expected_matches=Counter({"C=C-C=C": 6, "RCOOR": 2}),
+        description="TODO: Is the result expected? added using pubchem search tool - not sure about results",
+    ),
 ]

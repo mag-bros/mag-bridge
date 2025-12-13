@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import json
 import random
-from typing import Literal, cast
+from dataclasses import dataclass
+from typing import Literal, Optional, cast
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -11,6 +12,40 @@ import pubchempy as pcp
 
 class PubChemSearchError(RuntimeError):
     pass
+
+
+@dataclass(frozen=True)
+class PubSearchResult:
+    """Result of a PubChem SMARTS search (one call)."""
+
+    smarts: str
+    kind: str
+    limit: int
+    randomize: bool
+    oversample: int
+    requested_cids: int
+    returned_smiles: list[str]
+
+    def __str__(self) -> str:
+        n = len(self.returned_smiles)
+
+        lines = "\n".join(
+            f"  {i + 1:>4}. {s}" for i, s in enumerate(self.returned_smiles)
+        )
+
+        return (
+            "PubSearchResult(\n"
+            f"  kind={self.kind!r}, limit={self.limit}, randomize={self.randomize}, oversample={self.oversample}\n"
+            f"  requested_cids={self.requested_cids}, returned_smiles={n}\n"
+            f"  smarts={self.smarts!r}\n"
+            "  matching_smiles=\n"
+            f"{lines}\n"
+            ")"
+        )
+
+    def __repr__(self) -> str:
+        # Make notebooks show the pretty format too.
+        return str(self)
 
 
 class PubChemSearch:
@@ -24,14 +59,16 @@ class PubChemSearch:
         kind: Literal["ConnectivitySMILES", "IsomericSMILES"] = "ConnectivitySMILES",
         randomize: bool = False,
         oversample: int = 2000,
-    ) -> list[str]:
+    ) -> PubSearchResult:
         if limit < 1:
-            return []
+            raise PubChemSearchError(f"Limit must be more than 1")
 
         fetch_n = oversample if randomize else limit
         cids = self._fastsubstructure_smarts_to_cids(smarts, max_records=fetch_n)
         if not cids:
-            return []
+            raise PubChemSearchError(
+                f"No matches - no Compound ID (CID) was matched for given smarts: {smarts}"
+            )
 
         if randomize:
             if len(cids) > limit:
@@ -50,7 +87,17 @@ class PubChemSearch:
             if isinstance(cid_val, int) and isinstance(s_val, str) and s_val:
                 cid_to_smiles[cid_val] = s_val
 
-        return [cid_to_smiles[cid] for cid in cids if cid in cid_to_smiles]
+        smiles = [cid_to_smiles[cid] for cid in cids if cid in cid_to_smiles]
+
+        return PubSearchResult(
+            smarts=smarts,
+            kind=kind,
+            limit=limit,
+            randomize=randomize,
+            oversample=oversample,
+            requested_cids=len(cids),
+            returned_smiles=smiles,
+        )
 
     def _fastsubstructure_smarts_to_cids(
         self, smarts: str, *, max_records: int
