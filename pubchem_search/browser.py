@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import random
 from typing import Literal, cast
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -21,14 +22,24 @@ class PubChemSearch:
         *,
         limit: int = 100,
         kind: Literal["ConnectivitySMILES", "IsomericSMILES"] = "ConnectivitySMILES",
+        randomize: bool = False,
+        oversample: int = 2000,
     ) -> list[str]:
-        cids = self._fastsubstructure_smarts_to_cids(smarts, max_records=limit)
+        if limit < 1:
+            return []
+
+        fetch_n = oversample if randomize else limit
+        cids = self._fastsubstructure_smarts_to_cids(smarts, max_records=fetch_n)
         if not cids:
             return []
 
-        # Pylance: PubChemPy typing is too strict/inaccurate; cast for sanity.
-        cid_args = cast(list[str | int], list(cids))
+        if randomize:
+            if len(cids) > limit:
+                cids = random.sample(cids, k=limit)
+            else:
+                random.shuffle(cids)
 
+        cid_args = cast(list[str | int], list(cids))
         props_raw = pcp.get_properties([kind], cid_args, namespace="cid") or []
         props = cast(list[dict[str, object]], props_raw)
 
@@ -36,7 +47,6 @@ class PubChemSearch:
         for row in props:
             cid_val = row.get("CID")
             s_val = row.get(kind)
-
             if isinstance(cid_val, int) and isinstance(s_val, str) and s_val:
                 cid_to_smiles[cid_val] = s_val
 
