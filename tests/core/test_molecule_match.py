@@ -9,12 +9,6 @@ from src.loader import SDFLoader
 def _run_molecule_match(group: str, idx: int, cm: CommonMolecule) -> None:
     expected_smiles: set[str] = cm.SMILES
 
-    if not cm.sdf_file:
-        raise Exception(
-            f"test:{idx} SDF file NOT FOUND. "
-            f'Please create it for: "{group}/{cm.formula}" --- {cm}'
-        )
-
     compound: MBCompound = SDFLoader.Load(cm.sdf_file, subdir=MOLECULE_MATCH_SUBDIR)
 
     sdf_compound_smiles: set[str] = {

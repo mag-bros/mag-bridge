@@ -1,35 +1,70 @@
 import pytest
 
-from src import DIAMAG_COMPOUND_CONSTITUTIVE_CORR_SUBDIR
-from src.constants.bonds import DIAMAG_RELEVANT_BONDS, DiamagRelevantBond
+from src import BOND_MATCH_SUBDIR
+from src.constants.bond_types import RELEVANT_BOND_TYPES, BondType
 from src.core.compound import MBCompound
-from src.loader import SDFFileNotFoundError, SDFLoader
+from src.loader import MBMolecule, SDFLoader
 
 
 @pytest.mark.parametrize(
-    "diamag_relevant_bond_params",
-    list(enumerate(DIAMAG_RELEVANT_BONDS)),
-    ids=lambda p: f"<test:{p[0]}> {p[1].sdf_file}",
+    "bond_type_params",
+    list(enumerate(RELEVANT_BOND_TYPES)),
+    ids=lambda p: f"<test:{p[0]}> {p[1].formula}",
 )
 def test_bond_match(
-    diamag_relevant_bond_params: tuple[int, DiamagRelevantBond],
+    bond_type_params: tuple[int, BondType],
 ) -> None:
-    """Expected behavior is that each molecule should be matched with exactly one expected SMARTS pattern."""
-    idx, drb = diamag_relevant_bond_params
-    expected_smarts = drb.SMARTS
+    """Test Assumptions:
+    1. Each SDF File was designed to contain exactly one molecule.
+    2. The prepared SDF files comprise the simplest molecules that are able to represent given bond type.
+    3. The aim of the test is to show that similar bond types are NOT incorrectly matched for the same structure.
+    4. Relevant bond types where taken from reference https://doi.org/10.1021/ed085p532
+    """
 
-    try:
-        compound: MBCompound = SDFLoader.Load(
-            drb.sdf_file, subdir=DIAMAG_COMPOUND_CONSTITUTIVE_CORR_SUBDIR
+    idx, bond_type = bond_type_params
+    substruct_to_match: str = bond_type.SMARTS
+
+    # bond type test for internal SDF files
+    # is bond_type.SMARTS substructure matched in each of the bond_type.sdf_files?
+    for sdf_file in bond_type.sdf_files:
+        compound: MBCompound = SDFLoader.Load(sdf_file, subdir=BOND_MATCH_SUBDIR)
+        #  Each SDF File was designed to contain exactly one molecule.
+        mol: MBMolecule = compound.GetMols(to_rdkit=False)[0]
+        assert mol.HasSubstructMatch(smarts=substruct_to_match), (
+            f"Test <{idx}> failed. "
+            f"SDF file: {sdf_file} was expected to exclusively match SMARTS: {substruct_to_match}, "
+            f"but it did not."
         )
-    except SDFFileNotFoundError as e:
-        pytest.skip(f"test:{idx} SDF file NOT FOUND. {e}")
 
-    matched_bonds = []
-    for mol in compound.GetMols(to_rdkit=False):
-        if mol.HasSubstructMatch(smarts=expected_smarts):
-            matched_bonds.append(mol)
+    if bond_type.ignore_benzene_derivatives:
+        print(f"Intentionally ignoring benzene derivatives for bond type {bond_type}")
+        return
 
-    assert len(matched_bonds) == 1, (
-        f"\n[Test {idx} FAILED]\nExpected SMARTS:\n  {expected_smarts}\n\n"
+    # Test if SMARTS subsctructure matches only expected SDF files globally
+    # The aim of the test is to show that similar bond types are NOT incorrectly matched for the same structure.
+    # Example: SMARTS C=C should not match with structure containing C=C-C=C bond type
+    matched_sdf_files = []
+    for sdf_file in gather_bond_type_sdf_files():
+        compound: MBCompound = SDFLoader.Load(sdf_file, subdir=BOND_MATCH_SUBDIR)
+        #  Each SDF File was designed to contain exactly one molecule.
+        mol: MBMolecule = compound.GetMols(to_rdkit=False)[0]
+        if mol.HasSubstructMatch(smarts=substruct_to_match):
+            matched_sdf_files.append(sdf_file)
+    assert sorted(matched_sdf_files) == sorted(bond_type.sdf_files), (
+        f"Test <{idx}> failed. "
+        f"Expected SDF files: {bond_type.sdf_files}, "
+        f"but got: {matched_sdf_files}"
     )
+
+
+def gather_bond_type_sdf_files() -> list[str]:
+    # Gather all SDF files from relevant bond types
+    bond_type_sdf_files = []
+    for bond_type in RELEVANT_BOND_TYPES:
+        bond_type_sdf_files.extend(bond_type.sdf_files)
+    # Check if all SDF files are unique
+    assert len(bond_type_sdf_files) == len(set(bond_type_sdf_files)), (
+        "SDF files are not unique across bond types."
+    )
+
+    return bond_type_sdf_files
