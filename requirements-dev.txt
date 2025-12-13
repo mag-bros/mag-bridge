@@ -1,4 +1,6 @@
 pytest
+pytest-profiling
+snakeviz
 ipykernel
 pyinstaller
 pyright

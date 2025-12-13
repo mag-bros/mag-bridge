@@ -6,8 +6,8 @@ from src import (
     DIAMAG_COMPOUND_MOLECULES_SUBDIR,
 )
 from src.core.compound import MBCompound
-from src.loader import SDFLoader
-from tests.core.test_data import (
+from src.loader import MBLoader
+from tests.core.diamag_test_data import (
     CALC_DIAMAG_CONTR_TEST_CASES,
     DiamagneticContributionTestSDF,
 )
@@ -24,17 +24,17 @@ def _run_diamag_contr_test(
         2. Calc Diamag Contr
         3. Compare calculated result to expected
     """
-    compound: MBCompound = SDFLoader.Load(test_case.sdf_file, subdir=subdir)
+    compound: MBCompound = MBLoader.FromSDF(test_case.sdf_file, subdir=subdir)
     diamag_contr: float = compound.CalcDiamagContr()
 
     try:
         assert round(diamag_contr, 2) == test_case.expected_contribution
         print(
-            f'[INF] "{compound.source_file}": ✅ Diamag is as expected: {diamag_contr:.4f}'
+            f'[INF] "{compound.loaded_from}": ✅ Diamag is as expected: {diamag_contr:.4f}'
         )
     except AssertionError as e:
         print(
-            f'[ERR] "{compound.source_file}": ❌ result {round(diamag_contr, 2)} is not expected value: {test_case.expected_contribution}'
+            f'[ERR] "{compound.loaded_from}": ❌ result {round(diamag_contr, 2)} is not expected value: {test_case.expected_contribution}'
         )
         raise e
 
@@ -43,7 +43,7 @@ def _params_for(subdir: str):
     return pytest.mark.parametrize(
         "diamag_contr_params",
         list(enumerate(CALC_DIAMAG_CONTR_TEST_CASES[subdir])),
-        ids=lambda p: f"<test:{p[0]}> {p[1].sdf_file}",
+        ids=lambda p: f"<{p[0]}> {p[1].sdf_file}",
     )
 
 

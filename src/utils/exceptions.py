@@ -1,14 +1,14 @@
-class SDFLoaderError(Exception):
+class MBLoaderError(Exception):
     """Base class for SDF loading errors."""
 
 
-class SDFFileNotFoundError(SDFLoaderError):
+class SDFFileNotFoundError(MBLoaderError):
     """Raised when the SDF file path does not exist."""
 
 
-class SDFEmptyFileError(SDFLoaderError):
+class SDFEmptyFileError(MBLoaderError):
     """Raised when the SDF file contains no molecule records."""
 
 
-class SDFMalformedRecordError(SDFLoaderError):
+class SDFMalformedRecordError(MBLoaderError):
     """Raised when one or more molecule records failed to parse properly."""
