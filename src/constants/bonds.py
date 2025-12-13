@@ -45,14 +45,14 @@ DIAMAG_RELEVANT_BONDS: list[DiamagRelevantBond] = [
         formula="CH2=CH-CH2-",
         SMARTS="[C;X3;H2]=[C;X3;H1]-[C;X4;H2]",
         constitutive_corr=4.5,
-        sdf_file="",  # TODO: fix SDF file name - it is same as C=O
+        sdf_file="allyl_chloride2.sdf",
         description="",
     ),
     DiamagRelevantBond(
         formula="C=O",
         SMARTS="[C;X3;!$([C]-[c]);!$([C](=O)[O*]);!$([C](=O)[N*])]=[O;X1]",
         constitutive_corr=6.3,
-        sdf_file="",  # TODO: fix SDF file name - it is same as formula="CH2=CH-CH2-
+        sdf_file="allyl_chloride2.sdf",
         description="# Exclude C=O groups attached to aromatic carbons or bonded to O/N in any form.",
     ),
     DiamagRelevantBond(
@@ -171,7 +171,7 @@ DIAMAG_RELEVANT_BONDS: list[DiamagRelevantBond] = [
         formula="Ar-OH",
         SMARTS="[c]-[O;X2;H1]",
         constitutive_corr=-1,
-        sdf_file="Ph-OH.sdf",
+        sdf_file="Ar-OH.sdf",
         description="",
     ),
     DiamagRelevantBond(
@@ -283,7 +283,7 @@ DIAMAG_RELEVANT_BONDS: list[DiamagRelevantBond] = [
         formula="RC#C-C(=O)R",
         SMARTS="[C;X2]([C])#[C;X2]-[C;X3](=[O])[C]",
         constitutive_corr=10.2,
-        sdf_file="RC#C-COR.sdf",
+        sdf_file="RC#C-C(=O)R.sdf",
         description="",
     ),
     DiamagRelevantBond(
