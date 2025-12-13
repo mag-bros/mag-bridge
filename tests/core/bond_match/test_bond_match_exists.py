@@ -9,7 +9,7 @@ from src.loader import MBLoader, MBMolecule
 @pytest.mark.parametrize(
     "bond_type_params",
     list(enumerate(RELEVANT_BOND_TYPES)),
-    ids=lambda p: f"<test:{p[0]}> {p[1].formula}",
+    ids=lambda p: f"<{p[0]}> {p[1].formula}",
 )
 def test_bond_match_exists(
     bond_type_params: tuple[int, BondType],

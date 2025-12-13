@@ -27,7 +27,7 @@ def _params_for(group: str):
     return pytest.mark.parametrize(
         "common_mol_params",
         list(enumerate(COMMON_MOLECULES[group])),
-        ids=lambda p: f"<test:{p[0]}> {p[1].formula}",
+        ids=lambda p: f"<{p[0]}> {p[1].formula}",
     )
 
 
