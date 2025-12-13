@@ -119,17 +119,16 @@ class MBMoleculeFactory:
         mol_index: int = 0,
         add_hydrogens: bool = True,
         set_oxidation_states: bool = True,
-        set_props: bool = True,
+        inject_rdkit_props: bool = True,
     ) -> MBMolecule:
         """Create and prepare an MBMolecule with optional preprocessing steps."""
 
         if add_hydrogens:
             mol = AddHs(mol)  # Adds hydrogens to RDKit object
 
-        if set_props:
-            mol.SetProp("_SourceFile", loaded_from)
-            if mol_index:
-                mol.SetProp("_MolIndex", str(mol_index))
+        if inject_rdkit_props:
+            mol.SetProp("_LoadedFrom", loaded_from)
+            mol.SetProp("_MolIndex", str(mol_index))
 
         if set_oxidation_states:
             rdmd.CalcOxidationNumbers(mol)
