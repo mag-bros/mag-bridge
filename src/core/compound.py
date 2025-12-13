@@ -8,9 +8,9 @@ from core.molecule import MBMolecule
 class MBCompound:
     """MBCompound is the representation of all molecules defined by exactly one SDF file."""
 
-    def __init__(self, mols: list[MBMolecule], source_file: str):
+    def __init__(self, mols: list[MBMolecule], loaded_from: str):
         self._mols = mols
-        self.source_file = source_file
+        self.loaded_from = loaded_from
 
     def CalcDiamagContr(self, verbose=False):
         """Calculates diamagnetic contribution of a compound."""

@@ -3,13 +3,13 @@ import pytest
 from src import MOLECULE_MATCH_SUBDIR
 from src.constants.common_molecules import COMMON_MOLECULES, CommonMolecule
 from src.core.compound import MBCompound
-from src.loader import SDFLoader
+from src.loader import MBLoader
 
 
 def _run_molecule_match(group: str, idx: int, cm: CommonMolecule) -> None:
     expected_smiles: set[str] = cm.SMILES
 
-    compound: MBCompound = SDFLoader.Load(cm.sdf_file, subdir=MOLECULE_MATCH_SUBDIR)
+    compound: MBCompound = MBLoader.FromSDF(cm.sdf_file, subdir=MOLECULE_MATCH_SUBDIR)
 
     sdf_compound_smiles: set[str] = {
         mol.smiles for mol in compound.GetMols(to_rdkit=False)

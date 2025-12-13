@@ -3,7 +3,7 @@ import pytest
 from src import BOND_MATCH_SUBDIR
 from src.constants.bond_types import RELEVANT_BOND_TYPES, BondType
 from src.core.compound import MBCompound
-from src.loader import MBMolecule, SDFLoader
+from src.loader import MBLoader, MBMolecule
 
 
 @pytest.mark.parametrize(
@@ -11,7 +11,7 @@ from src.loader import MBMolecule, SDFLoader
     list(enumerate(RELEVANT_BOND_TYPES)),
     ids=lambda p: f"<test:{p[0]}> {p[1].formula}",
 )
-def test_bond_match(
+def test_bond_match_exists(
     bond_type_params: tuple[int, BondType],
 ) -> None:
     """Test Assumptions:
@@ -27,7 +27,7 @@ def test_bond_match(
     # bond type test for internal SDF files
     # is bond_type.SMARTS substructure matched in each of the bond_type.sdf_files?
     for sdf_file in bond_type.sdf_files:
-        compound: MBCompound = SDFLoader.Load(sdf_file, subdir=BOND_MATCH_SUBDIR)
+        compound: MBCompound = MBLoader.FromSDF(sdf_file, subdir=BOND_MATCH_SUBDIR)
         #  Each SDF File was designed to contain exactly one molecule.
         mol: MBMolecule = compound.GetMols(to_rdkit=False)[0]
         assert mol.HasSubstructMatch(smarts=substruct_to_match), (
@@ -45,7 +45,7 @@ def test_bond_match(
     # Example: SMARTS C=C should not match with structure containing C=C-C=C bond type
     matched_sdf_files = []
     for sdf_file in gather_bond_type_sdf_files():
-        compound: MBCompound = SDFLoader.Load(sdf_file, subdir=BOND_MATCH_SUBDIR)
+        compound: MBCompound = MBLoader.FromSDF(sdf_file, subdir=BOND_MATCH_SUBDIR)
         #  Each SDF File was designed to contain exactly one molecule.
         mol: MBMolecule = compound.GetMols(to_rdkit=False)[0]
         if mol.HasSubstructMatch(smarts=substruct_to_match):
