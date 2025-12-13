@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from rdkit.Chem import Bond
-
 
 @dataclass(frozen=True)
 class BondType:
@@ -13,8 +11,10 @@ class BondType:
     constitutive_corr: float
     sdf_files: list[str]
     description: Optional[str] = ""
+    ignore_benzene_derivatives: Optional[bool] = False
 
 
+# Relevant bond types representation used in reference https://doi.org/10.1021/ed085p532
 RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         formula="C=C",
@@ -144,7 +144,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         formula="C-Cl",
         SMARTS="[C;!$([c]);!$([C]([C])([C])([Cl])[Cl]);!$([C;H1]([C])([Cl])[Cl]);!$([C]([C])([C])([Cl])-[C]([C])([C])[Cl])]-[Cl]",
         constitutive_corr=3.1,
-        sdf_files=["R2CCl2.sdf"],
+        sdf_files=["C-Cl.sdf"],
         description="",
     ),
     BondType(
@@ -170,7 +170,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="C-Br",
-        SMARTS="[C;!$([c]),!$([C]([C])([C])([Br])-[C]([C])([C])[Br])]-[Br]",
+        SMARTS="[C;!$([c]);!$([C]([C])([C])([Br])-[C]([C])([C])[Br])]-[Br]",
         constitutive_corr=4.1,
         sdf_files=["C-Br.sdf"],
         description="",
@@ -249,7 +249,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         formula="Ar-Ar",
         SMARTS="[c]-[c]",
         constitutive_corr=-0.5,
-        sdf_files=["Ar-CHO.sdf"],
+        sdf_files=["Ar-Ar.sdf"],
         description="",
     ),
     BondType(
@@ -313,6 +313,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="c1ccccc1",
         constitutive_corr=-1.4,
         sdf_files=["benzene.sdf"],
+        ignore_benzene_derivatives=True,
         description="",
     ),
     BondType(
