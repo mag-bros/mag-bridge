@@ -26,19 +26,14 @@ jobs:
         run: |
           echo "Commit: ${{ steps.commit_url.outputs.url }}"
 
-      - name: Extract PR number from merge commit
-        id: pr_number
-        shell: bash
+      - name: PR number (empty on direct commits)
+        id: pr
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          echo "Commit message: $COMMIT_MSG"
-
-          PR_NUMBER=$(echo "$COMMIT_MSG" | grep -oE 'pull request #[0-9]+' | grep -oE '[0-9]+')
-
-          echo "PR number: $PR_NUMBER"
-          echo "number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          pr='${{ github.event.pull_request.number }}'
+          [ -z "$pr" ] && pr="$(gh api "/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '.[0].number // empty')"
+          echo "number=$pr" >> "$GITHUB_OUTPUT"
 
       - name: Get PR title
         id: pr_title
