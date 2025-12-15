@@ -1,0 +1,68 @@
+name: Notify Discord on Master Branch Change
+
+on:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: merged-to-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  discord-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build commit URL
+        id: commit_url
+        run: |
+          echo "url=${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Short SHA
+        id: short_sha
+        run: echo "value=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+      
+      - name: Use it
+        run: |
+          echo "Commit: ${{ steps.commit_url.outputs.url }}"
+
+      - name: PR number ("empty" on direct commits)
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pr='${{ github.event.pull_request.number }}'
+          [ -z "$pr" ] && pr="$(gh api "/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '.[0].number // empty')"
+          [ -z "$pr" ] && pr="empty"
+          echo "number=$pr" >> "$GITHUB_OUTPUT"
+
+      - name: Build change summary (PR title or commit message)
+        id: change
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR="${{ steps.pr_number.outputs.number }}"
+          if [ -n "$PR" ]; then
+            TITLE="$(gh api "repos/${{ github.repository }}/pulls/$PR" --jq '.title')"
+            echo "text=📁 **PR Title:** $TITLE" >> "$GITHUB_OUTPUT"
+          else
+            MSG="${{ github.event.head_commit.message }}"
+            echo "text=📁 **Commit message:** $MSG" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Notify Discord
+        uses: rjstone/discord-webhook-notify@v2
+        with:
+          webhookUrl: ${{ secrets.DISCORD_PR_WEBHOOK }}
+          username: "MagBridge CI"
+          avatarUrl: "https://raw.githubusercontent.com/mag-bros/mag-bridge/assets-v1.2/.github/assets/sukces.png"
+          severity: info
+          color: "#ba005b"
+          title: "🙈 New Commit on branch: '${{ github.ref_name }}'"
+          description: |
+            **Author:** `${{ github.event.pusher.name }}`
+          details: |
+            ${{ steps.change.outputs.text }}
+            ✨ **PR Number:** ${{ steps.pr.outputs.number }}
+            🔗 **Commit Reference:** [${{ steps.short_sha.outputs.value }}](${{ steps.commit_url.outputs.url }})
+          footer: "MagBridge CI • ${{ github.event.head_commit.timestamp }}"
