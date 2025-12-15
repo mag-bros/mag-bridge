@@ -18,6 +18,10 @@ jobs:
         run: |
           echo "url=${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}" >> $GITHUB_OUTPUT
 
+      - name: Short SHA
+        id: short_sha
+        run: echo "value=${GITHUB_SHA::6}" >> $GITHUB_OUTPUT
+      
       - name: Use it
         run: |
           echo "Commit: ${{ steps.commit_url.outputs.url }}"
@@ -54,11 +58,11 @@ jobs:
           avatarUrl: "https://raw.githubusercontent.com/mag-bros/mag-bridge/assets-v1.2/.github/assets/sukces.png"
           severity: info
           color: "#ba005b"
-          title: "🙈 Pull request merged to Master"
+          title: "🙈 Pull Request merged into '${{ github.ref_name }}'"
           description: |
             **Author:** `${{ github.event.pusher.name }}`
           details: |
-            📁 **PR title:** ${{ steps.pr_title.outputs.title }}
-            ✨ **PR number:** ${{ steps.pr_number.outputs.number }}
-            🔗 **Commit link:** ${{ steps.commit_url.outputs.url }}
+            📁 **PR Title:** ${{ steps.pr_title.outputs.title }}
+            ✨ **PR Number:** ${{ steps.pr_number.outputs.number }}
+            🔗 **Commit Reference:** [${{ steps.short_sha.outputs.value }}](${{ steps.commit_url.outputs.url }})
           footer: "MagBridge CI • ${{ github.event.head_commit.timestamp }}"
