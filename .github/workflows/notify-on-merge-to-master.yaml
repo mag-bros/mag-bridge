@@ -20,19 +20,20 @@ jobs:
 
       - name: Short SHA
         id: short_sha
-        run: echo "value=${GITHUB_SHA::6}" >> $GITHUB_OUTPUT
+        run: echo "value=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
       
       - name: Use it
         run: |
           echo "Commit: ${{ steps.commit_url.outputs.url }}"
 
-      - name: PR number (empty on direct commits)
+      - name: PR number ("empty" on direct commits)
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           pr='${{ github.event.pull_request.number }}'
           [ -z "$pr" ] && pr="$(gh api "/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '.[0].number // empty')"
+          [ -z "$pr" ] && pr="empty"
           echo "number=$pr" >> "$GITHUB_OUTPUT"
 
       - name: Build change summary (PR title or commit message)
@@ -61,7 +62,7 @@ jobs:
           description: |
             **Author:** `${{ github.event.pusher.name }}`
           details: |
-            echo "${{ steps.change.outputs.text }}"
+            ${{ steps.change.outputs.text }}
             ✨ **PR Number:** ${{ steps.pr_number.outputs.number }}
             🔗 **Commit Reference:** [${{ steps.short_sha.outputs.value }}](${{ steps.commit_url.outputs.url }})
           footer: "MagBridge CI • ${{ github.event.head_commit.timestamp }}"
