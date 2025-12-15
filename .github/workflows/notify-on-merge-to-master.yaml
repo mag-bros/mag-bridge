@@ -63,6 +63,6 @@ jobs:
             **Author:** `${{ github.event.pusher.name }}`
           details: |
             ${{ steps.change.outputs.text }}
-            ✨ **PR Number:** ${{ steps.pr_number.outputs.number }}
+            ✨ **PR Number:** ${{ steps.pr.outputs.number }}
             🔗 **Commit Reference:** [${{ steps.short_sha.outputs.value }}](${{ steps.commit_url.outputs.url }})
           footer: "MagBridge CI • ${{ github.event.head_commit.timestamp }}"
