@@ -1,4 +1,4 @@
-name: Notify Discord on PR Merge to Master
+name: Notify Discord on Master Branch Change
 
 on:
   push:
@@ -35,15 +35,19 @@ jobs:
           [ -z "$pr" ] && pr="$(gh api "/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '.[0].number // empty')"
           echo "number=$pr" >> "$GITHUB_OUTPUT"
 
-      - name: Get PR title
-        id: pr_title
-        if: steps.pr_number.outputs.number != ''
+      - name: Build change summary (PR title or commit message)
+        id: change
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TITLE=$(gh api repos/${{ github.repository }}/pulls/${{ steps.pr_number.outputs.number }} --jq '.title')
-          echo "Merged PR title: $TITLE"
-          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          PR="${{ steps.pr_number.outputs.number }}"
+          if [ -n "$PR" ]; then
+            TITLE="$(gh api "repos/${{ github.repository }}/pulls/$PR" --jq '.title')"
+            echo "text=📁 **PR Title:** $TITLE" >> "$GITHUB_OUTPUT"
+          else
+            MSG="${{ github.event.head_commit.message }}"
+            echo "text=📁 **Commit message:** $MSG" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Notify Discord
         uses: rjstone/discord-webhook-notify@v2
@@ -57,7 +61,7 @@ jobs:
           description: |
             **Author:** `${{ github.event.pusher.name }}`
           details: |
-            📁 **PR Title:** ${{ steps.pr_title.outputs.title }}
+            echo "${{ steps.change.outputs.text }}"
             ✨ **PR Number:** ${{ steps.pr_number.outputs.number }}
             🔗 **Commit Reference:** [${{ steps.short_sha.outputs.value }}](${{ steps.commit_url.outputs.url }})
           footer: "MagBridge CI • ${{ github.event.head_commit.timestamp }}"
