@@ -58,7 +58,7 @@ jobs:
           avatarUrl: "https://raw.githubusercontent.com/mag-bros/mag-bridge/assets-v1.2/.github/assets/sukces.png"
           severity: info
           color: "#ba005b"
-          title: "🙈 Pull Request merged into '${{ github.ref_name }}'"
+          title: "🙈 New Commit on branch: '${{ github.ref_name }}'"
           description: |
             **Author:** `${{ github.event.pusher.name }}`
           details: |
