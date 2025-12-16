@@ -42,13 +42,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           PR="${{ steps.pr_number.outputs.number }}"
-          if [ -n "$PR" ]; then
-            TITLE="$(gh api "repos/${{ github.repository }}/pulls/$PR" --jq '.title')"
-            echo "text=📁 **PR Title:** $TITLE" >> "$GITHUB_OUTPUT"
+          if [ -n "$PR" ] && [ "$PR" != "empty" ]; then
+            TEXT="📁 **PR Title:** $(gh api "repos/${{ github.repository }}/pulls/$PR" --jq '.title')"
           else
-            MSG="${{ github.event.head_commit.message }}"
-            echo "text=📁 **Commit message:** $MSG" >> "$GITHUB_OUTPUT"
+            TEXT="📝 **Commit message:** ${{ github.event.head_commit.message }}"
           fi
+      
+          {
+            echo "text<<EOF"
+            echo "$TEXT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Notify Discord
         uses: rjstone/discord-webhook-notify@v2
@@ -58,7 +62,7 @@ jobs:
           avatarUrl: "https://raw.githubusercontent.com/mag-bros/mag-bridge/assets-v1.2/.github/assets/sukces.png"
           severity: info
           color: "#ba005b"
-          title: "🙈 New Commit on branch: '${{ github.ref_name }}'"
+          title: "🙈 Pull Request merged to '${{ github.ref_name }}'"
           description: |
             **Author:** `${{ github.event.pusher.name }}`
           details: |
