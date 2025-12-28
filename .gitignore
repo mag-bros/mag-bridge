@@ -6,6 +6,8 @@ images/
 *.DS_Store
 # C extensions
 *.so
+*.enc
+*.dec
 
 # Electron node modules
 frontend/node_modules

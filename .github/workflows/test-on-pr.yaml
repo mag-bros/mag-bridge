@@ -8,6 +8,10 @@ concurrency:
   group: pr-tests-${{ github.event.pull_request.head.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   pytest:
     runs-on: ubuntu-latest
@@ -27,4 +31,126 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run tests
-        run: pytest -v
+        run: |
+          set -o pipefail
+          pytest --cov=src \
+                --cov-branch \
+                --cov-report=xml \
+                --cov-report=html \
+                | tee pytest-output.log
+          status=$?
+          echo "$status" > pytest-exit-code
+          exit "$status"
+
+      - name: Append test & coverage summary to job summary
+        if: always()
+        run: |
+          echo "## Pytest Summary" >> "$GITHUB_STEP_SUMMARY"
+
+          # determine emoji based on pytest exit code
+          exit_code=$(cat pytest-exit-code 2>/dev/null || echo 1)
+          if [ "$exit_code" -eq 0 ]; then
+            status_emoji="✅"
+          else
+            status_emoji="❌"
+          fi
+
+          # Find the last pytest summary line like:
+          # "================== 121 passed, 1 failed, 2 skipped in 5.16s =================="
+          summary_line=$(grep -E '^=+ .* in .+s =+$' pytest-output.log | tail -n 1 || true)
+
+          if [ -n "$summary_line" ]; then
+            echo "${status_emoji} \`$summary_line\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "${status_emoji} _No pytest summary line found._" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Test Coverage" >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          coverage report --show-missing >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload test & coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: test-report
+          path: |
+            htmlcov
+            pytest-output.log
+            coverage.xml
+
+      - name: Post test & coverage summary as PR comment
+        uses: actions/github-script@v8
+        if: always()
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const marker = '<!-- mb-coverage-comment -->';
+            const fs = require('fs');
+
+            // read pytest exit code
+            let exitCode = 1;
+            try {
+              exitCode = parseInt(fs.readFileSync('pytest-exit-code', 'utf8').trim(), 10);
+              if (Number.isNaN(exitCode)) exitCode = 1;
+            } catch (e) {
+              exitCode = 1;
+            }
+            const statusEmoji = exitCode === 0 ? '✅' : '❌';
+
+            // coverage summary (text-only, no stack traces)
+            const { stdout: covStdout } = await exec.getExecOutput('coverage', [
+              'report',
+              '--show-missing',
+            ]);
+
+            // pytest summary: last line with the "X passed, Y failed..." stuff
+            const logLines = fs.readFileSync('pytest-output.log', 'utf8').split('\n').reverse();
+            const summaryLine = logLines.find(line =>
+              /^=+ .* in .*s =+$/.test(line)
+            );
+
+            const body = [
+              marker,
+              `### ${statusEmoji} Test & Coverage Summary`,
+              '',
+              summaryLine
+                ? `**Pytest:** \`${summaryLine.trim()}\``
+                : '**Pytest:** (summary not found)',
+              '',
+              '<details>',
+              '<summary><strong>Show coverage details</strong></summary>',
+              '',
+              '```text',
+              covStdout.trim(),
+              '```',
+              '',
+              '</details>',
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+
+            const existing = comments.reverse().find(c => c.body && c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }

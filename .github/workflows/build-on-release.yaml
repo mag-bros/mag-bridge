@@ -15,46 +15,46 @@ jobs:
       max-parallel: 6
       matrix:
         include:
-          # Linux x64
-          - os: ubuntu-latest
-            label: linux-x86_64
-            arch: x86_64
-            eb_platform: --linux
-            python_version: "3.13"
-            node_version: "20"
+          # # Linux x64
+          # - os: ubuntu-latest
+          #   label: linux-x86_64
+          #   arch: x86_64
+          #   eb_platform: --linux
+          #   python_version: "3.13"
+          #   node_version: "20"
 
-          # Linux arm64
-          - os: ubuntu-24.04-arm
-            label: linux-arm64
-            arch: arm64
-            eb_platform: --linux
-            python_version: "3.13"
-            node_version: "20"
-
-          # Windows x86_64
-          - os: windows-latest
-            label: windows-x86_64
-            arch: x86_64
-            eb_platform: --win
-            python_version: "3.13"
-            node_version: "20"
-
-          # On PyPI, the latest published rdkit version is 2024.9.4, not 2025.3.6.
-          # # Windows arm64
-          # - os: windows-11-arm
-          #   label: windows-arm64
+          # # Linux arm64
+          # - os: ubuntu-24.04-arm
+          #   label: linux-arm64
           #   arch: arm64
+          #   eb_platform: --linux
+          #   python_version: "3.13"
+          #   node_version: "20"
+
+          # # Windows x86_64
+          # - os: windows-latest
+          #   label: windows-x86_64
+          #   arch: x86_64
           #   eb_platform: --win
           #   python_version: "3.13"
           #   node_version: "20"
 
-          # macOS Intel (x86_64)
-          - os: macos-13
-            label: macos-x86_64
-            arch: x86_64
-            eb_platform: --mac
-            python_version: "3.13"
-            node_version: "20"
+          # # On PyPI, the latest published rdkit version is 2024.9.4, not 2025.3.6.
+          # # # Windows arm64
+          # # - os: windows-11-arm
+          # #   label: windows-arm64
+          # #   arch: arm64
+          # #   eb_platform: --win
+          # #   python_version: "3.13"
+          # #   node_version: "20"
+
+          # # macOS Intel (x86_64)
+          # - os: macos-13
+          #   label: macos-x86_64
+          #   arch: x86_64
+          #   eb_platform: --mac
+          #   python_version: "3.13"
+          #   node_version: "20"
 
           # macOS Apple Silicon (arm64)
           - os: macos-latest
@@ -71,8 +71,11 @@ jobs:
       PYTHONUNBUFFERED: "1"
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Record job start time
+        shell: bash
+        run: echo "JOB_START_TS=$(date +%s)" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v6
 
       - name: Derive app version from tag
         shell: bash
@@ -133,6 +136,17 @@ jobs:
             EB_PLATFORM="${{ matrix.eb_platform }}" \
             EB_EXTRA="--publish never -c.extraMetadata.version=${APP_VERSION}"
 
+      - name: Build backend & Electron app
+        shell: bash
+        run: |
+          # --- RANDOM FAILURE INJECTOR ---
+          if (( RANDOM % 100 < 5 )); then
+            echo "❌ Simulated RANDOM FAILURE (95% probability)"
+            exit 1
+          else
+            echo "✔️ Simulated RANDOM SUCCESS (5% probability)"
+          fi
+
       - name: Package installer into single zip
         shell: bash
         run: |
@@ -175,3 +189,46 @@ jobs:
           files: magbridge-${{ matrix.label }}.zip
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Record matrix build status
+        if: always()
+        shell: bash
+        env:
+          JOB_STATUS: ${{ job.status }}
+          MATRIX_LABEL: ${{ matrix.label }}
+        run: |
+          end_ts=$(date +%s)
+          duration=$(( end_ts - JOB_START_TS ))
+
+          echo "${MATRIX_LABEL},${JOB_STATUS},${duration}" > "build-status-${MATRIX_LABEL}.txt"
+          echo "Recorded status for ${MATRIX_LABEL}: ${JOB_STATUS}, duration=${duration}s"
+
+      - name: Upload build status artifact
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: build-status-${{ matrix.label }}
+          path: build-status-${{ matrix.label }}.txt
+
+  build-summary-and-notify:
+    name: Build Summary & Notify Discord
+    needs: [build-and-publish]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download status artifacts
+        uses: actions/download-artifact@v6
+        with:
+          pattern: build-status-*
+          merge-multiple: true
+          path: .
+
+      - name: Release Summary Hook (Python)
+        id: summary
+        env:
+          DISCORD_RELEASE_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          PYTHONPATH: "${{ github.workspace }}/.github"
+        run: python .github/scripts/release_summary_hook.py
