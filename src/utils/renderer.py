@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 import base64
+import colorsys
 import io
+import typing
+from collections.abc import Iterable
+from typing import Dict, List, Tuple
 
 import numpy as np
 from IPython.display import Image as IPyImage
 from PIL import Image, ImageDraw, ImageFont
-from rdkit.Chem import Mol, MolToSmiles
+from rdkit.Chem import Mol, MolToSmiles, RemoveAllHs
 from rdkit.Chem.Draw import MolsToGridImage, MolToImage
 from rdkit.Chem.rdDepictor import Compute2DCoords
 
@@ -29,7 +35,8 @@ class Renderer:
     def GetMoleculesGridImg(
         self,
         mols: list[Mol],
-        size=(170, 170),
+        highlightAtomLists=None,  # TODO:: add better typing
+        size=(300, 300),
         mols_per_row=4,
         label: str | None = None,
         label_height=28,
@@ -43,17 +50,20 @@ class Renderer:
         sep_color = self.theme.GridLine
 
         # Prepare molecules safely
-        mols = [Mol(m) for m in mols if m is not None]
-        mols = [m for m in mols if m.GetNumAtoms() > 0]
+        mols = [RemoveAllHs(m) for m in mols if m.GetNumAtoms() > 0]
         for m in mols:
             Compute2DCoords(m)
         legends = [
             f"Mol {m.GetProp('_MolIndex')}: {MolToSmiles(m)}" if m else "" for m in mols
         ]
 
+        highlightAtomColors = self._build_highlight_colors_per_mol(highlightAtomLists)
+
         # --- Render grid directly with themed background ---
         img = MolsToGridImage(
             mols,
+            highlightAtomLists=highlightAtomLists,
+            highlightAtomColors=highlightAtomColors,
             molsPerRow=mols_per_row,
             subImgSize=size,
             legends=legends,
@@ -89,6 +99,56 @@ class Renderer:
                 width=sep_width,
             )
         return img
+
+    def hsv_palette(self, n: int, s: float = 0.75, v: float = 0.95):
+        n = max(1, n)
+        for i in range(n):
+            h = (i / n) % 1.0
+            yield colorsys.hsv_to_rgb(h, s, v)  # (r,g,b) floats 0..1
+
+    def _build_highlight_colors_per_mol(
+        self,
+        highlightAtomLists: List[List[int]],
+    ) -> List[Dict[int, Tuple[float, float, float]]]:
+        """
+        Only input: highlightAtomLists (list-of-lists, one list per molecule).
+
+        Returns:
+        highlightAtomColors: list[dict[int, (r,g,b)]]
+            - one dict per molecule
+            - all atoms within a given molecule get the same color
+            - colors are high-contrast across molecules
+
+        Example:
+        highlightAtomLists = [[0,1,2], [3,4], []]
+        -> [
+            {0:(...),1:(...),2:(...)},
+            {3:(...),4:(...)},
+            {}
+            ]
+        """
+
+        def contrasting_palette(n: int) -> List[Tuple[float, float, float]]:
+            if n <= 0:
+                return []
+            s, v = 0.80, 0.95
+            step = 0.618033988749895  # golden ratio conjugate
+            h = 0.0
+            cols: List[Tuple[float, float, float]] = []
+            for _ in range(n):
+                h = (h + step) % 1.0
+                cols.append(colorsys.hsv_to_rgb(h, s, v))
+            return cols
+
+        n = len(highlightAtomLists)
+        palette = contrasting_palette(n)
+
+        highlightAtomColors: List[Dict[int, Tuple[float, float, float]]] = []
+        for i, atoms in enumerate(highlightAtomLists):
+            color = palette[i] if i < len(palette) else (1.0, 0.0, 0.0)
+            highlightAtomColors.append({a: color for a in atoms})
+
+        return highlightAtomColors
 
     # === Helper: Add label annotation below grid ===
     def _add_label(self, img, label, label_color, label_height):
