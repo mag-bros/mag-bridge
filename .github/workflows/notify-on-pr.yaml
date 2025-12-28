@@ -31,16 +31,20 @@ jobs:
           TOTAL=$((ADD + DEL))
           if [ "$TOTAL" -gt 1000 ]; then
             SEVERITY="error"
+            SEVERITY_COLOR="#ff4a8d"
           elif [ "$TOTAL" -gt 200 ]; then
             SEVERITY="warn"
+            SEVERITY_COLOR="#fcbb4f"
           else
             SEVERITY="info"
+            SEVERITY_COLOR="#8fa7ff"
           fi
 
           echo "Metrics: +$ADD / -$DEL | Files: $FILES | Commits: $COMMITS | Severity: $SEVERITY"
 
           # Export outputs for next step
           echo "severity=$SEVERITY" >> $GITHUB_OUTPUT
+          echo "severity_color=$SEVERITY_COLOR" >> $GITHUB_OUTPUT
           echo "additions=$ADD" >> $GITHUB_OUTPUT
           echo "deletions=$DEL" >> $GITHUB_OUTPUT
           echo "files=$FILES" >> $GITHUB_OUTPUT
@@ -53,7 +57,7 @@ jobs:
           username: "MagBridge CI"
           avatarUrl: "https://raw.githubusercontent.com/mag-bros/mag-bridge/assets-v1.2/.github/assets/terminator.png"
           severity: ${{ steps.pr_metrics.outputs.severity }}
-          color: "#0099ff"
+          color: ${{ steps.pr_metrics.outputs.severity_color }}
           title: "👀 Pull request ready for review!"
           description: |
             **Author:** `${{ github.event.pull_request.user.login }}`
