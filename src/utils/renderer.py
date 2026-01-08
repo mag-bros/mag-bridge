@@ -84,7 +84,6 @@ class Renderer:
             f"Mol {m.GetProp('_MolIndex')}: {MolToSmiles(m)}" if m else "" for m in mols
         ]
 
-        # --- Render grid directly with themed background ---
         # compute highlight colors + formula->color mapping (only if groups provided)
         formula_color = {}
         if highlightAtomGroupsPerMol is not None:
@@ -99,6 +98,7 @@ class Renderer:
                 highlightAtomLists
             )
 
+        # --- Render grid directly with themed background ---
         img = MolsToGridImage(
             mols,
             highlightAtomLists=highlightAtomLists,
@@ -110,14 +110,22 @@ class Renderer:
 
         # --- Convert RDKit → PIL safely ---
         img = ImageAdapter.to_pil(img).convert("RGB")
-        img = self._apply_theme_background(img, bg_color)
+
+        # IMPORTANT: do this BEFORE any text/legend overlays, otherwise you erase them
+        orig_h = img.size[1]
+        img = self._apply_theme_background(img, bg_color, roi_height=orig_h)
 
         # --- Optional grid + label overlay ---
         img = self._add_grid_lines(img, mols, mols_per_row, size, sep_color, sep_width)
 
+        if label:
+            img = self._add_label(img, label, label_color, label_height)
+
         # Aggregate counts across mols for legend (optional)
         counts_by_formula = None
         if matchesCountersPerMol:
+            from collections import Counter
+
             agg = Counter()
             for c in matchesCountersPerMol:
                 if c:
@@ -125,16 +133,13 @@ class Renderer:
             counts_by_formula = dict(agg)
 
         if showLegend and formula_color:
-            img = self._add_color_legend(
+            img = self._add_color_legend_compact(
                 img,
                 formula_color=formula_color,
                 counts_by_formula=counts_by_formula,
                 label_color=label_color,
-                bg_color=self.theme.Background,
+                bg_color=self.theme.Background,  # or self.theme.Surface
             )
-
-        if label:
-            img = self._add_label(img, label, label_color, label_height)
 
         return img
 
@@ -304,61 +309,73 @@ class Renderer:
 
         return colors_per_mol, formula_color
 
-    def _add_color_legend(
+    def _add_color_legend_compact(
         self,
         img: Image.Image,
         formula_color: Dict[str, Tuple[float, float, float]],
         counts_by_formula: Dict[str, int] | None,
         label_color: tuple[int, int, int],
         bg_color: tuple[int, int, int],
-        padding: int = 10,
-        swatch: int = 12,
-        gap: int = 8,
+        padding_x: int = 10,
+        padding_y: int = 6,
+        swatch: int = 10,
+        gap: int = 6,
+        item_gap: int = 14,
         line_gap: int = 4,
-        max_cols: int = 3,
     ) -> Image.Image:
         if not formula_color:
             return img
 
         font = ImageFont.load_default()
 
-        items = []
+        # Build legend text
+        items: list[tuple[tuple[int, int, int], str]] = []
         for formula, rgb in formula_color.items():
-            if counts_by_formula is not None:
-                items.append((rgb, f"{formula}: {counts_by_formula.get(formula, 0)}"))
-            else:
-                items.append((rgb, formula))
+            txt = (
+                f"{formula}:{counts_by_formula.get(formula, 0)}"
+                if counts_by_formula
+                else formula
+            )
+            sw_rgb = tuple(int(255 * v) for v in rgb)
+            items.append((sw_rgb, txt))
 
-        def text_w(t: str) -> int:
-            return int(font.getlength(t))
+        W, H = img.size
+        x = padding_x
+        y = padding_y
 
-        item_w = swatch + gap + max(text_w(t) for _, t in items)
-        col_w = item_w + padding
-        cols = min(max_cols, max(1, img.size[0] // max(1, col_w)))
-        rows = (len(items) + cols - 1) // cols
+        # Estimate line height
+        text_h = font.getbbox("Ag")[3]
+        line_h = max(swatch, text_h)
 
-        line_h = max(swatch, font.getbbox("Ag")[3])
-        legend_h = padding + rows * (line_h + line_gap) + padding - line_gap
+        # First pass: compute required legend height with wrapping
+        lines = 1
+        x_tmp = padding_x
+        for sw_rgb, txt in items:
+            item_w = swatch + gap + int(font.getlength(txt)) + item_gap
+            if x_tmp + item_w > W - padding_x:
+                lines += 1
+                x_tmp = padding_x
+            x_tmp += item_w
 
-        width, height = img.size
-        out = Image.new("RGB", (width, height + legend_h), bg_color)
+        legend_h = padding_y + lines * line_h + (lines - 1) * line_gap + padding_y
+
+        out = Image.new("RGB", (W, H + legend_h), bg_color)
         out.paste(img, (0, 0))
         draw = ImageDraw.Draw(out)
 
-        x0 = padding
-        y0 = height + padding
+        # Second pass: draw
+        x = padding_x
+        y = H + padding_y
+        for sw_rgb, txt in items:
+            item_w = swatch + gap + int(font.getlength(txt)) + item_gap
+            if x + item_w > W - padding_x:
+                x = padding_x
+                y += line_h + line_gap
 
-        for idx, (rgb, text) in enumerate(items):
-            r = idx // cols
-            c = idx % cols
-            x = x0 + c * col_w
-            y = y0 + r * (line_h + line_gap)
-
-            swatch_rgb = tuple(int(255 * v) for v in rgb)
             y_s = y + (line_h - swatch) // 2
-            draw.rectangle([x, y_s, x + swatch, y_s + swatch], fill=swatch_rgb)
-
-            draw.text((x + swatch + gap, y), text, fill=label_color, font=font)
+            draw.rectangle([x, y_s, x + swatch, y_s + swatch], fill=sw_rgb)
+            draw.text((x + swatch + gap, y), txt, fill=label_color, font=font)
+            x += item_w
 
         return out
 
@@ -388,13 +405,23 @@ class Renderer:
         return annotated
 
     def _apply_theme_background(
-        self, img: Image.Image, bg_color: tuple[int, int, int]
+        self,
+        img: Image.Image,
+        bg_color: tuple[int, int, int],
+        roi_height: int | None = None,
     ) -> Image.Image:
-        """Replace near-white areas in RDKit image with themed background."""
         img = img.convert("RGB")
         data = np.array(img)
-        mask = (data > 230).all(axis=-1)  # all channels near white
-        data[mask] = bg_color
+
+        h = data.shape[0]
+        cut = roi_height if roi_height is not None else h
+
+        # only process [0:cut]
+        region = data[:cut]
+        mask = (region > 230).all(axis=-1)
+        region[mask] = bg_color
+        data[:cut] = region
+
         return Image.fromarray(data)
 
 
