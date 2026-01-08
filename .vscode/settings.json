@@ -72,6 +72,9 @@
   "files.associations": {
     "*.sh": "shellscript"
   },
+  "launch": {
+    "justMyCode": false
+  },
   "files.exclude": {},
   "files.watcherExclude": {},
   "files.autoSave": "onFocusChange",

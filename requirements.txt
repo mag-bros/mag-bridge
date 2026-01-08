@@ -3,3 +3,4 @@ fastapi[standard]==0.120.0
 uvicorn==0.38.0
 click==8.3.0
 numpy==2.3.4
+pandas
