@@ -76,10 +76,24 @@ class Renderer:
         )
 
         # Render via RDKit
+        # If groups exist, compute explicit bond highlighting so bonds keep their own group color
+        highlightBondLists = None
+        highlightBondColors = None
+        if highlightAtomGroupsPerMol is not None and formula_color:
+            highlightBondLists, highlightBondColors = (
+                self._build_highlight_bonds_from_groups(
+                    mols=mols,
+                    highlightAtomGroupsPerMol=highlightAtomGroupsPerMol,
+                    formula_color=formula_color,
+                )
+            )
+
         img = MolsToGridImage(
             mols,
             highlightAtomLists=highlightAtomLists,
             highlightAtomColors=highlightAtomColors,
+            highlightBondLists=highlightBondLists,
+            highlightBondColors=highlightBondColors,
             molsPerRow=mols_per_row,
             subImgSize=size,
             legends=legends,
@@ -457,6 +471,48 @@ class Renderer:
             y += line_h + line_gap
 
         return out
+
+    def _build_highlight_bonds_from_groups(
+        self,
+        mols: list[Mol],
+        highlightAtomGroupsPerMol: list[dict[str, list[int]]],
+        formula_color: dict[str, tuple[float, float, float]],
+    ) -> tuple[list[list[int]], list[dict[int, tuple[float, float, float]]]]:
+        """
+        Build highlightBondLists/highlightBondColors so bond colors do NOT depend on atom overwrite rules.
+
+        A bond belongs to a formula-group if BOTH its endpoint atoms are in that group's atom set.
+        Overlap policy for bonds: first match wins (no overwrite), which is stable and avoids surprises.
+        """
+        bond_lists: list[list[int]] = []
+        bond_colors: list[dict[int, tuple[float, float, float]]] = []
+
+        for mol, groups in zip(mols, highlightAtomGroupsPerMol):
+            bond_color_map: dict[int, tuple[float, float, float]] = {}
+
+            if not groups:
+                bond_lists.append([])
+                bond_colors.append({})
+                continue
+
+            # Iterate groups in dict order (stable). First assignment wins.
+            for formula, atom_idxs in groups.items():
+                col = formula_color.get(formula)
+                if col is None:
+                    continue
+                aset = set(atom_idxs)
+
+                for b in mol.GetBonds():
+                    a1 = b.GetBeginAtomIdx()
+                    a2 = b.GetEndAtomIdx()
+                    if a1 in aset and a2 in aset:
+                        bidx = b.GetIdx()
+                        bond_color_map.setdefault(bidx, col)  # FIRST WINS
+
+            bond_lists.append(list(bond_color_map.keys()))
+            bond_colors.append(bond_color_map)
+
+        return bond_lists, bond_colors
 
 
 class ImageAdapter:
