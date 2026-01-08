@@ -36,6 +36,7 @@ class Renderer:
         self,
         mols: list[Mol],
         highlightAtomLists=None,  # TODO:: add better typing
+        highlightAtomGroupsPerMol=None,
         size=(300, 300),
         mols_per_row=4,
         label: str | None = None,
@@ -50,9 +51,32 @@ class Renderer:
         sep_color = self.theme.GridLine
 
         # Prepare molecules safely
-        mols = [RemoveAllHs(m) for m in mols if m.GetNumAtoms() > 0]
+        # Prepare molecules safely (keep highlight lists aligned if provided)
+        if highlightAtomLists is not None:
+            items = list(
+                zip(
+                    mols,
+                    highlightAtomLists,
+                    highlightAtomGroupsPerMol or [None] * len(mols),
+                )
+            )
+            items = [
+                (m, hl, hg)
+                for (m, hl, hg) in items
+                if m is not None and m.GetNumAtoms() > 0
+            ]
+            mols = [RemoveAllHs(m) for (m, _, _) in items]
+            highlightAtomLists = [hl for (_, hl, _) in items]
+            if highlightAtomGroupsPerMol is not None:
+                highlightAtomGroupsPerMol = [hg for (_, _, hg) in items]
+        else:
+            mols = [
+                RemoveAllHs(m) for m in mols if m is not None and m.GetNumAtoms() > 0
+            ]
+
         for m in mols:
             Compute2DCoords(m)
+
         legends = [
             f"Mol {m.GetProp('_MolIndex')}: {MolToSmiles(m)}" if m else "" for m in mols
         ]
@@ -62,7 +86,8 @@ class Renderer:
             mols,
             highlightAtomLists=highlightAtomLists,
             highlightAtomColors=self._build_highlight_colors_per_mol(
-                highlightAtomLists
+                highlightAtomLists,
+                highlightAtomGroupsPerMol=highlightAtomGroupsPerMol,  # NEW
             ),
             molsPerRow=mols_per_row,
             subImgSize=size,
@@ -109,23 +134,16 @@ class Renderer:
     def _build_highlight_colors_per_mol(
         self,
         highlightAtomLists: List[List[int]],
+        highlightAtomGroupsPerMol: List[Dict[str, List[int]]] | None = None,
     ) -> List[Dict[int, Tuple[float, float, float]]]:
         """
-        Only input: highlightAtomLists (list-of-lists, one list per molecule).
+        Base behavior (no groups):
+            - one color per molecule (your existing behavior)
 
-        Returns:
-        highlightAtomColors: list[dict[int, (r,g,b)]]
-            - one dict per molecule
-            - all atoms within a given molecule get the same color
-            - colors are high-contrast across molecules
-
-        Example:
-        highlightAtomLists = [[0,1,2], [3,4], []]
-        -> [
-            {0:(...),1:(...),2:(...)},
-            {3:(...),4:(...)},
-            {}
-            ]
+        Group behavior (when highlightAtomGroupsPerMol is provided):
+            - assigns a distinct color per formula (bond-type group) within each molecule
+            - returns per-molecule dict: atom_idx -> (r,g,b)
+            - overlap policy: later groups overwrite earlier groups (deterministic)
         """
 
         def contrasting_palette(n: int) -> List[Tuple[float, float, float]]:
@@ -140,6 +158,51 @@ class Renderer:
                 cols.append(colorsys.hsv_to_rgb(h, s, v))
             return cols
 
+        # === Group mode: multiple colors within a molecule ===
+        if highlightAtomGroupsPerMol is not None:
+            # stable global mapping: formula -> color (same formula = same color across all mols)
+            formulas_in_order: List[str] = []
+            seen: set[str] = set()
+            for groups in highlightAtomGroupsPerMol:
+                if not groups:
+                    continue
+                for formula in groups.keys():  # relies on insertion order (Py3.7+)
+                    if formula not in seen:
+                        seen.add(formula)
+                        formulas_in_order.append(formula)
+
+            palette = contrasting_palette(len(formulas_in_order))
+            formula_color: Dict[str, Tuple[float, float, float]] = {
+                f: palette[i] for i, f in enumerate(formulas_in_order)
+            }
+
+            out: List[Dict[int, Tuple[float, float, float]]] = []
+            for mol_i, atoms_union in enumerate(highlightAtomLists):
+                groups = (
+                    highlightAtomGroupsPerMol[mol_i]
+                    if mol_i < len(highlightAtomGroupsPerMol)
+                    else {}
+                )
+
+                atom_color_map: Dict[int, Tuple[float, float, float]] = {}
+
+                # assign by group (overlap policy: later overwrites earlier)
+                for formula, atoms in (groups or {}).items():
+                    col = formula_color.get(formula, (1.0, 0.0, 0.0))
+                    for a in atoms:
+                        atom_color_map[int(a)] = col
+
+                # safety: only keep atoms that are actually highlighted
+                allowed = set(atoms_union or [])
+                atom_color_map = {
+                    a: c for a, c in atom_color_map.items() if a in allowed
+                }
+
+                out.append(atom_color_map)
+
+            return out
+
+        # === Base mode: one color per molecule (your existing behavior) ===
         n = len(highlightAtomLists)
         palette = contrasting_palette(n)
 
