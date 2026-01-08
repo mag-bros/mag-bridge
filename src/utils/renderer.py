@@ -225,8 +225,20 @@ class Renderer:
                 atom_color_map: Dict[int, Tuple[float, float, float]] = {}
 
                 # assign by group (overlap policy: later overwrites earlier)
+                # assign by group with "dark colors win" on overlaps
+                def luminance(rgb: tuple[float, float, float]) -> float:
+                    r, g, b = rgb
+                    return 0.2126 * r + 0.7152 * g + 0.0722 * b  # higher = brighter
+
+                items = []
                 for formula, atoms in (groups or {}).items():
                     col = formula_color.get(formula, (1.0, 0.0, 0.0))
+                    items.append((luminance(col), atoms, col))
+
+                # apply bright first, dark last (dark overwrites)
+                items.sort(key=lambda t: t[0], reverse=True)  # bright -> dark
+
+                for _, atoms, col in items:
                     for a in atoms:
                         atom_color_map[int(a)] = col
 
@@ -297,8 +309,20 @@ class Renderer:
             atom_color_map: Dict[int, Tuple[float, float, float]] = {}
 
             # overlap policy: later formula overwrites earlier
+            # assign by group with "dark colors win" on overlaps
+            def luminance(rgb: tuple[float, float, float]) -> float:
+                r, g, b = rgb
+                return 0.2126 * r + 0.7152 * g + 0.0722 * b  # higher = brighter
+
+            items = []
             for formula, atoms in (groups or {}).items():
                 col = formula_color.get(formula, (1.0, 0.0, 0.0))
+                items.append((luminance(col), atoms, col))
+
+            # apply bright first, dark last (dark overwrites)
+            items.sort(key=lambda t: t[0], reverse=True)  # bright -> dark
+
+            for _, atoms, col in items:
                 for a in atoms:
                     atom_color_map[int(a)] = col
 
