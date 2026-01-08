@@ -3,19 +3,13 @@ import pytest
 from src import MOLECULE_MATCH_SUBDIR
 from src.constants.common_molecules import COMMON_MOLECULES, CommonMolecule
 from src.core.compound import MBCompound
-from src.loader import SDFLoader
+from src.loader import MBLoader
 
 
 def _run_molecule_match(group: str, idx: int, cm: CommonMolecule) -> None:
     expected_smiles: set[str] = cm.SMILES
 
-    if not cm.sdf_file:
-        raise Exception(
-            f"test:{idx} SDF file NOT FOUND. "
-            f'Please create it for: "{group}/{cm.formula}" --- {cm}'
-        )
-
-    compound: MBCompound = SDFLoader.Load(cm.sdf_file, subdir=MOLECULE_MATCH_SUBDIR)
+    compound: MBCompound = MBLoader.FromSDF(cm.sdf_file, subdir=MOLECULE_MATCH_SUBDIR)
 
     sdf_compound_smiles: set[str] = {
         mol.smiles for mol in compound.GetMols(to_rdkit=False)
@@ -33,7 +27,7 @@ def _params_for(group: str):
     return pytest.mark.parametrize(
         "common_mol_params",
         list(enumerate(COMMON_MOLECULES[group])),
-        ids=lambda p: f"<test:{p[0]}> {p[1].formula}",
+        ids=lambda p: f"<{p[0]}> {p[1].formula}",
     )
 
 

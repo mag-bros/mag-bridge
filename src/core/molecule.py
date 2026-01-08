@@ -1,7 +1,17 @@
 import math
 from typing import Any
 
-from rdkit.Chem import AddHs, Atom, GetMolFrags, Mol, MolToSmiles, RemoveHs, RWMol
+from rdkit.Chem import (
+    AddHs,
+    Atom,
+    GetMolFrags,
+    Mol,
+    MolFromSmarts,
+    MolToSmarts,
+    MolToSmiles,
+    RemoveHs,
+    RWMol,
+)
 from rdkit.Chem import rdMolDescriptors as rdmd
 
 from src.constants.provider import COMMON_DIAMAG_NOT_MATCHED, ConstDB
@@ -11,15 +21,14 @@ from src.core.atom import MBAtom
 class MBMolecule:
     """Wrapper around RDKit Atom providing additional computed attributes."""
 
-    def __init__(self, mol: Mol, source_file: str, mol_index: int):
+    def __init__(self, mol: Mol, loaded_from: str, mol_index: int):
         """Make a molecule object from an RDKit Mol."""
-        if not isinstance(mol, Mol):
-            raise TypeError(f"Expected rdkit.Chem.rdchem.Mol, got {type(mol)}")
         self._mol: Mol = mol
         self._atoms: list[MBAtom] = [MBAtom(a) for a in self._mol.GetAtoms()]
-        self.source_file = source_file
+        self.loaded_from = loaded_from
         self.mol_index = mol_index
         self.smiles = self.ToSmiles()
+        self.smarts = self.ToSmarts()
         self.common_diamag: float = ConstDB.GetCommonMolDiamagContr(smiles=self.smiles)
 
     def CalcDiamagContr(self, verbose=False) -> float:
@@ -31,9 +40,15 @@ class MBMolecule:
             print(f"- {repr(self)}")
 
         if self.common_diamag == COMMON_DIAMAG_NOT_MATCHED:
-            return self.CalcDiamagContrAllAtoms()
+            contr_all_atoms: float = self.CalcDiamagContrAllAtoms()
+            constitutive_corr: float = self.CalcConstitutiveCorrection()
+            return contr_all_atoms + constitutive_corr
 
         return self.common_diamag
+
+    def CalcConstitutiveCorrection(self, verbose=False) -> float:
+        # TODO:: finish
+        return 0.0
 
     def CalcDiamagContrAllAtoms(self, verbose=False) -> float:
         """Calculate the chemical compounds's total diamagnetic contribution.
@@ -86,41 +101,28 @@ class MBMolecule:
         NOTE: Our software does not support stereochemical structures."""
         return MolToSmiles(RemoveHs(self._mol), isomericSmiles=False, canonical=True)
 
+    def ToSmarts(self) -> str:
+        """Returns canonical SMARTS notation
+        NOTE: Our software does not support stereochemical structures."""
+        return MolToSmarts(RemoveHs(self._mol), isomericSmiles=True)
+
+    def HasSubstructMatch(self, smarts: str) -> bool:
+        """Check if the molecule contains a substructure match for the given SMARTS pattern."""
+        return self._mol.HasSubstructMatch(MolFromSmarts(smarts, mergeHs=True))
+
+    def GetSubstructMatches(self, smarts: str) -> tuple[tuple]:
+        """Return all substructure matches for the given SMARTS pattern."""
+        return self._mol.GetSubstructMatches(MolFromSmarts(smarts, mergeHs=True))
+
     def __str__(self):
-        return f"{self.source_file}:{self.mol_index} ({self.smiles})"
+        return f"{self.loaded_from}:{self.mol_index} ({self.smiles})"
 
     def __getattr__(self, name) -> Any:
         """Delegate unknown attribute access to the wrapped RDKit Molecule."""
         return getattr(self._mol, name)
 
     def __repr__(self):
-        return f"MBMolecule(source_file='{self.source_file}', mol_index={self.mol_index}, smiles='{self.smiles}')"
+        return f"MBMolecule(loaded_from='{self.loaded_from}', mol_index={self.mol_index}, smiles='{self.smiles}')"
 
     """Centralized constructor for MBMolecule objects.
     Takes raw RDKit Mol inputs and returns fully prepared MBMolecule instances."""
-
-
-class MBMoleculeFactory:
-    @staticmethod
-    def create(
-        mol: Mol,
-        source_file: str,
-        mol_index: int,
-        *,
-        add_hydrogens: bool = True,
-        set_oxidation_states: bool = True,
-        set_props: bool = True,
-    ) -> MBMolecule:
-        """Create and prepare an MBMolecule with optional preprocessing steps."""
-
-        if add_hydrogens:
-            mol = AddHs(mol)  # Adds hydrogens to RDKit object
-
-        if set_props:
-            mol.SetProp("_SourceFile", source_file)
-            mol.SetProp("_MolIndex", str(mol_index))
-
-        if set_oxidation_states:
-            rdmd.CalcOxidationNumbers(mol)
-
-        return MBMolecule(mol=mol, source_file=source_file, mol_index=mol_index)
