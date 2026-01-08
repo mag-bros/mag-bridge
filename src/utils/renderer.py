@@ -57,13 +57,13 @@ class Renderer:
             f"Mol {m.GetProp('_MolIndex')}: {MolToSmiles(m)}" if m else "" for m in mols
         ]
 
-        highlightAtomColors = self._build_highlight_colors_per_mol(highlightAtomLists)
-
         # --- Render grid directly with themed background ---
         img = MolsToGridImage(
             mols,
             highlightAtomLists=highlightAtomLists,
-            highlightAtomColors=highlightAtomColors,
+            highlightAtomColors=self._build_highlight_colors_per_mol(
+                highlightAtomLists
+            ),
             molsPerRow=mols_per_row,
             subImgSize=size,
             legends=legends,
