@@ -15,10 +15,10 @@ def test_bond_match_exists(
     bond_type_params: tuple[int, BondType],
 ) -> None:
     """Test Assumptions:
-    1. Each SDF File was designed to contain exactly one molecule.
+    1. Each SDF file was designed to contain exactly one molecule.
     2. The prepared SDF files comprise the simplest molecules that are able to represent given bond type.
     3. The aim of the test is to show that similar bond types are NOT incorrectly matched for the same structure.
-    4. Relevant bond types representation used in reference https://doi.org/10.1021/ed085p532
+    4. Only bond types from the reference https://doi.org/10.1021/ed085p532 are considered
     """
 
     idx, bond_type = bond_type_params
@@ -36,8 +36,10 @@ def test_bond_match_exists(
             f"but it did not."
         )
 
-    if bond_type.ignore_benzene_derivatives:
-        print(f"Intentionally ignoring benzene derivatives for bond type {bond_type}")
+    if not bond_type.ignore_benzene_substructure:
+        print(
+            f"In this test only, the benzene substructure is ignored for all molecules except the benzene molecule itself."
+        )
         return
 
     # Test if SMARTS subsctructure matches only expected SDF files globally
