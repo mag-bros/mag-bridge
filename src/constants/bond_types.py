@@ -14,6 +14,9 @@ class BondType:
     ignore_benzene_substructure: Optional[bool] = True
 
 
+"""TODO:
+1) The bond types C=C, C=C–C=C, Ar–C=C, and CH₂=CH–CH₂– cannot overlap during matching, either with each other or with themselves.
+"""
 # Relevant bond type representation (see reference https://doi.org/10.1021/ed085p532)
 RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
@@ -23,7 +26,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         sdf_files=["C2H4.sdf"],
         description="""
             Condition: C are NOT aromatic theirself and not bound to aryl group  - this rejects all aromatic rings that are not listed; 
-            Also excluded: cyclohexene, C=C-C=C and H2C=CH-CH2- (allyl group). 
+            Also excluded: cyclohexene, C=C-C=C and H2C=CH-CH2- (allyl group). The C atoms in C=C-C=C cannot be part of C=C-Ar bond type.
             Note: All exclusions must be applied for both atoms
             """,
     ),
@@ -39,7 +42,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="C=C-C=C",
-        SMARTS="[C;!$([c])]=[C;!$([c])]-[C;!$([c])]=[C;!$([c])]",
+        SMARTS="[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]-[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]",
         constitutive_corr=10.6,
         sdf_files=["C=C-C=C.sdf"],
         description="""
@@ -54,11 +57,11 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="C=O",
-        SMARTS="[C;X3;!$([C]-[c]);!$([C](=[O;X1])[O*]);!$([C](=[O;X1])[N*]);!$([C]([C]#[C]-[C])(=[O])[C])]=[O;X1]",
+        SMARTS="[C;X3;!$([C]-[c]);!$([C](=[O;X1])[O*]);!$([C](=[O;X1])[N*]);!$([C](=[O;X1])[S*]);!$([C]([C]#[C]-[C])(=[O])[C])]=[O;X1]",
         constitutive_corr=6.3,
         sdf_files=["C=O.sdf"],
         description="""
-            Condition: C cannot be bound to aryl group. Omitted additional bond to O/N in any form.
+            Condition: C cannot be bound to aryl group. Omitted additional bond to O/N/S in any form.
         """,
     ),
     BondType(
@@ -79,7 +82,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Condition: Isocyanide (isonitrile) group -N#C must be represented by the charged resonance structure",
     ),
     BondType(
-        formula="-C#N",
+        formula="-C#N",  # unique atoms
         SMARTS="[C;X2]#[N;X1]",
         constitutive_corr=0.8,
         sdf_files=["-C#N.sdf"],
@@ -159,24 +162,27 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="RCOOR",
-        SMARTS="[C;X3;!$([C]-[c])](=[O;X1])[O;X2]-[C]",
+        SMARTS="[C;X3;!$([C]-[c]);!$(C([O,N])[O,N])](=[O;X1])[O;X2]-[C]",
         constitutive_corr=-5.0,
         sdf_files=["RCOOR.sdf"],
-        description="R = aliphatic group",
+        description="""
+            R = aliphatic group
+            """,
     ),
     BondType(
-        formula="C(=O)NH2",
-        SMARTS="[C;X3;!$([C]-[c])](=[O;X1])[$([N;X3;H2]),$([N;X3;H1][C])]",
+        formula="RC(=O)NH2",
+        SMARTS="[C;X3;!$([C]-[c]);!$(C([O,N])[O,N])](=[O;X1])[$([N;X3;H2]),$([N;X3;H1;!$(N([C]=[O])[C]=[O])][C])]",
         constitutive_corr=-3.5,
         sdf_files=["RCONH2.sdf", "RCONHR.sdf"],
         description="""
             Note: Intentional extention for considering not only RCONH2, but also RCONHR. 
+            Eexcluded: ROC(=O)OR and RNHC(=O)OR groups.
             This must be noted in Software's MANUAL.    
         """,
     ),
     BondType(
         formula="C=N",
-        SMARTS="[C;X2,X3;!$([c])]=[N;!$([n]);!$([N](=[C]([C])[C])-[N]=[C]([C])[C])]",
+        SMARTS="[C;X2,X3;!$([c]);!$(C(=[N])=[S]);!$([C]([N])([N])=[N])]=[N;!$([n]);!$([N](=[C]([C])[C])-[N]=[C]([C])[C])]",
         constitutive_corr=8.15,
         sdf_files=["C=N.sdf", "R2C=N-N=CRAr.sdf"],
         description="""
@@ -201,7 +207,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         sdf_files=["Ar-NR2.sdf"],
     ),
     BondType(
-        formula="Ar-C(=O)R",
+        formula="Ar-C(=O)R",  ## NOT unique atoms
         SMARTS="[c]-[C;X3](=[O;X1])[C]",
         constitutive_corr=-1.5,
         sdf_files=["Ar-COR.sdf"],
@@ -245,10 +251,11 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         sdf_files=["Ar-C#C-Ar.sdf"],
     ),
     BondType(
-        formula="Ar-OR",
+        formula="Ar-OR",  # NOT unique atoms
         SMARTS="[c]-[O;X2][C]",
         constitutive_corr=-1,
         sdf_files=["Ar-OR.sdf"],
+        description="Cyclic ethers bound to aromatic C atom are also considered",
     ),
     BondType(
         formula="Ar-CHO",
@@ -351,7 +358,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         sdf_files=["cyclopentane.sdf"],
     ),
     BondType(
-        formula="cyclopropane",
+        formula="cyclopropane",  # NOT unique atoms
         SMARTS="C1CC1",
         constitutive_corr=7.2,
         sdf_files=["cyclopropane.sdf"],
@@ -370,7 +377,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="imidazole",
-        SMARTS="[$(n1cncc1),$([n-]1cncc1),$(n1c[n-]cc1),$([n+]1cncc1),$(n1c[n+]cc1)]",
+        SMARTS="n1cncc1",
         constitutive_corr=8.0,
         sdf_files=["imidazole.sdf", "imidazole-.sdf", "imidazole+.sdf"],
         description="""
@@ -386,7 +393,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="piperidine",
-        SMARTS="[$(N1CCCCC1),$([N-]1CCCCC1),$([N+]1CCCCC1)]",
+        SMARTS="N1CCCCC1",
         constitutive_corr=3.0,
         sdf_files=["piperidine.sdf", "piperidine-.sdf", "piperidine+.sdf"],
         description="""
@@ -396,7 +403,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="pyrazine",
-        SMARTS="[$(n1ccncc1),$([n+]1ccncc1),$(n1cc[n+]cc1)]",
+        SMARTS="n1ccncc1",
         constitutive_corr=9.0,
         sdf_files=["pyrazine.sdf", "pyrazine+.sdf"],
         description="""
@@ -406,20 +413,22 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="pyrimidine",
-        SMARTS="[$(n1cnccc1),$([n+]1cnccc1),$(n1c[n+]ccc1)]",
+        SMARTS="[n]1[c;!$(c=O)][n][c;!$(c=O)][c;!$(c=O)][c;!$(c=O)]1",
         constitutive_corr=6.5,
         sdf_files=["pyrimidine.sdf", "pyrimidine+.sdf"],
         description="""
+            Excluded: pyrimidinone rings (C atoms in pyrimidine ring cannot form C=O bond)
             Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
             This must be stated in MANUAL
         """,
     ),
     BondType(
         formula="pyridine",
-        SMARTS="[$(n1ccccc1),$([n+]1ccccc1)]",
+        SMARTS="n1[c;!$([c]=[O])][c;!$([c]=[O])][c;!$([c]=[O])][c;!$([c]=[O])][c;!$([c]=[O])]1",
         constitutive_corr=0.5,
         sdf_files=["pyridine.sdf", "pyridine+.sdf"],
         description="""
+            Condition: Aromatic C atoms cannot be a part of C=O group.
             Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
             This must be stated in MANUAL
         """,
@@ -448,7 +457,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="pyrrole",
-        SMARTS="[$(n1cccc1),$([n-]1cccc1)]",
+        SMARTS="n1cccc1",
         constitutive_corr=-3.5,
         sdf_files=["pyrrole.sdf", "pyrrole-.sdf"],
         description="""
@@ -477,10 +486,11 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         """,
     ),
     BondType(
-        formula="tetrahydrofuran",
-        SMARTS="O1CCCC1",
+        formula="tetrahydrofuran",  # NOT unique atoms
+        SMARTS="O1[C;!$([C]=O)][C][C][C;!$([C]=O)]1",
         constitutive_corr=0.0,
         sdf_files=["tetrahydrofuran.sdf"],
+        description="Tetrahydrofuran attached to aromatic ring via edge (polyheterocyclic system) is ignored.",
     ),
     BondType(
         formula="thiazole",
