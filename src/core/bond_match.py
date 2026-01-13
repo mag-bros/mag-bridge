@@ -52,8 +52,6 @@ class MBSubstructMatcher:
         )
 
         final_hits_by_formula: dict[str, list[tuple[int, ...]]] = {}
-
-        # trzymamy listę już zaakceptowanych dopasowań jako zbiory atomów
         accepted_atom_sets: list[set[int]] = []
 
         for f in formulas_sorted:
@@ -61,14 +59,11 @@ class MBSubstructMatcher:
             for atoms in cleaned[f]:
                 atom_set = set(atoms)
 
-                # reguła: z KAŻDYM wcześniej zaakceptowanym dopasowaniem
-                # można współdzielić maksymalnie 1 atom
                 ok = True
                 for prev in accepted_atom_sets:
                     if len(atom_set & prev) > 1:
                         ok = False
                         break
-
                 if not ok:
                     continue
 

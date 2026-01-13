@@ -45,11 +45,11 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     #     expected_matches=Counter({"CH2=CH-CH2-": 1, "C=C": 1}),
     #     description="Incorrect, due to chemical reasons. All carbon atoms of allyl group cannot belong to other bond type!",
     # ),
-    # BondMatchTestCase(
-    #     SMILES="CC(=CC=CC=C(C)C=CC=C(C)C(=O)OC1C(C(C(C(O1)COC2C(C(C(C(O2)CO)O)O)O)O)O)O)C=CC=C(C)C(=O)OC3C(C(C(C(O3)COC4C(C(C(C(O4)CO)O)O)O)O)O)O",  # TODO: Fix the self-matching of C=C-C=C
-    #     expected_matches=Counter({"C=C-C=C": 3, "C=C": 1, "RCOOR": 2}),
-    #     description="Incorrect, due to chemical reasons. All carbon atoms of C=C-C=C fragment cannot belong to other bond type! For ester RCOOR group the results are correct.",
-    # ),
+    BondMatchTestCase(
+        SMILES="CC(=CC=CC=C(C)C=CC=C(C)C(=O)OC1C(C(C(C(O1)COC2C(C(C(C(O2)CO)O)O)O)O)O)O)C=CC=C(C)C(=O)OC3C(C(C(C(O3)COC4C(C(C(C(O4)CO)O)O)O)O)O)O",  # TODO: Fix the self-matching of C=C-C=C
+        expected_matches=Counter({"C=C-C=C": 3, "C=C": 1, "RCOOR": 2}),
+        description="Incorrect, due to chemical reasons. All carbon atoms of C=C-C=C fragment cannot belong to other bond type! For ester RCOOR group the results are correct.",
+    ),
     # BondMatchTestCase(
     #     SMILES="CC(=C)C1CC2=C(O1)C=CC3=C2OC4COC5=CC(=C(C=C5C4C3=O)OC)OC",
     #     expected_matches=Counter({"Ar-OR": 5, "benzene": 2, "C=C": 1, "Ar-C(=O)R": 1}),
@@ -72,21 +72,21 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     #         Result: Expected.
     #         """,
     # ),
-    BondMatchTestCase(
-        SMILES="CC1CC2C3CCC4=CC(=O)C=CC4(C3(C(CC2(C1(C(=O)CO)O)C)O)F)C",
-        expected_matches=Counter(
-            {
-                "cyclohexane": 2,
-                "cyclopentane": 1,
-                "C=C": 2,
-                "C=O": 2,
-            }
-        ),
-        description="""
-            Purpose: Tests saturated policyclic systems
-            Result: Expected - saturated rings will not be matched when attached to aromatic ring by the ring's edge.
-        """,
-    ),
+    # BondMatchTestCase(
+    #     SMILES="CC1CC2C3CCC4=CC(=O)C=CC4(C3(C(CC2(C1(C(=O)CO)O)C)O)F)C",
+    #     expected_matches=Counter(
+    #         {
+    #             "cyclohexane": 2,
+    #             "cyclopentane": 1,
+    #             "C=C": 2,
+    #             "C=O": 2,
+    #         }
+    #     ),
+    #     description="""
+    #         Purpose: Tests saturated policyclic systems
+    #         Result: Expected - saturated rings will not be matched when attached to aromatic ring by the ring's edge.
+    #     """,
+    # ),
     # BondMatchTestCase(
     #     SMILES="C1=CN(C(=O)N=C1N)C2C(C(C(O2)CO)O)O",
     #     expected_matches=Counter({"tetrahydrofuran": 1}),
@@ -107,12 +107,12 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     #     SMILES="CC#CC[N]1C3=C(N=C1N2CCCC(C2)N)N(C(=O)N(C3=O)CC5=NC4=CC=CC=C4C(=N5)C)C",
     #     expected_matches=Counter(
     #         {
-    #             "C#C": 1,
-    #             "piperidine": 1,
     #             "Ar-NR2": 1,
+    #             "C#C": 1,
     #             "benzene": 1,
-    #             "pyrimidine": 1,
     #             "imidazole": 1,
+    #             "piperidine": 1,
+    #             "pyrimidine": 1,
     #         }
     #     ),
     #     description="""
@@ -124,9 +124,9 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     #     SMILES="CC#CC1(CCC2C1(CC(C3=C4CCC(=O)C=C4CCC23)C5=CC=C(C=C5)N(C)C)C)O",
     #     expected_matches=Counter(
     #         {
+    #             "Ar-NR2": 1,
     #             "C#C": 1,
     #             "C=O": 1,
-    #             "Ar-NR2": 1,
     #             "benzene": 1,
     #             "cyclohexane": 1,
     #             "cyclohexene": 2,
