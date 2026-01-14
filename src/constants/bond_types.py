@@ -25,7 +25,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         formula="C=C",
         SMARTS="[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]=[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]",
-        # SMARTS="[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1);!$([C;!c]=[C;!c]-[C;!c]=[C;!c]);!$([C;X3;H2]=[C;X3;H1]-[$([C;X4;H2]),$([C;X4;H3])])]=[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1);!$([C;!c]=[C;!c]-[C;!c]=[C;!c]);!$([C;X3;H2]=[C;X3;H1]-[$([C;X4;H2]),$([C;X4;H3])])]",
         constitutive_corr=5.5,
         sdf_files=["C2H4.sdf"],
         description="""
@@ -33,11 +32,11 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             Also excluded: cyclohexene, C=C-C=C and H2C=CH-CH2- (allyl group). The C atoms in C=C-C=C cannot be part of C=C-Ar bond type.
             Note: All exclusions must be applied for both atoms
             """,
-        prio=1,
+        prio=0,
     ),
     BondType(
         formula="C=C-C=C",
-        SMARTS="[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]-[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]",
+        SMARTS="[C;!$([c]);!$(C1=CCCCC1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1=CCCCC1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]-[C;!$([c]);!$(C1=CCCCC1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1=CCCCC1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]",
         constitutive_corr=10.6,
         sdf_files=["C=C-C=C.sdf"],
         description="""
@@ -46,11 +45,18 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         prio=10,
     ),
     BondType(
+        formula="Ar-C=C",
+        SMARTS="[c]-[C;X3;!$([c])]=[C;!$([c])]",  # TODO fix SMARTS
+        constitutive_corr=-1.0,
+        sdf_files=["Ar-C=C.sdf"],
+        prio=20,
+    ),
+    BondType(
         formula="CH2=CH-CH2-",
         SMARTS="[C;X3;H2]=[C;X3;H1]-[$([C;X4;H2]),$([C;X4;H3])]",
         constitutive_corr=4.5,
         sdf_files=["allyl_group.sdf"],
-        prio=20,
+        prio=30,
     ),
     BondType(
         formula="C#C",
@@ -224,12 +230,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[c]-[C;X3](=[O;X1])[O;X2]-[C]",
         constitutive_corr=-1.5,
         sdf_files=["Ar-COOR.sdf"],
-    ),
-    BondType(
-        formula="Ar-C=C",
-        SMARTS="[c]-[C;X3;!$([c]);!$([C]([c])-[c])]=[C;!c]",  # TODO fix SMARTS
-        constitutive_corr=-1.0,
-        sdf_files=["Ar-C=C.sdf"],
     ),
     BondType(
         formula="N=N",

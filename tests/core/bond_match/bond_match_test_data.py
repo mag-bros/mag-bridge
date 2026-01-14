@@ -139,8 +139,10 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     """,
     ),
     BondMatchTestCase(
-        SMILES="CN(C)C1=CC=C(C=C1)C(=C2C=CC(=[N+](C)C)C=C2)C3=CC=C(C=C3)N(C)C",  # TODO: Fix self-matching of Ar-C=C
-        expected_matches=Counter({"C=N": 1, "Ar-NR2": 2, "Ar-C=C": 1, "benzene": 2}),
+        SMILES="CN(C)C1=CC=C(C=C1)C(=C2C=CC(=[N+](C)C)C=C2)C3=CC=C(C=C3)N(C)C",
+        expected_matches=Counter(
+            {"C=N": 1, "Ar-NR2": 2, "Ar-C=C": 1, "benzene": 2, "C=C": 2}
+        ),
         description="""
             Purpose: Highlights the complexity of C=C-C=C, C=C and Ar-C=C matching.
             Result: FAILED. For the molecule, Ar-C=C cannot be matched twice!
@@ -271,34 +273,22 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     BondMatchTestCase(
         SMILES="CC1CCC2=C3N1C=C(C(=O)C3=CC(=C2)F)C(=O)[O-]",
         expected_matches=Counter({"Ar-COOH": 1, "benzene": 1}),
-        description="""
-            Purpose: Highlights that pyridine ring is not matched when one of its C atoms is a part of C=O group.
-            Result: Expected.
-        """,
+        description="Purpose: Highlights that pyridine ring is not matched when one of its C atoms is a part of C=O group.",
     ),
     BondMatchTestCase(
         SMILES="CC1=C(C(CCC1)(C)C)C=CC(=CC=CC(=CC(=O)O)C)C",
         expected_matches=Counter({"C=C-C=C": 2, "RCOOH": 1, "cyclohexene": 1}),
-        description="""
-            Purpose: Examine C=C-C=C self-matching.
-            Result. Failed.
-        """,
+        description="""Purpose: Examine C=C-C=C self-matching.""",
     ),
     BondMatchTestCase(
-        SMILES="C1=CC=C(C(=C1)C2=C3C=CC(=O)C=C3OC4=C2C=CC(=C4)[O-])C(=O)[O-]",
+        SMILES="C1=CC=C(C(=C1)C2=C3C=CC(=O)C=C3OC4=C2C=CC(=C4)[O-])C(=O)[O-]",  # TODO: rdkit error?
         expected_matches=Counter({"Ar-OH": 1, "Ar-Ar": 1, "Ar-COOH": 1, "benzene": 3}),
-        description="""
-            Purpose: Corner case of Ar-Ar matching.
-            Result: Expected.
-        """,
+        description="""Purpose: Corner case of Ar-Ar matching.""",
     ),
     BondMatchTestCase(
-        SMILES="CCN(CC)C1=CC2=C(C=C1)C(=C3C=CC(=[N+](CC)CC)C=C3O2)C4=CC=CC=C4C(=O)O",
+        SMILES="CCN(CC)C1=CC2=C(C=C1)C(=C3C=CC(=[N+](CC)CC)C=C3O2)C4=CC=CC=C4C(=O)O",  # TODO: rdkit error?
         expected_matches=Counter({"Ar-NR2": 1, "Ar-Ar": 1, "Ar-COOH": 1, "benzene": 3}),
-        description="""
-            Purpose: Corner case of Ar-Ar matching.
-            Result: Expected.
-        """,
+        description="Purpose: Corner case of Ar-Ar matching.",
     ),
     BondMatchTestCase(
         SMILES="CC1=C(C(CC(C1=O)O)(C)C)C=CC(=CC=CC(=CC=CC=C(C)C=CC=C(C)C=CC2=C(C(=O)C(CC2(C)C)O)C)C)C",
@@ -321,7 +311,11 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     BondMatchTestCase(
         SMILES="C=CCCCC(=C)C/C=C/C(C)=C/C=C/C(C)=C/C=C/C=C(C)/C=C/C=C(C)/C=C/C=C(C)/CC/C=C(C)\C",
         expected_matches=Counter(
-            {"C=C-C=C": 1, "RCOOH": 2, "RC(=O)NH2": 1, "C=N": 1, "thiazole": 1}
+            {
+                "C=C-C=C": 5,
+                "C=C": 2,
+                "CH2=CH-CH2-": 1,
+            }
         ),
         description="""
             Purpose: Example encompassing C=C-C=C, C=C and  

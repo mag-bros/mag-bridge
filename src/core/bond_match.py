@@ -95,34 +95,30 @@ class MBSubstructMatcher:
             cleaned[formula] = kept
 
         # --- C) Remove cross-formula overlap by priority (shared >1 atom => reject)
-        formulas_sorted = sorted(
-            cleaned.keys(),
-            key=lambda f: (-max(c.prio for c in by_formula[f]), f),
-        )
+        prio_by_f = {f: max(c.prio for c in by_formula[f]) for f in cleaned}
+        formulas_sorted = sorted(cleaned, key=lambda f: (-prio_by_f[f], f))
 
         final_hits_by_formula: dict[str, list[tuple[int, ...]]] = {}
-        accepted_atom_sets: list[set[int]] = []
+        accepted: list[tuple[int, set[int]]] = []  # (prio, atom_set)
 
         for f in formulas_sorted:
-            kept: list[tuple[int, ...]] = []
-
-            f_prio = max(c.prio for c in by_formula[f])
+            f_prio = prio_by_f[f]
             is_bypass = f_prio >= ALWAYS_ACCEPT_PRIO
+            kept: list[tuple[int, ...]] = []
 
             for atoms in cleaned[f]:
                 atom_set = set(atoms)
 
-                if not is_bypass:
-                    if any(len(atom_set & prev) > 1 for prev in accepted_atom_sets):
-                        # TODO: if the code gets here, we need to
-                        # add additinal condition to allow hit instead
-                        # The goal is to allow overlapping hits
-                        # only if accepted atom set has priority
-                        # higher than ALWAYS_ACCEPT_PRIO
-                        continue
+                # Reject overlaps only against previously accepted NON-bypass hits
+                if (not is_bypass) and any(
+                    len(atom_set & prev) > 1
+                    for p, prev in accepted
+                    if p < ALWAYS_ACCEPT_PRIO
+                ):
+                    continue
 
                 kept.append(atoms)
-                accepted_atom_sets.append(atom_set)
+                accepted.append((f_prio, atom_set))
 
             final_hits_by_formula[f] = kept
 
