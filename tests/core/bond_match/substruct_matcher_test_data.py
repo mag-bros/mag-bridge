@@ -52,19 +52,19 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     ),
     BondMatchTestCase(
         SMILES="CC(=C)C1CC2=C(O1)C=CC3=C2OC4COC5=CC(=C(C=C5C4C3=O)OC)OC",
-        expected_matches=Counter({"Ar-OR": 5, "benzene": 2, "C=C": 1, "Ar(C=O)R": 1}),
+        expected_matches=Counter({"Ar-OR": 5, "benzene": 2, "C=C": 1, "Ar-C(=O)R": 1}),
         description="Expected result.",
     ),
     BondMatchTestCase(
         SMILES="CC1(C(C1C(=O)OC(C#N)C2=CC(=CC=C2)OC3=CC=CC=C3)C=C(Cl)Cl)C",
         expected_matches=Counter(
             {
-                "C=C": 1,
-                "C-Cl": 2,
-                "cyclopropane": 1,
-                "RCOOR": 1,
                 "-C#N": 1,
+                "C-Cl": 2,
+                "RCOOR": 1,
                 "benzene": 2,
+                "cyclopropane": 1,
+                "C=C": 1,
             }
         ),
         description="""
@@ -76,10 +76,10 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         SMILES="CC1CC2C3CCC4=CC(=O)C=CC4(C3(C(CC2(C1(C(=O)CO)O)C)O)F)C",
         expected_matches=Counter(
             {
+                "C=O": 2,
                 "cyclohexane": 2,
                 "cyclopentane": 1,
                 "C=C": 2,
-                "C=O": 2,
             }
         ),
         description="""
@@ -107,12 +107,12 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         SMILES="CC#CC[N]1C3=C(N=C1N2CCCC(C2)N)N(C(=O)N(C3=O)CC5=NC4=CC=CC=C4C(=N5)C)C",
         expected_matches=Counter(
             {
-                "C#C": 1,
-                "piperidine": 1,
                 "Ar-NR2": 1,
+                "C#C": 1,
                 "benzene": 1,
-                "pyrimidine": 1,
                 "imidazole": 1,
+                "piperidine": 1,
+                "pyrimidine": 1,
             }
         ),
         description="""
@@ -124,9 +124,9 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         SMILES="CC#CC1(CCC2C1(CC(C3=C4CCC(=O)C=C4CCC23)C5=CC=C(C=C5)N(C)C)C)O",
         expected_matches=Counter(
             {
+                "Ar-NR2": 1,
                 "C#C": 1,
                 "C=O": 1,
-                "Ar-NR2": 1,
                 "benzene": 1,
                 "cyclohexane": 1,
                 "cyclohexene": 2,
@@ -139,8 +139,10 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     """,
     ),
     BondMatchTestCase(
-        SMILES="CN(C)C1=CC=C(C=C1)C(=C2C=CC(=[N+](C)C)C=C2)C3=CC=C(C=C3)N(C)C",  # TODO: Fix self-matching of Ar-C=C
-        expected_matches=Counter({"C=N": 1, "Ar-NR2": 2, "Ar-C=C": 1, "benzene": 2}),
+        SMILES="CN(C)C1=CC=C(C=C1)C(=C2C=CC(=[N+](C)C)C=C2)C3=CC=C(C=C3)N(C)C",
+        expected_matches=Counter(
+            {"C=N": 1, "Ar-NR2": 2, "Ar-C=C": 1, "benzene": 2, "C=C": 2}
+        ),
         description="""
             Purpose: Highlights the complexity of C=C-C=C, C=C and Ar-C=C matching.
             Result: FAILED. For the molecule, Ar-C=C cannot be matched twice!
@@ -169,7 +171,7 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     BondMatchTestCase(
         SMILES="CC1=CC(=C(C(=C1C=CC(=CC=CC(=CC(=O)[O-])C)C)C)C)OC",  # TODO: Fix the self-matching of C=C-C=C bond type.
         expected_matches=Counter(
-            {"C=C-C=C": 1, "C=C": 1, "Ar-C=C": 1, "Ar-OR": 1, "benzene": 1}
+            {"C=C-C=C": 1, "C=C": 1, "Ar-C=C": 1, "Ar-OR": 1, "benzene": 1, "RCOOH": 1}
         ),
         description="""
             Purpose: Highlights the problem with self-matching of C=C-C=C bond type.
@@ -271,9 +273,53 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     BondMatchTestCase(
         SMILES="CC1CCC2=C3N1C=C(C(=O)C3=CC(=C2)F)C(=O)[O-]",
         expected_matches=Counter({"Ar-COOH": 1, "benzene": 1}),
+        description="Purpose: Highlights that pyridine ring is not matched when one of its C atoms is a part of C=O group.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC1=C(C(CCC1)(C)C)C=CC(=CC=CC(=CC(=O)O)C)C",
+        expected_matches=Counter({"C=C-C=C": 2, "RCOOH": 1, "cyclohexene": 1}),
+        description="""Purpose: Examine C=C-C=C self-matching.""",
+    ),
+    BondMatchTestCase(
+        SMILES="C1=CC=C(C(=C1)C2=C3C=CC(=O)C=C3OC4=C2C=CC(=C4)[O-])C(=O)[O-]",  # TODO: rdkit error?
+        expected_matches=Counter({"Ar-OH": 1, "Ar-Ar": 1, "Ar-COOH": 1, "benzene": 3}),
+        description="""Purpose: Corner case of Ar-Ar matching.""",
+    ),
+    BondMatchTestCase(
+        SMILES="CCN(CC)C1=CC2=C(C=C1)C(=C3C=CC(=[N+](CC)CC)C=C3O2)C4=CC=CC=C4C(=O)O",  # TODO: rdkit error?
+        expected_matches=Counter({"Ar-NR2": 1, "Ar-Ar": 1, "Ar-COOH": 1, "benzene": 3}),
+        description="Purpose: Corner case of Ar-Ar matching.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC1=C(C(CC(C1=O)O)(C)C)C=CC(=CC=CC(=CC=CC=C(C)C=CC=C(C)C=CC2=C(C(=O)C(CC2(C)C)O)C)C)C",
+        expected_matches=Counter({"C=C-C=C": 4, "C=C": 1, "C=O": 2, "cyclohexene": 2}),
         description="""
-            Purpose: Highlights that pyridine ring is not matched when one of its C atoms is a part of C=O group.
-            Result: Expected.
+            Purpose: Examine C=C-C=C self-matching.
+            Result. Failed.
+        """,
+    ),
+    BondMatchTestCase(
+        SMILES="C=CC1=C(N2C(C(C2=O)NC(=O)C(=NOCC(=O)O)C3=CSC(=N3)N)SC1)C(=O)O",
+        expected_matches=Counter(
+            {"C=C-C=C": 1, "RCOOH": 2, "RC(=O)NH2": 1, "C=N": 1, "thiazole": 1}
+        ),
+        description="""
+            Purpose: Thiazole derivative example.
+            Result. Failed.
+        """,
+    ),
+    BondMatchTestCase(
+        SMILES="C=CCCCC(=C)C/C=C/C(C)=C/C=C/C(C)=C/C=C/C=C(C)/C=C/C=C(C)/C=C/C=C(C)/CC/C=C(C)\C",
+        expected_matches=Counter(
+            {
+                "C=C-C=C": 5,
+                "C=C": 2,
+                "CH2=CH-CH2-": 1,
+            }
+        ),
+        description="""
+            Purpose: Example encompassing C=C-C=C, C=C and  
+            Result. Failed.
         """,
     ),
 ]

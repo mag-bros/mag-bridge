@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional
 
+ALWAYS_ACCEPT_PRIO = 100
+
 
 @dataclass(frozen=True)
 class BondType:
@@ -12,16 +14,14 @@ class BondType:
     sdf_files: list[str]
     description: Optional[str] = ""
     ignore_benzene_substructure: Optional[bool] = True
+    prio: int = ALWAYS_ACCEPT_PRIO
 
 
-"""TODO:
-1) The bond types C=C, C=C–C=C, Ar–C=C, and CH₂=CH–CH₂– cannot overlap during matching, either with each other or with themselves.
-"""
 # Relevant bond type representation (see reference https://doi.org/10.1021/ed085p532)
 RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         formula="C=C",
-        SMARTS="[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1);!$([C;!c]=[C;!c]-[C;!c]=[C;!c]);!$([C;X3;H2]=[C;X3;H1]-[$([C;X4;H2]),$([C;X4;H3])])]=[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1);!$([C;!c]=[C;!c]-[C;!c]=[C;!c]);!$([C;X3;H2]=[C;X3;H1]-[$([C;X4;H2]),$([C;X4;H3])])]",
+        SMARTS="[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]=[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]",
         constitutive_corr=5.5,
         sdf_files=["C2H4.sdf"],
         description="""
@@ -29,6 +29,31 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             Also excluded: cyclohexene, C=C-C=C and H2C=CH-CH2- (allyl group). The C atoms in C=C-C=C cannot be part of C=C-Ar bond type.
             Note: All exclusions must be applied for both atoms
             """,
+        prio=0,
+    ),
+    BondType(
+        formula="C=C-C=C",
+        SMARTS="[C;!$([c]);!$(C1=CCCCC1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1=CCCCC1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]-[C;!$([c]);!$(C1=CCCCC1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1=CCCCC1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]",
+        constitutive_corr=10.6,
+        sdf_files=["C=C-C=C.sdf"],
+        description="""
+            Condition: all C atoms must be aliphatic.
+        """,
+        prio=10,
+    ),
+    BondType(
+        formula="Ar-C=C",
+        SMARTS="[c]-[C;X3;!$([c])]=[C;!$([c])]",  # TODO fix SMARTS
+        constitutive_corr=-1.0,
+        sdf_files=["Ar-C=C.sdf"],
+        prio=20,
+    ),
+    BondType(
+        formula="CH2=CH-CH2-",
+        SMARTS="[C;X3;H2]=[C;X3;H1]-[$([C;X4;H2]),$([C;X4;H3])]",
+        constitutive_corr=4.5,
+        sdf_files=["allyl_group.sdf"],
+        prio=30,
     ),
     BondType(
         formula="C#C",
@@ -39,21 +64,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             Condition: C#C atoms are not further connected to aryl group.
             Also excluded: RC#C-C(=O)R 
         """,
-    ),
-    BondType(
-        formula="C=C-C=C",
-        SMARTS="[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]-[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]",
-        constitutive_corr=10.6,
-        sdf_files=["C=C-C=C.sdf"],
-        description="""
-            Condition: all C atoms must be aliphatic.
-        """,
-    ),
-    BondType(
-        formula="CH2=CH-CH2-",
-        SMARTS="[C;X3;H2]=[C;X3;H1]-[$([C;X4;H2]),$([C;X4;H3])]",
-        constitutive_corr=4.5,
-        sdf_files=["allyl_group.sdf"],
     ),
     BondType(
         formula="C=O",
@@ -217,12 +227,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[c]-[C;X3](=[O;X1])[O;X2]-[C]",
         constitutive_corr=-1.5,
         sdf_files=["Ar-COOR.sdf"],
-    ),
-    BondType(
-        formula="Ar-C=C",
-        SMARTS="[c]-[C;X3;!c]=[C;!c]",
-        constitutive_corr=-1.0,
-        sdf_files=["Ar-C=C.sdf"],
     ),
     BondType(
         formula="N=N",
