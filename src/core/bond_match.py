@@ -4,6 +4,8 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from typing import Iterable
 
+from src.constants.bond_types import ALWAYS_ACCEPT_PRIO
+
 
 @dataclass(frozen=True, slots=True)
 class BondMatchCandidate:
@@ -26,6 +28,7 @@ class MBSubstructMatcher:
         dict[str, set[int]],  # groups_atoms
         set[int],  # atoms_to_highlight
     ]:
+        """Remove overlapping substructures."""
         # A) self-overlap w obrębie formuły
         by_formula: dict[str, list[BondMatchCandidate]] = defaultdict(list)
         for c in candidates:
@@ -56,16 +59,18 @@ class MBSubstructMatcher:
 
         for f in formulas_sorted:
             kept: list[tuple[int, ...]] = []
+
+            # formula-level prio (bo tak sortujesz); jeśli >=100, pomijamy filtrowanie całkowicie
+            f_prio = max(c.prio for c in by_formula[f])
+            bypass = f_prio >= ALWAYS_ACCEPT_PRIO
+
             for atoms in cleaned[f]:
                 atom_set = set(atoms)
 
-                ok = True
-                for prev in accepted_atom_sets:
-                    if len(atom_set & prev) > 1:
-                        ok = False
-                        break
-                if not ok:
-                    continue
+                if not bypass:
+                    # odrzuć tylko gdy >1 wspólny atom z którymkolwiek zaakceptowanym
+                    if any(len(atom_set & prev) > 1 for prev in accepted_atom_sets):
+                        continue
 
                 kept.append(atoms)
                 accepted_atom_sets.append(atom_set)

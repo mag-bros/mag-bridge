@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional
 
+ALWAYS_ACCEPT_PRIO = 100
+
 
 @dataclass(frozen=True)
 class BondType:
@@ -12,7 +14,7 @@ class BondType:
     sdf_files: list[str]
     description: Optional[str] = ""
     ignore_benzene_substructure: Optional[bool] = True
-    prio: int = 100
+    prio: int = ALWAYS_ACCEPT_PRIO
 
 
 """TODO:

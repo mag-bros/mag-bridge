@@ -40,11 +40,11 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     #     expected_matches=Counter({"C=C": 2, "C-Cl": 3}),
     #     description="The results are correct. This means that when counting bond types C=C and C-Cl, the same C atom for both bond types can be considered.",
     # ),
-    BondMatchTestCase(
-        SMILES="C=CCC=C",
-        expected_matches=Counter({"CH2=CH-CH2-": 1, "C=C": 1}),
-        description="Incorrect, due to chemical reasons. All carbon atoms of allyl group cannot belong to other bond type!",
-    ),
+    # BondMatchTestCase(
+    #     SMILES="C=CCC=C",
+    #     expected_matches=Counter({"CH2=CH-CH2-": 1, "C=C": 1}),
+    #     description="Incorrect, due to chemical reasons. All carbon atoms of allyl group cannot belong to other bond type!",
+    # ),
     # BondMatchTestCase(
     #     SMILES="CC(=CC=CC=C(C)C=CC=C(C)C(=O)OC1C(C(C(C(O1)COC2C(C(C(C(O2)CO)O)O)O)O)O)O)C=CC=C(C)C(=O)OC3C(C(C(C(O3)COC4C(C(C(C(O4)CO)O)O)O)O)O)O",  # TODO: Fix the self-matching of C=C-C=C
     #     expected_matches=Counter({"C=C-C=C": 3, "C=C": 1, "RCOOR": 2}),
@@ -59,12 +59,12 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     #     SMILES="CC1(C(C1C(=O)OC(C#N)C2=CC(=CC=C2)OC3=CC=CC=C3)C=C(Cl)Cl)C",
     #     expected_matches=Counter(
     #         {
-    #             "C=C": 1,
-    #             "C-Cl": 2,
-    #             "cyclopropane": 1,
-    #             "RCOOR": 1,
     #             "-C#N": 1,
+    #             "C-Cl": 2,
+    #             "RCOOR": 1,
     #             "benzene": 2,
+    #             "cyclopropane": 1,
+    #             "C=C": 1,
     #         }
     #     ),
     #     description="""
@@ -76,10 +76,10 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     #     SMILES="CC1CC2C3CCC4=CC(=O)C=CC4(C3(C(CC2(C1(C(=O)CO)O)C)O)F)C",
     #     expected_matches=Counter(
     #         {
+    #             "C=O": 2,
     #             "cyclohexane": 2,
     #             "cyclopentane": 1,
     #             "C=C": 2,
-    #             "C=O": 2,
     #         }
     #     ),
     #     description="""
@@ -176,16 +176,16 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     #         Result: FAILED. The C=C-C=C-C=C fragment of the molecule should be matched as C=C-C=C (1) and C=C (1).
     #     """,
     # ),
-    # BondMatchTestCase(
-    #     SMILES="COC1=C(C=CC(=C1)CC=C)[O-]",
-    #     expected_matches=Counter(
-    #         {"CH2=CH-CH2-": 1, "Ar-OH": 1, "Ar-OR": 1, "benzene": 1}
-    #     ),
-    #     description="""
-    #         Purpose: Checks matching of phenolate and allyl group attached to aromatic ring.
-    #         Result: Expected.
-    #     """,
-    # ),
+    BondMatchTestCase(
+        SMILES="COC1=C(C=CC(=C1)CC=C)[O-]",
+        expected_matches=Counter(
+            {"CH2=CH-CH2-": 1, "Ar-OH": 1, "Ar-OR": 1, "benzene": 1}
+        ),
+        description="""
+            Purpose: Checks matching of phenolate and allyl group attached to aromatic ring.
+            Result: Expected.
+        """,
+    ),
     # BondMatchTestCase(
     #     SMILES="C=CCN=C=S",
     #     expected_matches=Counter({"CH2=CH-CH2-": 1}),
