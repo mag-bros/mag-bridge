@@ -1,8 +1,7 @@
-from __future__ import annotations
+# from __future__ import annotations
 
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from typing import Iterable
 
 from src.constants.bond_types import ALWAYS_ACCEPT_PRIO
 
@@ -20,6 +19,13 @@ class BondMatchCandidate:
 
 class MBSubstructMatcher:
     @staticmethod
+    def GetMatches():
+        # TODO: finish this function, we need some serious
+        # best practice code cleanup because the  code
+        # have gone to an almost unmaintainable state
+        ...
+
+    @staticmethod
     def Postprocess(
         candidates: list[BondMatchCandidate],
     ) -> tuple[
@@ -29,6 +35,13 @@ class MBSubstructMatcher:
         set[int],  # atoms_to_highlight
     ]:
         """Remove overlapping substructures."""
+        # TODO: isolate self overlap code to a separate function -
+        #  - not sure if it should be a method of this class or a standalone function, or a separate module
+        # - we must tink of different code architectures here
+        # - or find a best matching code pattern we could use
+        # this code is likely to be changed in the future anyway, scale
+        # maters, and naming conenvtions are crucial
+        # as you can see we on purpose use non- standard naming pattern - just to match RDKit conventions
         # A) self-overlap w obrębie formuły
         by_formula: dict[str, list[BondMatchCandidate]] = defaultdict(list)
         for c in candidates:
@@ -48,6 +61,9 @@ class MBSubstructMatcher:
 
             cleaned[formula] = kept
 
+        # TODO: isolate cross overlap code to a separate function
+        # Dont complicate this too much in general, we need a clean solution. Solitude "Ovlerap" like class
+        # would probably be an overkill
         # B) cross-formula po priorytecie (większy prio wygrywa)
         formulas_sorted = sorted(
             cleaned.keys(),
@@ -78,6 +94,8 @@ class MBSubstructMatcher:
             final_hits_by_formula[f] = kept
 
         # outputs
+        # TODO: consider creating a dataclass for the output, returning a tuple of 4 elements is not very readable
+        #  and can lead to confusion
         matches_counter: Counter[str] = Counter()
         groups_atoms: dict[str, set[int]] = defaultdict(set)
         atoms_to_highlight: set[int] = set()
