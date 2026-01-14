@@ -17,9 +17,6 @@ class BondType:
     prio: int = ALWAYS_ACCEPT_PRIO
 
 
-"""TODO:
-1) The bond types C=C, C=C–C=C, Ar–C=C, and CH₂=CH–CH₂– cannot overlap during matching, either with each other or with themselves.
-"""
 # Relevant bond type representation (see reference https://doi.org/10.1021/ed085p532)
 RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(

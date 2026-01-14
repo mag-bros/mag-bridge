@@ -2,7 +2,7 @@ import pytest
 
 from src.core.bond_match import MBSubstructMatcher
 from src.loader import MBLoader
-from tests.core.bond_match.bond_match_test_data import (
+from tests.core.bond_match.substruct_matcher_test_data import (
     BOND_MATCH_TEST_CASES,
     BondMatchTestCase,
 )
