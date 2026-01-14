@@ -112,10 +112,13 @@ class MBSubstructMatcher:
             for atoms in cleaned[f]:
                 atom_set = set(atoms)
 
-                # {0, 1} & {1, 2} => {0, 1}
-
                 if not is_bypass:
                     if any(len(atom_set & prev) > 1 for prev in accepted_atom_sets):
+                        # TODO: if the code gets here, we need to
+                        # add additinal condition to allow hit instead
+                        # The goal is to allow overlapping hits
+                        # only if accepted atom set has priority
+                        # higher than ALWAYS_ACCEPT_PRIO
                         continue
 
                 kept.append(atoms)
