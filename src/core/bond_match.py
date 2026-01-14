@@ -52,12 +52,11 @@ class MBSubstructMatcher:
             if not hits:
                 continue
 
-            prio = int(getattr(bt, "prio", 0))
             for h in hits:
                 candidates.append(
                     BondMatchCandidate(
                         formula=bt.formula,
-                        prio=prio,
+                        prio=int(getattr(bt, "prio", 0)),
                         atoms=tuple(int(x) for x in h),
                     )
                 )
@@ -82,10 +81,14 @@ class MBSubstructMatcher:
             used_local: set[int] = set()
             kept: list[tuple[int, ...]] = []
 
+            f_prio = max(c.prio for c in by_formula[formula])
+            is_bypass = f_prio >= ALWAYS_ACCEPT_PRIO
+
             for c in sorted(lst, key=lambda c: c.key_self):
                 atoms = tuple(sorted(c.atoms))  # normalization (as before)
-                if any(a in used_local for a in atoms):
-                    continue
+                if not is_bypass:
+                    if any(a in used_local for a in atoms):
+                        continue
                 kept.append(atoms)
                 used_local.update(atoms)
 
@@ -104,13 +107,14 @@ class MBSubstructMatcher:
             kept: list[tuple[int, ...]] = []
 
             f_prio = max(c.prio for c in by_formula[f])
-            bypass = f_prio >= ALWAYS_ACCEPT_PRIO
+            is_bypass = f_prio >= ALWAYS_ACCEPT_PRIO
 
             for atoms in cleaned[f]:
                 atom_set = set(atoms)
 
-                if not bypass:
-                    # Reject only if it shares >1 atom with any previously accepted hit
+                # {0, 1} & {1, 2} => {0, 1}
+
+                if not is_bypass:
                     if any(len(atom_set & prev) > 1 for prev in accepted_atom_sets):
                         continue
 
@@ -124,6 +128,7 @@ class MBSubstructMatcher:
         groups_atoms: dict[str, set[int]] = defaultdict(set)
         atoms_to_highlight: set[int] = set()
 
+        # prepare data for renderer
         for f, hits in final_hits_by_formula.items():
             if not hits:
                 continue
@@ -137,29 +142,4 @@ class MBSubstructMatcher:
             matchesCounter=matches_counter,
             highlightAtomGroups={k: sorted(v) for k, v in groups_atoms.items()},
             highlightAtomList=sorted(atoms_to_highlight),
-        )
-
-    # Optional: keep legacy 4-tuple return for any older callers
-    @staticmethod
-    def PostprocessLegacy(
-        *, candidates: list[BondMatchCandidate]
-    ) -> tuple[
-        dict[str, list[tuple[int, ...]]],  # final_hits_by_formula
-        Counter[str],  # matches_counter
-        dict[str, set[int]],  # groups_atoms
-        set[int],  # atoms_to_highlight
-    ]:
-        res = MBSubstructMatcher.Postprocess(candidates=candidates)
-
-        # reconstruct legacy structures exactly as expected
-        groups_atoms: dict[str, set[int]] = {
-            k: set(v) for k, v in res.highlightAtomGroups.items()
-        }
-        atoms_to_highlight = set(res.highlightAtomList)
-
-        return (
-            res.final_hits_by_formula,
-            res.matchesCounter,
-            groups_atoms,
-            atoms_to_highlight,
         )

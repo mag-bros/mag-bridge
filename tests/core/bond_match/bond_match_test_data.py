@@ -35,26 +35,26 @@ class BondMatchTestCase:
 
 
 BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
-    # BondMatchTestCase(
-    #     SMILES="ClC=CC(Cl)C=CCl",
-    #     expected_matches=Counter({"C=C": 2, "C-Cl": 3}),
-    #     description="The results are correct. This means that when counting bond types C=C and C-Cl, the same C atom for both bond types can be considered.",
-    # ),
-    # BondMatchTestCase(
-    #     SMILES="C=CCC=C",
-    #     expected_matches=Counter({"CH2=CH-CH2-": 1, "C=C": 1}),
-    #     description="Incorrect, due to chemical reasons. All carbon atoms of allyl group cannot belong to other bond type!",
-    # ),
-    # BondMatchTestCase(
-    #     SMILES="CC(=CC=CC=C(C)C=CC=C(C)C(=O)OC1C(C(C(C(O1)COC2C(C(C(C(O2)CO)O)O)O)O)O)O)C=CC=C(C)C(=O)OC3C(C(C(C(O3)COC4C(C(C(C(O4)CO)O)O)O)O)O)O",  # TODO: Fix the self-matching of C=C-C=C
-    #     expected_matches=Counter({"C=C-C=C": 3, "C=C": 1, "RCOOR": 2}),
-    #     description="Incorrect, due to chemical reasons. All carbon atoms of C=C-C=C fragment cannot belong to other bond type! For ester RCOOR group the results are correct.",
-    # ),
-    # BondMatchTestCase(
-    #     SMILES="CC(=C)C1CC2=C(O1)C=CC3=C2OC4COC5=CC(=C(C=C5C4C3=O)OC)OC",
-    #     expected_matches=Counter({"Ar-OR": 5, "benzene": 2, "C=C": 1, "Ar-C(=O)R": 1}),
-    #     description="Expected result.",
-    # ),
+    BondMatchTestCase(
+        SMILES="ClC=CC(Cl)C=CCl",
+        expected_matches=Counter({"C=C": 2, "C-Cl": 3}),
+        description="The results are correct. This means that when counting bond types C=C and C-Cl, the same C atom for both bond types can be considered.",
+    ),
+    BondMatchTestCase(
+        SMILES="C=CCC=C",
+        expected_matches=Counter({"CH2=CH-CH2-": 1, "C=C": 1}),
+        description="Incorrect, due to chemical reasons. All carbon atoms of allyl group cannot belong to other bond type!",
+    ),
+    BondMatchTestCase(
+        SMILES="CC(=CC=CC=C(C)C=CC=C(C)C(=O)OC1C(C(C(C(O1)COC2C(C(C(C(O2)CO)O)O)O)O)O)O)C=CC=C(C)C(=O)OC3C(C(C(C(O3)COC4C(C(C(C(O4)CO)O)O)O)O)O)O",  # TODO: Fix the self-matching of C=C-C=C
+        expected_matches=Counter({"C=C-C=C": 3, "C=C": 1, "RCOOR": 2}),
+        description="Incorrect, due to chemical reasons. All carbon atoms of C=C-C=C fragment cannot belong to other bond type! For ester RCOOR group the results are correct.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC(=C)C1CC2=C(O1)C=CC3=C2OC4COC5=CC(=C(C=C5C4C3=O)OC)OC",
+        expected_matches=Counter({"Ar-OR": 5, "benzene": 2, "C=C": 1, "Ar-C(=O)R": 1}),
+        description="Expected result.",
+    ),
     BondMatchTestCase(
         SMILES="CC1(C(C1C(=O)OC(C#N)C2=CC(=CC=C2)OC3=CC=CC=C3)C=C(Cl)Cl)C",
         expected_matches=Counter(

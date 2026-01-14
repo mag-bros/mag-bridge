@@ -36,16 +36,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         prio=1,
     ),
     BondType(
-        formula="C#C",
-        SMARTS="[C;!$([C]-[c]);!$([C]([C])#[C]-[C](=[O])-[C])]#[C;!$([C]-[c]);!$([C]([C])#[C]-[C](=[O])-[C])]",
-        constitutive_corr=0.8,
-        sdf_files=["C2H2.sdf"],
-        description="""
-            Condition: C#C atoms are not further connected to aryl group.
-            Also excluded: RC#C-C(=O)R 
-        """,
-    ),
-    BondType(
         formula="C=C-C=C",
         SMARTS="[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]-[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1CCCC=C1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]",
         constitutive_corr=10.6,
@@ -60,6 +50,17 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[C;X3;H2]=[C;X3;H1]-[$([C;X4;H2]),$([C;X4;H3])]",
         constitutive_corr=4.5,
         sdf_files=["allyl_group.sdf"],
+        prio=20,
+    ),
+    BondType(
+        formula="C#C",
+        SMARTS="[C;!$([C]-[c]);!$([C]([C])#[C]-[C](=[O])-[C])]#[C;!$([C]-[c]);!$([C]([C])#[C]-[C](=[O])-[C])]",
+        constitutive_corr=0.8,
+        sdf_files=["C2H2.sdf"],
+        description="""
+            Condition: C#C atoms are not further connected to aryl group.
+            Also excluded: RC#C-C(=O)R 
+        """,
     ),
     BondType(
         formula="C=O",
