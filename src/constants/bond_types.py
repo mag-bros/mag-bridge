@@ -43,7 +43,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="Ar-C=C",
-        SMARTS="[c]-[C;X3;!$([c])]=[C;!$([c])]",  # TODO fix SMARTS
+        SMARTS="[c]-[C;X3;!$([c])]=[C;!$([c])]",
         constitutive_corr=-1.0,
         sdf_files=["Ar-C=C.sdf"],
         prio=20,
@@ -357,7 +357,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="cyclopentane",
-        SMARTS="C1CCCC1",
+        SMARTS="C1CCCC1",  # TODO: Fix for bicycle molecules required with cyclohexane priority over cyclopentane (if 4 atoms match -> leave cyclohexane only)
         constitutive_corr=0.0,
         sdf_files=["cyclopentane.sdf"],
     ),
@@ -445,7 +445,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="piperazine",
-        SMARTS="[$(N1CCNCC1),$([N+]1CCNCC1),$([N-]1CCNCC1)]",
+        SMARTS="N1CCNCC1",
         constitutive_corr=7.0,
         sdf_files=["piperazine.sdf", "piperazine-.sdf", "piperazine+.sdf"],
         description="""
@@ -471,7 +471,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="pyrrolidine",
-        SMARTS="[$(N1CCCC1),$([N+]1CCCC1),$([N-]1CCCC1)]",
+        SMARTS="N1CCCC1",
         constitutive_corr=0.0,
         sdf_files=["pyrrolidine.sdf", "pyrrolidine-.sdf", "pyrrolidine+.sdf"],
         description="""
@@ -481,7 +481,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="triazine",
-        SMARTS="[$(n1cncnc1),$([nH+]1cncnc1),$(n1c[nH+]cnc1),$(n1cnc[nH+]c1)]",
+        SMARTS="n1cncnc1",
         constitutive_corr=-1.4,
         sdf_files=["1,3,5-triazine.sdf", "1,3,5-triazine+.sdf"],
         description="""
@@ -490,7 +490,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         """,
     ),
     BondType(
-        formula="tetrahydrofuran",  # NOT unique atoms
+        formula="tetrahydrofuran",
         SMARTS="O1[C;!$([C]=O)][C][C][C;!$([C]=O)]1",
         constitutive_corr=0.0,
         sdf_files=["tetrahydrofuran.sdf"],

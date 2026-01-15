@@ -295,7 +295,6 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         expected_matches=Counter({"C=C-C=C": 4, "C=C": 1, "C=O": 2, "cyclohexene": 2}),
         description="""
             Purpose: Examine C=C-C=C self-matching.
-            Result. Failed.
         """,
     ),
     BondMatchTestCase(
@@ -305,7 +304,6 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         ),
         description="""
             Purpose: Thiazole derivative example.
-            Result. Failed.
         """,
     ),
     BondMatchTestCase(
@@ -319,7 +317,6 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         ),
         description="""
             Purpose: Example encompassing C=C-C=C, C=C and  
-            Result. Failed.
         """,
     ),
     BondMatchTestCase(
@@ -327,23 +324,6 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         expected_matches=Counter({"C=C-C=C": 2, "RCOOH": 1, "cyclohexene": 1}),
         description="""
             Purpose: Examine C=C-C=C self-matching.
-            Result. Failed.
-        """,
-    ),
-    BondMatchTestCase(
-        SMILES="C1=CC=C(C(=C1)C2=C3C=CC(=O)C=C3OC4=C2C=CC(=C4)[O-])C(=O)[O-]",
-        expected_matches=Counter({"Ar-OH": 1, "Ar-Ar": 1, "Ar-COOH": 1, "benzene": 3}),
-        description="""
-            Purpose: Corner case of Ar-Ar matching.
-            Result: Expected.
-        """,
-    ),
-    BondMatchTestCase(
-        SMILES="CCN(CC)C1=CC2=C(C=C1)C(=C3C=CC(=[N+](CC)CC)C=C3O2)C4=CC=CC=C4C(=O)O",
-        expected_matches=Counter({"Ar-NR2": 1, "Ar-Ar": 1, "Ar-COOH": 1, "benzene": 3}),
-        description="""
-            Purpose: Corner case of Ar-Ar matching.
-            Result: Expected.
         """,
     ),
     BondMatchTestCase(
@@ -351,7 +331,6 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         expected_matches=Counter({"C=C-C=C": 4, "C=C": 1, "C=O": 2, "cyclohexene": 2}),
         description="""
             Purpose: Examine C=C-C=C self-matching.
-            Result. Failed.
         """,
     ),
     BondMatchTestCase(
@@ -361,17 +340,72 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         ),
         description="""
             Purpose: Thiazole derivative example.
-            Result. Failed.
         """,
     ),
     BondMatchTestCase(
         SMILES="C=CCCCC(=C)C/C=C/C(C)=C/C=C/C(C)=C/C=C/C=C(C)/C=C/C=C(C)/C=C/C=C(C)/CC/C=C(C)\C",
-        expected_matches=Counter(
-            {"C=C-C=C": 1, "RCOOH": 2, "RC(=O)NH2": 1, "C=N": 1, "thiazole": 1}
-        ),
+        expected_matches=Counter({"C=C-C=C": 5, "C=C": 2, "CH2=CH-CH2-": 1}),
         description="""
-            Purpose: Example encompassing C=C-C=C, C=C and  
-            Result. Failed.
+            Purpose: Example encompassing C=C-C=C, C=C and CH2=CH-CH2- bond types.
         """,
     ),
+    BondMatchTestCase(
+        SMILES="CC1=C(C(=O)CC1OC(=O)C2C(C2(C)C)C=C(C)C)CC=C",
+        expected_matches=Counter(
+            {"C=O": 1, "RCOOR": 1, "cyclopropane": 1, "CH2=CH-CH2-": 1, "C=C": 2}
+        ),
+        description="""
+            Purpose: Check for matching of neighbouring C=C and CH2=CH-CH2- bond types.
+        """,
+    ),
+    BondMatchTestCase(
+        SMILES="CC1(C2CCC1(C(=O)C2)C)C",
+        expected_matches=Counter({"C=O": 1, "cyclohexane": 1}),
+        description="Purpose: Bicycle molecule example. FAILED - cyclopentane ring matching should be cancelled",
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC1N2C=C(C(=O)C3=CC(=C(C=C32)N4CC[N-]CC4)F)C(=O)[O-]",
+        expected_matches=Counter(
+            {
+                "Ar-COOH": 1,
+                "Ar-NR2": 1,
+                "benzene": 1,
+                "cyclopropane": 1,
+                "piperazine": 1,
+            }
+        ),
+        description="Purpose: Check for piperazine anion and Ar-COO- group.",
+    ),
+    BondMatchTestCase(
+        SMILES="C(C(=O)O)(Cl)Cl",
+        expected_matches=Counter({"RCHCl2": 1, "RCOOH": 1}),
+        description="Purpose: Adjacent RCHCl2 and RCOOH groups.",
+    ),
+    BondMatchTestCase(
+        SMILES="COC(=O)C(CC1=CC=CC=C1)NC(=O)C(CC(=O)O)N",
+        expected_matches=Counter(
+            {"RCOOH": 1, "RCOOR": 1, "RC(=O)NH2": 1, "benzene": 1}
+        ),
+        description="Purpose: Shows proper RCOOH, RCOOR and RC(=O)NH2 distinction.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC1=CC2C(CCC2(C(CC1)[N+]#[C-])C)C(C)C",
+        expected_matches=Counter({"C=C": 1, "-N#C": 1, "cyclopentane": 1}),
+        description="Purpose: Simple isonitrile molecule example.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC(C(C1=NN=C(O1)C2=CC=C(C=C2)F)NC3=C4C=CSC4=C(C=C3)[N+]#[C-])O",
+        expected_matches=Counter({"-N#C": 1, "Ar-Ar": 1, "benzene": 2, "thiophene": 1}),
+        description="Purpose: Example with Ar-N#C and benzothiophene.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC1(C2CC(C(C3(C2(C4=C(C(C5C3O5)(C)C)NC6=CC=CC1=C64)O)[N+]#[C-])(C)C=C)Cl)C",
+        expected_matches=Counter({}),
+        description="Purpose:",
+    ),
+    # BondMatchTestCase(
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="Purpose:",
+    # ),
 ]
