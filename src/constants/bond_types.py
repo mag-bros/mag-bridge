@@ -43,7 +43,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="Ar-C=C",
-        SMARTS="[c]-[C;X3;!$([c])]=[C;!$([c])]",
+        SMARTS="[c]-[C;X3;!$([c]);!$(C1=CCCCC1)]=[C;!$([c])!$(C1=CCCCC1)]",
         constitutive_corr=-1.0,
         sdf_files=["Ar-C=C.sdf"],
         prio=20,
@@ -212,7 +212,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="Ar-NR2",
-        SMARTS="[c]-[N;X3]([C])[C]",
+        SMARTS="[c]-[N;X3]([C;!$([C]=[O])])[C;!$([C]=[O])]",
         constitutive_corr=1,
         sdf_files=["Ar-NR2.sdf"],
     ),

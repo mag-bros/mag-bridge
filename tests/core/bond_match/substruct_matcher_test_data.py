@@ -399,9 +399,81 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         description="Purpose: Example with Ar-N#C and benzothiophene.",
     ),
     BondMatchTestCase(
-        SMILES="CC1(C2CC(C(C3(C2(C4=C(C(C5C3O5)(C)C)NC6=CC=CC1=C64)O)[N+]#[C-])(C)C=C)Cl)C",
-        expected_matches=Counter({}),
-        description="Purpose:",
+        SMILES="CC1CC2CC(C(C3C2C4C1CCC(C4CC3)(C)N=C=S)(C)[N+]#[C-])C",
+        expected_matches=Counter({"cyclohexane": 4, "-N#C": 1}),
+        description="Purpose: Example of fused multiple cyclohexane ring system.",
+    ),
+    BondMatchTestCase(
+        SMILES=" CC1CC2CC(C=C3C2C4C1CCC(C4CC3)(C)[N+]#[C-])(C)C",
+        expected_matches=Counter({"cyclohexane": 3, "cyclohexene": 1, "-N#C": 1}),
+        description="Purpose: Purpose: Example of fused multiple cyclohexane and cyclohexene ring system.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC1(C=C(C23C1CCC(C2)(CCC3)C)[N+]#[C-])C",
+        expected_matches=Counter({"-N#C": 1, "cyclohexane": 1, "C=C": 1}),
+        description="Purpose: bicyclo[2.2.2]octane derivative.FAILED due to cyclohexane self-matching",
+    ),
+    BondMatchTestCase(
+        SMILES="CC1(C2C3C(=O)C(C(C2=O)(C4=C5C1(O3)C(=O)N(C5=CC=C4)C)[N+]#[C-])(C)C=C)C",
+        expected_matches=Counter(
+            {
+                "-N#C": 1,
+                "C=O": 2,
+                "C=C": 1,
+                "benzene": 1,
+                "cyclohexane": 1,
+                "tetrahydrofuran": 1,
+            }
+        ),
+        description="Purpose: Alkyllated amide bond.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC1CCC(CC1)NC(=O)C2=CC3=C(C=C(C=C3N2)[N+]#[C-])C#N",
+        expected_matches=Counter(
+            {
+                "-C#N": 1,
+                "-N#C": 1,
+                "Ar-C(=O)NH2": 1,
+                "benzene": 1,
+                "cyclohexane": 1,
+                "pyrrole": 1,
+            }
+        ),
+        description="Purpose: Both -C#N and -N#C groups in the structure.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC1(C2CC(C(C(=C2C3=CNC4=CC=CC1=C43)[N+]#[C-])(C)C=C)Cl)C",
+        expected_matches=Counter(
+            {
+                "-N#C": 1,
+                "C-Cl": 1,
+                "benzene": 1,
+                "cyclohexene": 1,
+                "pyrrole": 1,
+                "C=C": 1,
+            }
+        ),
+        description="Purpose: Ar-C=C and cyclohexene overlap. Solved.",
+    ),
+    BondMatchTestCase(
+        SMILES="C1CN2CCN1CC2",
+        expected_matches=Counter({"piperazine": 1}),
+        description="Purpose: DABCO - one piperazine ring matching.",
+    ),
+    BondMatchTestCase(
+        SMILES="[C-]#[N+]C(=CC1=CC=C(C=C1)O)C(=CC2=CC=C(C=C2)O)[N+]#[C-]",
+        expected_matches=Counter({"-N#C": 2, "Ar-OH": 2, "benzene": 2, "Ar-C=C": 2}),
+        description="Purpose: Adjacent Ar-C=C and -N#C groups.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC1(CC(C23C1CCC(C2)(CCC3)C)[N+]#[C-])C",
+        expected_matches=Counter({"cyclohexane": 1, "cyclopentane": 1, "-N#C": 1}),
+        description="Purpose: bicyclo[2.2.2]octane fused with cyclopentane. FAILED",
+    ),
+    BondMatchTestCase(
+        SMILES="[C-]#[N+]C12CC3CC(C1)CC(C3)C2",
+        expected_matches=Counter({"cyclohexane": 1, "-N#C": 1}),
+        description="Purpose: Adamantane - fusion of three cyclohexane rings. FAILED",
     ),
     # BondMatchTestCase(
     #     SMILES="",
