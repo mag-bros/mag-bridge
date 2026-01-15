@@ -475,6 +475,91 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         expected_matches=Counter({"cyclohexane": 1, "-N#C": 1}),
         description="Purpose: Adamantane - fusion of three cyclohexane rings. FAILED",
     ),
+    BondMatchTestCase(
+        SMILES="CC(=O)OCC1C2CC(C1CO)C=C2",
+        expected_matches=Counter({"cyclohexene": 1, "RCOOR": 1}),
+        description="Purpose: Bicyclo[2.2.1]hepten derivative (fused cyclopentane and cyclohexene rings)",
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2CC2C1",
+        expected_matches=Counter({"cyclopentane:": 1, "cyclopropane": 1}),
+        description="Purpose: Corner case of bicyclo[3.1.0]hexane. To solve: cyclopropane must not share 3 atom indicies with cyclohexene ring.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC(C)(C)OC(=O)NC12CC(C1)(C2)C(=O)O",
+        expected_matches=Counter({"cyclobutane": 1, "RCOOH": 1}),
+        description="Purpose: Bicyclo[1.1.1]pentane containing fused cyclobutane rings.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC(C)(C)OC(=O)NC12CCC(C1)(C2)C(=O)O",
+        expected_matches=Counter({"cyclobutane": 1, "RCOOH": 1}),
+        description="Purpose: Bicyclo[2.1.1]hexane containing fused cyclobutane and cyclopentane rings.",
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2C=CC1CC2CO",
+        expected_matches=Counter({"cyclohexene": 1}),
+        description="Purpose: Compatition between cyclohexane and cyclohexene ring in bicyclo[2.2.2]octene derivative.",
+    ),
+    BondMatchTestCase(
+        SMILES="C1C[C@H]2C[C@@H]1[C@H]([C@H]2C(=O)[O-])C(=O)[O-]",
+        expected_matches=Counter({"RCOOH": 2, "cyclohexane": 1}),
+        description="Purpose: Check for matching with stereo-SMILES.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC(C12CC(C1)(C2)C34CC(C3)(C4)C(=O)O)(F)F",
+        expected_matches=Counter({"cyclobutane": 2, "RCOOH": 1}),
+        description="Purpose: Adjacent bicyclo[1.1.1]hexane groups",
+    ),
+    BondMatchTestCase(
+        SMILES="CC(C)(C)OC(=O)N1CCC2(CC1)C3CC(C2C=C3)C(=O)O",
+        expected_matches=Counter({"RCOOH": 1, "cyclohexene": 1, "piperidine": 1}),
+        description="Purpose: Cyclohexene containing bicyclo fragment bonded to piperidine ring.",
+    ),
+    BondMatchTestCase(
+        SMILES="C1CCC2C(C1)CC2=O",
+        expected_matches=Counter({"cyclobutane": 1, "cyclohexane": 1, "C=O": 1}),
+        description="Purpose: Fused cyclohexane and cyclobutanon rings.",
+    ),
+    BondMatchTestCase(
+        SMILES="C1C2C=CC1NC2=O",
+        expected_matches=Counter({"C=C": 1, "RC(=O)NH2": 1}),
+        description="Purpose: Pyrrolidine ring is not matched when N forms amid bond with adjacent C=O.",
+    ),
+    BondMatchTestCase(
+        SMILES="CC(C)(C)OC(=O)N1CC2CC2C1C(=O)O",
+        expected_matches=Counter({"RCOOH": 1, "cyclopropane": 1, "pyrrolidine": 1}),
+        description="Purpose: Corner case of azabicyclo[3.1.0]hexene with fused piperidine, pyrrolidine and cyclopropane.",
+    ),
+    BondMatchTestCase(
+        SMILES="C1C2C1(C(=O)NC2=O)C3=CC=CC=C3",
+        expected_matches=Counter({"benzene": 1, "cyclopropane": 1}),
+        description="Purpose: Check for imide group incorporated into azabicyclo[3.2.1]hexene.",
+    ),
+    BondMatchTestCase(
+        SMILES="C1CCC2(CC1)CC3=C(O2)C(=CC(=C3)Cl)C(=O)N[C@@H]4CN5CCC4CC5",
+        expected_matches=Counter({"cyclohexane": 1, "benzene": 1, "Ar-OR": 1, "Ar-Cl": 1, "Ar-C(=O)NH2": 1, "piperidine": 1}),
+        description="Purpose: Check for azabicyclo[2.2.2] fragment with fused piperidine ring.",
+    ),
+    BondMatchTestCase(
+        SMILES="C1CCN(CC1)C2(C3CN(CC2COC3)CC4=CC=CC=C4)C5=CC=CC=C5",
+        expected_matches=Counter({"benzene": 2, "piperidine": 2}),
+        description="Purpose: Piperidine rings - one terminal and one incorporated in bicyclic fragment.",
+    ),
+    BondMatchTestCase(
+        SMILES="CN1C2CCC1C=C(C2)C3=C(C=CS3)Br",
+        expected_matches=Counter({"Ar-Br": 1, "pyrrolidine": 1, "thiophene": 1, "Ar-C=C": 1}),
+        description="Purpose: Azabicyclo[3:2:1]octene derivative with additional thiophene ring and Ar-Br bond.",
+    ),
+    BondMatchTestCase(
+        SMILES="C1C2CN(CC1C2=O)CC3=CC=CC=C3",
+        expected_matches=Counter({"cyclobutane": 1, "C=O": 1, "benzene": 1}),
+        description="Purpose: Corner case - cyclobutane and piperidine fused into bicyclic structure.",
+    ),
+    BondMatchTestCase(
+        SMILES="C1COC2C1C2",
+        expected_matches=Counter({"tetrahydrofuran": 1, "cyclopropane": 1}),
+        description="Purpose: Check for oxabicyclo[3.1.0]hexene derivative.",
+    ),
     # BondMatchTestCase(
     #     SMILES="",
     #     expected_matches=Counter({}),

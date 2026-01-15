@@ -92,7 +92,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Condition: Isocyanide (isonitrile) group -N#C must be represented by the charged resonance structure",
     ),
     BondType(
-        formula="-C#N",  # unique atoms
+        formula="-C#N",
         SMARTS="[C;X2]#[N;X1]",
         constitutive_corr=0.8,
         sdf_files=["-C#N.sdf"],
@@ -397,7 +397,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="piperidine",
-        SMARTS="N1CCCCC1",
+        SMARTS="N1[C;!$(C=O)]CCC[C;!$(C=O)]1",
         constitutive_corr=3.0,
         sdf_files=["piperidine.sdf", "piperidine-.sdf", "piperidine+.sdf"],
         description="""
@@ -471,7 +471,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         formula="pyrrolidine",
-        SMARTS="N1CCCC1",
+        SMARTS="N1[C;!$(C=O)]CC[C;!$(C=O)]1",
         constitutive_corr=0.0,
         sdf_files=["pyrrolidine.sdf", "pyrrolidine-.sdf", "pyrrolidine+.sdf"],
         description="""
