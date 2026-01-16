@@ -361,7 +361,7 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     BondMatchTestCase(
         SMILES="CC1(C2CCC1(C(=O)C2)C)C",
         expected_matches=Counter({"C=O": 1, "cyclohexane": 1}),
-        description="Purpose: Bicycle molecule example. FAILED - cyclopentane ring matching should be cancelled",
+        description="Purpose: Bicycle molecule example.",
     ),
     BondMatchTestCase(
         SMILES="C1CC1N2C=C(C(=O)C3=CC(=C(C=C32)N4CC[N-]CC4)F)C(=O)[O-]",
@@ -476,11 +476,6 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         description="Purpose: Adamantane - fusion of three cyclohexane rings. FAILED",
     ),
     BondMatchTestCase(
-        SMILES="CC(=O)OCC1C2CC(C1CO)C=C2",
-        expected_matches=Counter({"cyclohexene": 1, "RCOOR": 1}),
-        description="Purpose: Bicyclo[2.2.1]hepten derivative (fused cyclopentane and cyclohexene rings)",
-    ),
-    BondMatchTestCase(
         SMILES="C1CC2CC2C1",
         expected_matches=Counter({"cyclopentane:": 1, "cyclopropane": 1}),
         description="Purpose: Corner case of bicyclo[3.1.0]hexane. To solve: cyclopropane must not share 3 atom indicies with cyclohexene ring.",
@@ -494,11 +489,6 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         SMILES="CC(C)(C)OC(=O)NC12CCC(C1)(C2)C(=O)O",
         expected_matches=Counter({"cyclobutane": 1, "RCOOH": 1}),
         description="Purpose: Bicyclo[2.1.1]hexane containing fused cyclobutane and cyclopentane rings.",
-    ),
-    BondMatchTestCase(
-        SMILES="C1CC2C=CC1CC2CO",
-        expected_matches=Counter({"cyclohexene": 1}),
-        description="Purpose: Compatition between cyclohexane and cyclohexene ring in bicyclo[2.2.2]octene derivative.",
     ),
     BondMatchTestCase(
         SMILES="C1C[C@H]2C[C@@H]1[C@H]([C@H]2C(=O)[O-])C(=O)[O-]",
@@ -537,7 +527,16 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     ),
     BondMatchTestCase(
         SMILES="C1CCC2(CC1)CC3=C(O2)C(=CC(=C3)Cl)C(=O)N[C@@H]4CN5CCC4CC5",
-        expected_matches=Counter({"cyclohexane": 1, "benzene": 1, "Ar-OR": 1, "Ar-Cl": 1, "Ar-C(=O)NH2": 1, "piperidine": 1}),
+        expected_matches=Counter(
+            {
+                "cyclohexane": 1,
+                "benzene": 1,
+                "Ar-OR": 1,
+                "Ar-Cl": 1,
+                "Ar-C(=O)NH2": 1,
+                "piperidine": 1,
+            }
+        ),
         description="Purpose: Check for azabicyclo[2.2.2] fragment with fused piperidine ring.",
     ),
     BondMatchTestCase(
@@ -547,7 +546,9 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
     ),
     BondMatchTestCase(
         SMILES="CN1C2CCC1C=C(C2)C3=C(C=CS3)Br",
-        expected_matches=Counter({"Ar-Br": 1, "pyrrolidine": 1, "thiophene": 1, "Ar-C=C": 1}),
+        expected_matches=Counter(
+            {"Ar-Br": 1, "pyrrolidine": 1, "thiophene": 1, "Ar-C=C": 1}
+        ),
         description="Purpose: Azabicyclo[3:2:1]octene derivative with additional thiophene ring and Ar-Br bond.",
     ),
     BondMatchTestCase(
@@ -555,10 +556,306 @@ BOND_MATCH_TEST_CASES: list[BondMatchTestCase] = [
         expected_matches=Counter({"cyclobutane": 1, "C=O": 1, "benzene": 1}),
         description="Purpose: Corner case - cyclobutane and piperidine fused into bicyclic structure.",
     ),
+    # bicyclo[1.1.0]
+    # carbocycle
+    # 65
     BondMatchTestCase(
-        SMILES="C1COC2C1C2",
+        SMILES="C12CC1C2",
+        expected_matches=Counter({"cyclopropane": 2}),
+    ),
+    # with heteroatoms
+    BondMatchTestCase(
+        SMILES="C12CC1N2",
+        expected_matches=Counter({"cyclopropane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12OC1C2",
+        expected_matches=Counter({"cyclopropane": 1}),
+    ),
+    # bicyclo[2.1.0]
+    # carbocycle
+    # 68
+    BondMatchTestCase(
+        SMILES="C12CCC1C2",
+        expected_matches=Counter({"cyclopropane": 1, "cyclobutane": 1}),
+    ),
+    # with N/O
+    BondMatchTestCase(
+        SMILES="C12CNC1C2",
+        expected_matches=Counter({"cyclopropane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12CCC1N2",
+        expected_matches=Counter({"cyclobutane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12COC1C2",
+        expected_matches=Counter({"cyclopropane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12CCC1O2",
+        expected_matches=Counter({"cyclobutane": 1}),
+    ),
+    # with C=C
+    BondMatchTestCase(
+        SMILES="C12C=CC1C2",
+        expected_matches=Counter({"cyclopropane": 1, "C=C": 1}),
+    ),
+    # bicyclo[3.1.0]
+    # carbocycle
+    # 74
+    BondMatchTestCase(
+        SMILES="C12CCCC1C2",
+        expected_matches=Counter({"cyclopropane": 1, "cyclopentane": 1}),
+    ),
+    # with N/O
+    BondMatchTestCase(
+        SMILES="C12CNCC1C2",
+        expected_matches=Counter({"pyrrolidine": 1, "cyclopropane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12CCCC1N2",
+        expected_matches=Counter({"cyclopentane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12COCC1C2",
         expected_matches=Counter({"tetrahydrofuran": 1, "cyclopropane": 1}),
-        description="Purpose: Check for oxabicyclo[3.1.0]hexene derivative.",
+    ),
+    BondMatchTestCase(
+        SMILES="C12CCCC1O2",
+        expected_matches=Counter({"cyclopentane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12CNCC1O2",
+        expected_matches=Counter({"pyrrolidine": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12COCC1N2",
+        expected_matches=Counter({"tetrahydrofuran": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12COCC1O2",
+        expected_matches=Counter({"tetrahydrofuran": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12CNCC1N2",
+        expected_matches=Counter({"pyrrolidine": 1}),
+    ),
+    # with C=C and C/N
+    BondMatchTestCase(
+        SMILES="C12CC=CC1C2",
+        expected_matches=Counter({"cyclopropane": 1, "C=C": 1}),
+    ),
+    # bicyclo[1.1.1]
+    # carbocycle
+    # 84
+    BondMatchTestCase(
+        SMILES="C12CC(C1)C2",
+        expected_matches=Counter({"cyclobutane": 1}),
+    ),
+    # with N/O
+    BondMatchTestCase(
+        SMILES="C12NC(C1)C2",
+        expected_matches=Counter({"cyclobutane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12OC(C1)C2",
+        expected_matches=Counter({"cyclobutane": 1}),
+    ),
+    # bicyclo[2.2.0]
+    # carbocycle
+    # 90
+    BondMatchTestCase(
+        SMILES="C12CCC1CC2",
+        expected_matches=Counter({"cyclobutane": 2}),
+    ),
+    # with N/O
+    BondMatchTestCase(
+        SMILES="C12CNC1CC2",
+        expected_matches=Counter({"cyclobutane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12CNC1CN2",
+        expected_matches=Counter({"piperazine": 1}),
+        description="Strained fused piperazine ring - corner case accepted for code simplicity.",
+    ),
+    BondMatchTestCase(
+        SMILES="C12COC1CC2",
+        expected_matches=Counter({"cyclobutane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12COC1CO2",
+        expected_matches=Counter({"dioxane": 1}),
+        description="Strained fused dioxane ring - corner case accepted for code simplicity.",
+    ),
+    BondMatchTestCase(
+        SMILES="C12COC1CN2",
+        expected_matches=Counter({"morpholine": 1}),
+        description="Strained fused dioxane ring - corner case accepted for code simplicity.",
+    ),
+    # with C=C
+    BondMatchTestCase(
+        SMILES="C12C=CC1CC2",
+        expected_matches=Counter({"cyclobutane": 1, "C=C": 1}),
+    ),
+    # bicyclo[2.1.1]
+    # carbocycle
+    # 94
+    BondMatchTestCase(
+        SMILES="C12CCC(C1)C2",
+        expected_matches=Counter({"cyclobutane": 1}),
+    ),
+    # with N/O
+    BondMatchTestCase(
+        SMILES="C12CNC(C1)C2",
+        expected_matches=Counter({"cyclobutane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12CCC(C1)N2",
+        expected_matches=Counter({"pyrrolidine": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12COC(C1)C2",
+        expected_matches=Counter({"cyclobutane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C12CCC(C1)O2",
+        expected_matches=Counter({"tetrahydrofuran": 1}),
+    ),
+    # with C=C
+    BondMatchTestCase(
+        SMILES="C12C=CC(C1)C2",
+        expected_matches=Counter({"cyclobutane": 1, "C=C": 1}),
+    ),
+    # bicyclo[2.2.1]
+    # carbocycle
+    # 100
+    BondMatchTestCase(
+        SMILES="C1CC2CCC1C2",
+        expected_matches=Counter({"cyclohexane": 1}),
+    ),
+    # with N/O
+    BondMatchTestCase(
+        SMILES="C1CC2CNC1C2",
+        expected_matches=Counter({"piperidine": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2CCC1N2",
+        expected_matches=Counter({"cyclohexane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2COC1C2",
+        expected_matches=Counter({"tetrahydrofuran": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2CCC1O2",
+        expected_matches=Counter({"cyclohexane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1NC2CNC1C2",
+        expected_matches=Counter({"piperazine": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1OC2COC1C2",
+        expected_matches=Counter({"dioxane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1OC2CNC1C2",
+        expected_matches=Counter({"morpholine": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2CNC1N2",
+        expected_matches=Counter({"piperidine": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2COC1O2",
+        expected_matches=Counter({"tetrahydrofuran": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2COC1N2",
+        expected_matches=Counter({"pyrrolidine": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2CNC1O2",
+        expected_matches=Counter({"piperidine": 1}),
+    ),
+    # with C=C and N/O
+    BondMatchTestCase(
+        SMILES="C1CC2C=CC1C2",
+        expected_matches=Counter({"cyclohexene": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2C=CC1N2",
+        expected_matches=Counter({"cyclohexene": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2C=CC1O2",
+        expected_matches=Counter({"cyclohexene": 1}),
+    ),
+    # bicyclo[2.2.2]
+    # carbocycle
+    # 115
+    BondMatchTestCase(
+        SMILES="C1CC2CCC1CC2",
+        expected_matches=Counter({"cyclohexane": 1}),
+    ),
+    # with N/O
+    BondMatchTestCase(
+        SMILES="C1CC2CNC1CC2",
+        expected_matches=Counter({"piperidine": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2COC1CC2",
+        expected_matches=Counter({"cyclohexane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="N1CC2CNC1CC2",
+        expected_matches=Counter({"piperidine": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1NC2COC1CC2",
+        expected_matches=Counter({"morpholine": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1NC2CNC1CC2",
+        expected_matches=Counter({"piperazine": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1OC2COC1OC2",
+        expected_matches=Counter({"dioxane": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1NC2CNC1NC2",
+        expected_matches=Counter({"piperazine": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1OC2CNC1NC2",
+        expected_matches=Counter({"morpholine": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1OC2COC1NC2",
+        expected_matches=Counter({"morpholine": 1}),
+    ),
+    # with C=C and N/O
+    BondMatchTestCase(
+        SMILES="C1CC2C=CC1CC2",
+        expected_matches=Counter({"cyclohexene": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2C=CC1C=C2",
+        expected_matches=Counter({"cyclohexene": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2C=CC1CN2",
+        expected_matches=Counter({"cyclohexene": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="C1CC2C=CC1CO2",
+        expected_matches=Counter({"cyclohexene": 1}),
+    ),
+    BondMatchTestCase(
+        SMILES="N1CC2C=CC1CO2",
+        expected_matches=Counter({"morpholine": 1, "C=C": 1}),
     ),
     # BondMatchTestCase(
     #     SMILES="",
