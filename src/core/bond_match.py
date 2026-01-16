@@ -151,9 +151,9 @@ class MBSubstructMatcher:
                     continue
 
                 # Placeholder rings must be "invisible" for overlap bookkeeping
+                accepted_candidates.append(bmc)
                 if not bmc.placeholder_ring:
                     kept_atoms.append(atoms)
-                    accepted_candidates.append(bmc)
 
             final_hits_by_formula[match] = kept_atoms
 
