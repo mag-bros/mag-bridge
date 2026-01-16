@@ -137,11 +137,10 @@ class MBSubstructMatcher:
                 atoms = tuple(sorted(bmc.atoms))
                 atom_set = set(atoms)
 
-                is_bicyclic_overlap = any(
+                if any(
                     len(atom_set & set(acc_can.atoms)) >= 3
                     for acc_can in accepted_candidates
-                )
-                if is_bicyclic_overlap:
+                ):
                     continue
 
                 if (not skip_removal_check) and any(
@@ -151,10 +150,9 @@ class MBSubstructMatcher:
                 ):
                     continue
 
-                kept_atoms.append(atoms)
-
                 # Placeholder rings must be "invisible" for overlap bookkeeping
                 if not bmc.placeholder_ring:
+                    kept_atoms.append(atoms)
                     accepted_candidates.append(bmc)
 
             final_hits_by_formula[match] = kept_atoms
