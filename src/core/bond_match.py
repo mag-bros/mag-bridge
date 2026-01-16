@@ -1,17 +1,26 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 from loader import MBMolecule
-from src.constants.bond_types import ALWAYS_ACCEPT_PRIO, RELEVANT_BOND_TYPES, BondType
+from src.constants.bond_types import (
+    RELEVANT_BOND_TYPES,
+    SENIORITY_THRESHOLD,
+    BondType,
+)
 
 
-@dataclass(frozen=True, slots=True)
-class BondMatchCandidate:
-    formula: str
-    prio: int
-    atoms: tuple[int, ...]
+class BondMatchCandidate(BondType):
+    __slots__ = ("atoms",)
+
+    def __init__(self, atoms: Iterable[int], **kwargs) -> None:
+        super().__init__(**kwargs)
+        object.__setattr__(self, "atoms", tuple(int(a) for a in atoms))
+
+    @classmethod
+    def from_bt(cls, bt: BondType, atoms: Iterable[int]) -> "BondMatchCandidate":
+        return cls(atoms=atoms, **asdict(bt))
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,16 +57,10 @@ class MBSubstructMatcher:
                 continue
 
             for hit in hits:
-                candidates.append(
-                    BondMatchCandidate(
-                        formula=bt.formula,
-                        prio=bt.prio,
-                        atoms=tuple(int(x) for x in hit),
-                    )
-                )
+                candidates.append(BondMatchCandidate.from_bt(bt, hit))
 
         # --- 2) Resolve overlaps + compute renderer outputs
-        return MBSubstructMatcher._Postprocess(candidates=candidates)
+        return MBSubstructMatcher._Postprocess(candidates)
 
     @staticmethod
     def _Postprocess(candidates: list[BondMatchCandidate]) -> SubstructMatchResult:
@@ -66,13 +69,11 @@ class MBSubstructMatcher:
             return SubstructMatchResult.empty()
 
         # Group candidates by formula (bond type)
-        by_formula: dict[str, list[BondMatchCandidate]] = defaultdict(list)
+        grouped_candidates: dict[str, list[BondMatchCandidate]] = defaultdict(list)
         for c in candidates:
-            by_formula[c.formula].append(c)
+            grouped_candidates[c.formula].append(c)
 
-        final_hits_by_formula = MBSubstructMatcher._RemoveOverlaps(
-            by_formula=by_formula
-        )
+        final_hits_by_formula = MBSubstructMatcher._RemoveOverlaps(grouped_candidates)
 
         # Build counters + highlight structures
         matches_counter: Counter[str] = Counter()
@@ -97,17 +98,18 @@ class MBSubstructMatcher:
 
     @staticmethod
     def _RemoveOverlaps(
-        by_formula: dict[str, list[BondMatchCandidate]],
+        grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[tuple[int, ...]]]:
         # (A) Remove self-overlap within each formula (any shared atom => reject)
         cleaned: dict[str, list[tuple[int, ...]]] = {}
 
-        for formula, lst in by_formula.items():
+        for formula, lst in grouped_candidates.items():
             used_local: set[int] = set()
             kept: list[tuple[int, ...]] = []
 
             skip_removal_check = (
-                max(c.prio for c in by_formula[formula]) >= ALWAYS_ACCEPT_PRIO
+                max(c.seniority for c in grouped_candidates[formula])
+                >= SENIORITY_THRESHOLD
             )
 
             for c in lst:
@@ -120,32 +122,40 @@ class MBSubstructMatcher:
 
             cleaned[formula] = kept
 
-        # (B) Remove cross-formula overlap by priority (shared >1 atom => reject)
-        prio_by_f = {f: max(c.prio for c in by_formula[f]) for f in cleaned}
-        formulas_sorted = sorted(cleaned, key=lambda f: (-prio_by_f[f], f))
+        # (B) Remove cross-formula overlap by seniorityrity (shared >1 atom => reject)
+        seniority_by_f = {f: max(c.seniority for c in by_formula[f]) for f in cleaned}
+        matches = sorted(cleaned, key=lambda f: (-seniority_by_f[f], f))
 
         final_hits_by_formula: dict[str, list[tuple[int, ...]]] = {}
-        accepted: list[tuple[int, set[int]]] = []  # (prio, atom_set)
+        accepted: list[tuple[int, set[int]]] = []  # (seniority, atom_set)
 
-        for formula in formulas_sorted:
-            f_prio = prio_by_f[formula]
-            skip_removal_check = f_prio >= ALWAYS_ACCEPT_PRIO
+        for match in matches:
+            f_seniority = seniority_by_f[match]
+            skip_removal_check = f_seniority >= SENIORITY_THRESHOLD
             kept: list[tuple[int, ...]] = []
 
-            for atoms in cleaned[formula]:
+            for atoms in cleaned[match]:
                 atom_set = set(atoms)
+
+                # Overlapping rings in bicyclic structure
+                # 3 or more shared atoms are considered as an overlap
+                is_bicyclic_overlap = any(
+                    len(atom_set & prev) >= 3 for p, prev in accepted
+                )
+                if is_bicyclic_overlap:
+                    continue
 
                 # Reject overlaps only against previously accepted NON-bypass hits
                 if (not skip_removal_check) and any(
                     len(atom_set & prev) > 1
                     for p, prev in accepted
-                    if p < ALWAYS_ACCEPT_PRIO
+                    if p < SENIORITY_THRESHOLD
                 ):
                     continue
 
                 kept.append(atoms)
-                accepted.append((f_prio, atom_set))
+                accepted.append((f_seniority, atom_set))
 
-            final_hits_by_formula[formula] = kept
+            final_hits_by_formula[match] = kept
 
         return final_hits_by_formula
