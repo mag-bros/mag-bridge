@@ -81,9 +81,15 @@ class MBSubstructMatcher:
         filtered: dict[str, list[BondMatchCandidate]] = (
             MBSubstructMatcher._FilterSelfOverlaps(grouped_candidates)
         )
-        final_hits_by_formula: dict[str, list[tuple[int, ...]]] = (
+
+        final_candidates_by_formula: dict[str, list[BondMatchCandidate]] = (
             MBSubstructMatcher._FilterCrossOverlaps(mol, filtered)
         )
+
+        final_hits_by_formula: dict[str, list[tuple[int, ...]]] = {
+            f: [tuple(sorted(c.atoms)) for c in lst]
+            for f, lst in final_candidates_by_formula.items()
+        }
 
         # Build counters + highlight structures
         matches_counter: Counter[str] = Counter()
@@ -134,10 +140,10 @@ class MBSubstructMatcher:
     def _FilterCrossOverlaps(
         mol: MBMolecule,
         filtered: dict[str, list[BondMatchCandidate]],
-    ) -> dict[str, list[tuple[int, ...]]]:
+    ) -> dict[str, list[BondMatchCandidate]]:
         # (B) Remove cross-formula overlap by seniority (shared >1 atom => reject)
-        final_hits_by_formula = defaultdict(list)
-        accepted_candidates: list[BondMatchCandidate] = []
+        final_by_formula = defaultdict(list)
+        accepted_candidates: list[BondMatchCandidate] = []  # keep NON-placeholder only
 
         matches = sorted(
             ((f, lst, max(c.seniority for c in lst)) for f, lst in filtered.items()),
@@ -159,9 +165,8 @@ class MBSubstructMatcher:
 
                 if is_bicyclic_overlap:
                     BicyclicOverlaps.InjectDerivedMatches(
-                        mol, bmc, accepted_candidates, final_hits_by_formula
+                        mol, bmc, accepted_candidates, final_by_formula
                     )
-
                     continue
 
                 if (not skip_removal_check) and any(
@@ -171,12 +176,15 @@ class MBSubstructMatcher:
                 ):
                     continue
 
-                # Placeholder rings must be "invisible" for overlap bookkeeping
+                # Placeholder rings must be "invisible" for overlap bookkeeping + output
+                final_by_formula[match].append(bmc)
                 accepted_candidates.append(bmc)
-                if not bmc.placeholder_ring:
-                    final_hits_by_formula[match].append(atoms)
 
-        return dict(final_hits_by_formula)
+        result = dict(final_by_formula)
+        filtered_result = {
+            k: [c for c in v if not c.placeholder_ring] for k, v in result.items()
+        }
+        return filtered_result
 
 
 class BicyclicOverlaps:
@@ -185,7 +193,7 @@ class BicyclicOverlaps:
             MBMolecule,
             BondMatchCandidate,
             list[BondMatchCandidate],
-            dict[str, list[tuple[int, ...]]],
+            dict[str, list[BondMatchCandidate]],
         ],
         None,
     ]
@@ -205,7 +213,7 @@ class BicyclicOverlaps:
         mol: MBMolecule,
         bmc: BondMatchCandidate,
         accepted_candidates: list[BondMatchCandidate],
-        final_hits_by_formula: dict[str, list[tuple[int, ...]]],
+        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
     ) -> None:
         rule = cls._get_rules().get(bmc.formula)
         if rule is None:
@@ -217,7 +225,7 @@ class BicyclicOverlaps:
         mol: MBMolecule,
         bmc: BondMatchCandidate,
         accepted_candidates: list[BondMatchCandidate],
-        final_hits_by_formula: dict[str, list[tuple[int, ...]]],
+        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
     ) -> None:
         exclude_idx = {i for acc in accepted_candidates for i in acc.atoms}
         double_bond_atoms = mol.GetDoubleBondAtomsIndexes(exclude_idx=exclude_idx)
@@ -226,6 +234,4 @@ class BicyclicOverlaps:
 
         new_bmc = BondMatchCandidate.from_bt(DOUBLE_BOND, double_bond_atoms)
         accepted_candidates.append(new_bmc)
-        final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(
-            double_bond_atoms
-        )
+        final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
