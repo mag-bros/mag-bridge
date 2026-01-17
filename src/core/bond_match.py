@@ -111,26 +111,24 @@ class MBSubstructMatcher:
         grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[BondMatchCandidate]]:
         # (A) Filter self-overlap within each formula (any shared atom => reject)
-        filtered: dict[str, list[BondMatchCandidate]] = {}
+        filtered = defaultdict(list)
 
-        for formula, lst in grouped_candidates.items():
+        for match, match_candidates in grouped_candidates.items():
             used_local: set[int] = set()
-            kept: list[BondMatchCandidate] = []
+            skip_removal_check = (
+                max(c.seniority for c in match_candidates) >= SENIORITY_THRESHOLD
+            )
 
-            skip_removal_check = max(c.seniority for c in lst) >= SENIORITY_THRESHOLD
+            for bmc in match_candidates:
+                atoms = tuple(sorted(bmc.atoms))
 
-            for c in lst:
-                atoms = tuple(sorted(c.atoms))  # same normalization
-                # TODO cyclohexene
-                if (not skip_removal_check) and any(a in used_local for a in atoms):
+                if (not skip_removal_check) and used_local.intersection(atoms):
                     continue
 
-                kept.append(c)
+                filtered[match].append(bmc)
                 used_local.update(atoms)
 
-            filtered[formula] = kept
-
-        return filtered
+        return dict(filtered)
 
     @staticmethod
     def _FilterCrossOverlaps(
@@ -138,7 +136,7 @@ class MBSubstructMatcher:
         filtered: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[tuple[int, ...]]]:
         # (B) Remove cross-formula overlap by seniority (shared >1 atom => reject)
-        final_hits_by_formula = defaultdict(list)  # type: ignore[var-annotated]
+        final_hits_by_formula = defaultdict(list)
         accepted_candidates: list[BondMatchCandidate] = []
 
         matches = sorted(
@@ -226,9 +224,8 @@ class BicyclicOverlaps:
         if not double_bond_atoms:
             return
 
-        accepted_candidates.append(
-            BondMatchCandidate.from_bt(DOUBLE_BOND, double_bond_atoms)
-        )
+        new_bmc = BondMatchCandidate.from_bt(DOUBLE_BOND, double_bond_atoms)
+        accepted_candidates.append(new_bmc)
         final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(
             double_bond_atoms
         )
