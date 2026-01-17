@@ -136,7 +136,7 @@ class MBSubstructMatcher:
         filtered: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[tuple[int, ...]]]:
         # (B) Remove cross-formula overlap by seniority (shared >1 atom => reject)
-        final_hits_by_formula: dict[str, list[tuple[int, ...]]] = {}
+        final_hits_by_formula = defaultdict(list)  # type: ignore[var-annotated]
         accepted_candidates: list[BondMatchCandidate] = []
 
         # sort by (-seniority, formula) while carrying match seniority inline
@@ -146,8 +146,10 @@ class MBSubstructMatcher:
         )
 
         for match, match_candidates, match_seniority in matches:
-            kept_atoms: list[tuple[int, ...]] = []
             skip_removal_check = match_seniority >= SENIORITY_THRESHOLD
+            match_hits = final_hits_by_formula[
+                match
+            ]  # single output sink for this match
 
             for bmc in match_candidates:
                 atoms = tuple(sorted(bmc.atoms))
@@ -190,9 +192,7 @@ class MBSubstructMatcher:
                         accepted_candidates.append(
                             BondMatchCandidate.from_bt(cc, double_bond_atoms)
                         )
-                        final_hits_by_formula.setdefault("C=C", []).append(
-                            double_bond_atoms
-                        )
+                        final_hits_by_formula["C=C"].append(double_bond_atoms)
 
                     continue
 
@@ -206,8 +206,6 @@ class MBSubstructMatcher:
                 # Placeholder rings must be "invisible" for overlap bookkeeping
                 accepted_candidates.append(bmc)
                 if not bmc.placeholder_ring:
-                    kept_atoms.append(atoms)
+                    match_hits.append(atoms)
 
-            final_hits_by_formula[match] = kept_atoms
-
-        return final_hits_by_formula
+        return dict(final_hits_by_formula)
