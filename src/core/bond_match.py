@@ -160,30 +160,25 @@ class MBSubstructMatcher:
 
                 if is_bicyclic_overlap:
                     if bmc.formula == "cyclohexene":
-                        free_atoms = []
-                        for acc_can in accepted_candidates:
-                            free_atoms.extend(
-                                [
-                                    a
-                                    for a in mol.GetAtoms()
-                                    if a.idx not in acc_can.atoms
-                                ]
-                            )
-
-                        double_bonds: list[bool] = [
-                            a.has_double_bond for a in free_atoms
-                        ]
-                        indexes: tuple[int, ...] = tuple(a.idx for a in free_atoms)
-                        additional_double_bonds = (sum(double_bonds) // 2) % 2
+                        excluded_idx = {
+                            i for acc_can in accepted_candidates for i in acc_can.atoms
+                        }
 
                         double_bond_atoms = tuple(
-                            a for a, m in zip(indexes, double_bonds) if m
+                            a.idx
+                            for a in mol.GetAtoms()
+                            if a.idx not in excluded_idx and a.has_double_bond
                         )
 
-                        accepted_candidates.append(
-                            BondMatchCandidate.from_bt(DOUBLE_BOND, double_bond_atoms)
-                        )
-                        final_hits_by_formula["C=C"].append(double_bond_atoms)
+                        additional_double_bonds = (len(double_bond_atoms) // 2) % 2
+
+                        if double_bond_atoms:
+                            accepted_candidates.append(
+                                BondMatchCandidate.from_bt(
+                                    DOUBLE_BOND, double_bond_atoms
+                                )
+                            )
+                            final_hits_by_formula["C=C"].append(double_bond_atoms)
 
                     continue
 
