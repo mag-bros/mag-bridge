@@ -153,35 +153,32 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             This must be stated in MANUAL""",
         seniority=66,
     ),
-    # TODO add SDF
     BondType(
         id=14,
         formula="thiacyclopropane",
         SMARTS="C1CS1",
         constitutive_corr=0,
-        sdf_files=(),
+        sdf_files=("thiacyclopropane.sdf",),
         description="Dummy ring for proper assignement of 5-membered rings within bicyclo[3.1.0] structures",
         seniority=88,
         dummy_ring=True,
     ),
-    # TODO add SDF
     BondType(
         id=15,
         formula="oxacyclopropane",
         SMARTS="C1CO1",
         constitutive_corr=0,
-        sdf_files=(),
+        sdf_files=("oxacyclopropane.sdf",),
         description="Dummy ring for proper assignement of 5-membered rings within bicyclo[3.1.0] structures",
         seniority=89,
         dummy_ring=True,
     ),
-    # TODO add SDF
     BondType(
         id=16,
         formula="azacyclopropane",
         SMARTS="C1CN1",
         constitutive_corr=0,
-        sdf_files=(),
+        sdf_files=("azacyclopropane.sdf",),
         description="Dummy ring for proper assignement of 5-membered rings within bicyclo[3.1.0] structures",
         seniority=90,
         dummy_ring=True,
