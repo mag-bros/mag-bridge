@@ -136,17 +136,19 @@ class MBSubstructMatcher:
         filtered: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[tuple[int, ...]]]:
         # (B) Remove cross-formula overlap by seniority (shared >1 atom => reject)
-        seniority_by_f = {f: max(c.seniority for c in filtered[f]) for f in filtered}
-        matches = sorted(filtered, key=lambda f: (-seniority_by_f[f], f))
+        seniority_by_match = {
+            f: max(c.seniority for c in filtered[f]) for f in filtered
+        }
+        matches = sorted(filtered, key=lambda f: (-seniority_by_match[f], f))
 
         final_hits_by_formula: dict[str, list[tuple[int, ...]]] = {}
 
         accepted_candidates: list[BondMatchCandidate] = []
 
         for match in matches:
-            f_seniority = seniority_by_f[match]
+            match_seniority = seniority_by_match[match]
             skip_removal_check = (
-                f_seniority >= SENIORITY_THRESHOLD
+                match_seniority >= SENIORITY_THRESHOLD
             )  # TODO make better name for this variable
             kept_atoms: list[tuple[int, ...]] = []
 
