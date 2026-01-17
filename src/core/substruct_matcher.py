@@ -5,7 +5,7 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from typing import Iterable
 
-from loader import MBAtom, MBMolecule
+from loader import MBMolecule
 from src.constants.bond_types import (
     DOUBLE_BOND,
     RELEVANT_BOND_TYPES,
@@ -193,7 +193,7 @@ class MBSubstructMatcher:
                 accepted_candidates.append(bmc)
 
         filtered_result = {
-            k: [c for c in v if not c.placeholder_ring]
+            k: [c for c in v if not c.dummy_ring]
             for k, v in dict(final_by_formula).items()
         }
         return filtered_result
@@ -239,6 +239,7 @@ class BicyclicOverlaps:
         accepted_candidates: list[BondMatchCandidate],
         final_hits_by_formula: dict[str, list[BondMatchCandidate]],
     ) -> None:
+        """If cyclohexene is rejected due to bicyclic overlap, add double bond matches instead."""
         exclude_idx = {i for acc in accepted_candidates for i in acc.atoms}
         double_bond_atoms = mol.GetDoubleBondAtomsIndexes(exclude_idx=exclude_idx)
         if not double_bond_atoms:

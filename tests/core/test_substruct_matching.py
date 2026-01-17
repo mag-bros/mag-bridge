@@ -1,24 +1,25 @@
 from collections import Counter
+from typing import Counter
 
 import pytest
 
-from src.core.bond_match import MBSubstructMatcher
+from src.core.substruct_matcher import MBSubstructMatcher
 from src.loader import MBLoader
-from tests.core.bond_match.substruct_matcher_test_data import (
-    BOND_MATCH_TEST_CASES,
-    BondMatchTestCase,
+from tests.data.substruct_matching_tests import (
+    SUBSTRUCT_MATCH_TESTS,
+    SubstructMatchTest,
 )
 
 
 @pytest.mark.parametrize(
-    "bond_type_test_params",
-    list(enumerate(BOND_MATCH_TEST_CASES)),
-    ids=lambda p: f"<{p[0]}> {p[1].SMILES}",
+    "substruct_match_test",
+    SUBSTRUCT_MATCH_TESTS,
+    ids=lambda p: f"<{p.id}> {p.SMILES}",
 )
-def test_bond_match_count(bond_type_test_params: tuple[int, BondMatchTestCase]) -> None:
-    idx, bond_type_test = bond_type_test_params
+def test_substruct_matches(substruct_match_test: SubstructMatchTest) -> None:
+    """Test if a molecules matches all expected substructures - Bond Types."""
 
-    mol = MBLoader.MolFromSmiles(smiles=bond_type_test.SMILES)
+    mol = MBLoader.MolFromSmiles(smiles=substruct_match_test.SMILES)
 
     # Matching now includes the Postprocess() overlap logic (self + cross-formula)
     result = MBSubstructMatcher.GetMatches(mol=mol)
@@ -27,7 +28,7 @@ def test_bond_match_count(bond_type_test_params: tuple[int, BondMatchTestCase]) 
         return Counter({k.rstrip(":").strip(): v for k, v in c.items()})
 
     assert normalize_counter_keys(
-        bond_type_test.expected_matches
+        substruct_match_test.expected_matches
     ) == normalize_counter_keys(result.matchesCounter)
 
     # Internal consistency check: counter must match final hit lists
