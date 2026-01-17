@@ -76,8 +76,11 @@ class MBSubstructMatcher:
         for c in candidates:
             grouped_candidates[c.formula].append(c)
 
-        final_hits_by_formula = MBSubstructMatcher._FilterOverlaps(
-            mol, grouped_candidates
+        filtered: dict[str, list[BondMatchCandidate]] = (
+            MBSubstructMatcher._FilterSelfOverlaps(grouped_candidates)
+        )
+        final_hits_by_formula: dict[str, list[tuple[int, ...]]] = (
+            MBSubstructMatcher._FilterCrossOverlaps(mol, filtered)
         )
 
         # Build counters + highlight structures
@@ -102,10 +105,9 @@ class MBSubstructMatcher:
         )
 
     @staticmethod
-    def _FilterOverlaps(
-        mol: MBMolecule,
+    def _FilterSelfOverlaps(
         grouped_candidates: dict[str, list[BondMatchCandidate]],
-    ) -> dict[str, list[tuple[int, ...]]]:
+    ) -> dict[str, list[BondMatchCandidate]]:
         # (A) Filter self-overlap within each formula (any shared atom => reject)
         filtered: dict[str, list[BondMatchCandidate]] = {}
 
@@ -126,6 +128,13 @@ class MBSubstructMatcher:
 
             filtered[formula] = kept
 
+        return filtered
+
+    @staticmethod
+    def _FilterCrossOverlaps(
+        mol: MBMolecule,
+        filtered: dict[str, list[BondMatchCandidate]],
+    ) -> dict[str, list[tuple[int, ...]]]:
         # (B) Remove cross-formula overlap by seniority (shared >1 atom => reject)
         seniority_by_f = {f: max(c.seniority for c in filtered[f]) for f in filtered}
         matches = sorted(filtered, key=lambda f: (-seniority_by_f[f], f))
