@@ -117,6 +117,7 @@ class MBSubstructMatcher:
 
             for c in lst:
                 atoms = tuple(sorted(c.atoms))  # same normalization
+                # TODO cyclohexene
                 if (not skip_removal_check) and any(a in used_local for a in atoms):
                     continue
 
@@ -182,8 +183,9 @@ class MBSubstructMatcher:
                         accepted_candidates.append(
                             BondMatchCandidate.from_bt(cc, double_bond_atoms)
                         )
-                        kept_atoms.append(double_bond_atoms)
-                        match = "C=C"
+                        final_hits_by_formula.setdefault("C=C", []).append(
+                            double_bond_atoms
+                        )
 
                     continue
 
