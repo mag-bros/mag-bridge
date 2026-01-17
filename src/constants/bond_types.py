@@ -16,7 +16,6 @@ class BondType:
     description: Optional[str] = ""
     dummy_ring: Optional[bool] = False
     seniority: int = SENIORITY_THRESHOLD  # TODO find better name for this variable?
-    is_ring: bool = False
 
 
 DOUBLE_BOND = BondType(
@@ -60,7 +59,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         sdf_files=("allyl_group.sdf",),
         seniority=30,
     ),
-    # TODO: Fix for bicycle molecules required with cyclohexane seniorityrity over cyclopentane (if 4 atoms match -> leave cyclohexane only)
     BondType(
         id=5,
         formula="cyclopentane",
@@ -68,7 +66,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=0.0,
         sdf_files=("cyclopentane.sdf",),
         seniority=42,
-        is_ring=False,
     ),
     BondType(
         id=6,
@@ -78,7 +75,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         sdf_files=("tetrahydrofuran.sdf",),
         description="Tetrahydrofuran attached to aromatic ring via edge (polyheterocyclic system) is ignored.",
         seniority=45,
-        is_ring=False,
     ),
     BondType(
         id=7,
@@ -94,7 +90,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
             This must be stated in MANUAL""",
         seniority=48,
-        is_ring=False,
     ),
     BondType(
         id=8,
@@ -103,7 +98,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=3.0,
         sdf_files=("cyclohexane.sdf",),
         seniority=51,
-        is_ring=False,
     ),
     BondType(
         id=9,
@@ -119,7 +113,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
             This must be stated in MANUAL""",
         seniority=54,
-        is_ring=False,
     ),
     BondType(
         id=10,
@@ -128,7 +121,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=5.5,
         sdf_files=("1,4-dioxane.sdf",),
         seniority=57,
-        is_ring=False,
     ),
     BondType(
         id=11,
@@ -137,7 +129,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=5.5,
         sdf_files=("1,4-morpholine.sdf",),
         seniority=60,
-        is_ring=False,
     ),
     BondType(
         id=12,
@@ -146,7 +137,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=6.9,
         sdf_files=("cyclohexene.sdf",),
         seniority=63,
-        is_ring=True,
     ),
     BondType(
         id=13,
@@ -162,7 +152,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
             This must be stated in MANUAL""",
         seniority=66,
-        is_ring=False,
     ),
     # TODO add SDF
     BondType(
@@ -174,7 +163,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Dummy ring for proper assignement of 5-membered rings within bicyclo[3.1.0] structures",
         seniority=88,
         dummy_ring=True,
-        is_ring=False,
     ),
     # TODO add SDF
     BondType(
@@ -186,7 +174,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Dummy ring for proper assignement of 5-membered rings within bicyclo[3.1.0] structures",
         seniority=89,
         dummy_ring=True,
-        is_ring=False,
     ),
     # TODO add SDF
     BondType(
@@ -198,7 +185,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Dummy ring for proper assignement of 5-membered rings within bicyclo[3.1.0] structures",
         seniority=90,
         dummy_ring=True,
-        is_ring=False,
     ),
     BondType(
         id=17,
@@ -207,7 +193,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=7.2,
         sdf_files=("cyclobutane.sdf",),
         seniority=95,
-        is_ring=False,
     ),
     BondType(
         id=18,
@@ -216,7 +201,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=7.2,
         sdf_files=("cyclopropane.sdf",),
         seniority=99,
-        is_ring=False,
     ),
     BondType(
         id=19,

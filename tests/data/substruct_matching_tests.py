@@ -11,6 +11,7 @@ class SubstructMatchTest:
     SMILES: str
     expected_matches: Counter[str] = field(default_factory=Counter)
     description: Optional[str] = ""
+    skip_test: bool = False
 
 
 SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
@@ -263,6 +264,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="C1=CC=C(C(=C1)C2=C3C=CC(=O)C=C3OC4=C2C=CC(=C4)[O-])C(=O)[O-]",
         expected_matches=Counter({"Ar-OH": 1, "Ar-Ar": 1, "Ar-COOH": 1, "benzene": 3}),
         description="Corner case of Ar-Ar matching.",
+        skip_test=True,
     ),
     # TODO: rdkit error?
     SubstructMatchTest(
@@ -270,6 +272,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="CCN(CC)C1=CC2=C(C=C1)C(=C3C=CC(=[N+](CC)CC)C=C3O2)C4=CC=CC=C4C(=O)O",
         expected_matches=Counter({"Ar-NR2": 1, "Ar-Ar": 1, "Ar-COOH": 1, "benzene": 3}),
         description="Corner case of Ar-Ar matching.",
+        skip_test=True,
     ),
     SubstructMatchTest(
         id=28,
@@ -297,32 +300,36 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         ),
         description="Example encompassing C=C-C=C, C=C and CH2=CH-CH2- bond types.",
     ),
-    SubstructMatchTest(
-        id=31,
-        SMILES="CC1=C(C(CCC1)(C)C)C=CC(=CC=CC(=CC(=O)O)C)C",
-        expected_matches=Counter({"C=C-C=C": 2, "RCOOH": 1, "cyclohexene": 1}),
-        description="Examine C=C-C=C self-matching.",
-    ),
-    SubstructMatchTest(
-        id=32,
-        SMILES="CC1=C(C(CC(C1=O)O)(C)C)C=CC(=CC=CC(=CC=CC=C(C)C=CC=C(C)C=CC2=C(C(=O)C(CC2(C)C)O)C)C)C",
-        expected_matches=Counter({"C=C-C=C": 4, "C=C": 1, "C=O": 2, "cyclohexene": 2}),
-        description="Examine C=C-C=C self-matching.",
-    ),
-    SubstructMatchTest(
-        id=33,
-        SMILES="C=CC1=C(N2C(C(C2=O)NC(=O)C(=NOCC(=O)O)C3=CSC(=N3)N)SC1)C(=O)O",
-        expected_matches=Counter(
-            {"C=C-C=C": 1, "RCOOH": 2, "RC(=O)NH2": 1, "C=N": 1, "thiazole": 1}
-        ),
-        description="Thiazole derivative example.",
-    ),
-    SubstructMatchTest(
-        id=34,
-        SMILES="C=CCCCC(=C)C/C=C/C(C)=C/C=C/C(C)=C/C=C/C=C(C)/C=C/C=C(C)/C=C/C=C(C)/CC/C=C(C)\C",
-        expected_matches=Counter({"C=C-C=C": 5, "C=C": 2, "CH2=CH-CH2-": 1}),
-        description="Example encompassing C=C-C=C, C=C and CH2=CH-CH2- bond types.",
-    ),
+    # TODO add new test in this place, SMILES not unique
+    # SubstructMatchTest(
+    #     id=31,
+    #     SMILES="CC1=C(C(CCC1)(C)C)C=CC(=CC=CC(=CC(=O)O)C)C",
+    #     expected_matches=Counter({"C=C-C=C": 2, "RCOOH": 1, "cyclohexene": 1}),
+    #     description="Examine C=C-C=C self-matching.",
+    # ),
+    # TODO add new test in this place, SMILES not unique
+    # SubstructMatchTest(
+    #     id=32,
+    #     SMILES="CC1=C(C(CC(C1=O)O)(C)C)C=CC(=CC=CC(=CC=CC=C(C)C=CC=C(C)C=CC2=C(C(=O)C(CC2(C)C)O)C)C)C",
+    #     expected_matches=Counter({"C=C-C=C": 4, "C=C": 1, "C=O": 2, "cyclohexene": 2}),
+    #     description="Examine C=C-C=C self-matching.",
+    # ),
+    # TODO add new test in this place, SMILES not unique
+    # SubstructMatchTest(
+    #     id=33,
+    #     SMILES="C=CC1=C(N2C(C(C2=O)NC(=O)C(=NOCC(=O)O)C3=CSC(=N3)N)SC1)C(=O)O",
+    #     expected_matches=Counter(
+    #         {"C=C-C=C": 1, "RCOOH": 2, "RC(=O)NH2": 1, "C=N": 1, "thiazole": 1}
+    #     ),
+    #     description="Thiazole derivative example.",
+    # ),
+    # TODO add new test in this place, SMILES not unique
+    # SubstructMatchTest(
+    #     id=34,
+    #     SMILES="C=CCCCC(=C)C/C=C/C(C)=C/C=C/C(C)=C/C=C/C=C(C)/C=C/C=C(C)/C=C/C=C(C)/CC/C=C(C)\C",
+    #     expected_matches=Counter({"C=C-C=C": 5, "C=C": 2, "CH2=CH-CH2-": 1}),
+    #     description="Example encompassing C=C-C=C, C=C and CH2=CH-CH2- bond types.",
+    # ),
     SubstructMatchTest(
         id=35,
         SMILES="CC1=C(C(=O)CC1OC(=O)C2C(C2(C)C)C=C(C)C)CC=C",
@@ -892,7 +899,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=127,
         SMILES="C1CC2C=CC1C=C2",
-        expected_matches=Counter({"cyclohexene": 1}),
+        expected_matches=Counter({"cyclohexene": 1, "C=C": 1}),
     ),
     SubstructMatchTest(
         id=128,

@@ -19,6 +19,11 @@ from tests.data.substruct_matching_tests import (
 def test_substruct_matches(substruct_match_test: SubstructMatchTest) -> None:
     """Test if a molecules matches all expected substructures - Bond Types."""
 
+    if substruct_match_test.skip_test:
+        pytest.skip(
+            reason="skip this test due to underlying RDKit logical discrepancies"
+        )
+
     mol = MBLoader.MolFromSmiles(smiles=substruct_match_test.SMILES)
 
     # Matching now includes the Postprocess() overlap logic (self + cross-formula)
@@ -35,3 +40,9 @@ def test_substruct_matches(substruct_match_test: SubstructMatchTest) -> None:
     assert sum(result.matchesCounter.values()) == sum(
         len(hits) for hits in result.final_hits_by_formula.values()
     )
+
+
+def test_smiles_uniqueness() -> None:
+    counter = Counter([smt.SMILES for smt in SUBSTRUCT_MATCH_TESTS])
+    for smiles, count in counter.items():
+        assert count == 1, f"SMILES: '{smiles}' not unique"

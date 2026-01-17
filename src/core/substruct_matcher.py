@@ -15,6 +15,8 @@ from src.constants.bond_types import (
 
 
 class BondMatchCandidate(BondType):
+    """Merges RDKit Substruct Match context with our BondType datasets."""
+
     __slots__ = ("atoms",)
 
     def __init__(self, atoms: Iterable[int], **kwargs) -> None:
@@ -124,12 +126,7 @@ class MBSubstructMatcher:
             seen: set[tuple[int, ...]] = set()
 
             max_seniority = max(c.seniority for c in candidates)
-            is_ring = any(c.is_ring for c in candidates)
-
-            # if it's a ring => force checking (so: do NOT skip)
-            skip_removal_check = (max_seniority >= SENIORITY_THRESHOLD) and (
-                not is_ring
-            )
+            skip_removal_check = max_seniority >= SENIORITY_THRESHOLD
 
             for bmc in candidates:
                 atoms = tuple(sorted(bmc.atoms))
@@ -139,7 +136,9 @@ class MBSubstructMatcher:
                     continue
                 seen.add(atoms)
 
-                if (not skip_removal_check) and used_local.intersection(atoms):
+                if (not skip_removal_check) and len(
+                    used_local.intersection(atoms)
+                ) >= 3:
                     continue
 
                 filtered[match].append(bmc)

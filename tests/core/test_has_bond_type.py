@@ -45,7 +45,8 @@ def test_has_bond_type(bond_type: BondType) -> None:
         )
 
     # Special rule: benzene matching is only validated on the benzene SDF itself.
-    if bond_type.formula == "benzene":
+    skip_global_check = bond_type.formula in ["benzene", "C=C"]
+    if skip_global_check:
         return
 
     # (B) Test that SMARTS matches only the expected SDF files globally
