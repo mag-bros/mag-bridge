@@ -161,7 +161,7 @@ class MBSubstructMatcher:
                 if is_bicyclic_overlap:
                     if bmc.formula == "cyclohexene":
                         excluded_idx = {
-                            i for acc_can in accepted_candidates for i in acc_can.atoms
+                            i for acc in accepted_candidates for i in acc.atoms
                         }
 
                         double_bond_atoms = tuple(
@@ -170,15 +170,14 @@ class MBSubstructMatcher:
                             if a.idx not in excluded_idx and a.has_double_bond
                         )
 
-                        additional_double_bonds = (len(double_bond_atoms) // 2) % 2
-
                         if double_bond_atoms:
-                            accepted_candidates.append(
-                                BondMatchCandidate.from_bt(
-                                    DOUBLE_BOND, double_bond_atoms
-                                )
+                            cand = BondMatchCandidate.from_bt(
+                                DOUBLE_BOND, double_bond_atoms
                             )
-                            final_hits_by_formula["C=C"].append(double_bond_atoms)
+                            accepted_candidates.append(cand)
+                            final_hits_by_formula[DOUBLE_BOND.formula].append(
+                                double_bond_atoms
+                            )
 
                     continue
 
