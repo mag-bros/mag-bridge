@@ -16,6 +16,7 @@ class BondType:
     ignore_benzene_substructure: Optional[bool] = True
     placeholder_ring: Optional[bool] = False
     seniority: int = SENIORITY_THRESHOLD  # TODO find better name for this variable?
+    is_ring: bool = False
 
 
 # Relevant bond type representation (see reference https://doi.org/10.1021/ed085p532)
@@ -64,6 +65,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=0.0,
         sdf_files=("cyclopentane.sdf",),
         seniority=42,
+        is_ring=False,
     ),
     BondType(
         formula="tetrahydrofuran",
@@ -72,6 +74,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         sdf_files=("tetrahydrofuran.sdf",),
         description="Tetrahydrofuran attached to aromatic ring via edge (polyheterocyclic system) is ignored.",
         seniority=45,
+        is_ring=False,
     ),
     BondType(
         formula="pyrrolidine",
@@ -87,6 +90,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             This must be stated in MANUAL
         """,
         seniority=48,
+        is_ring=False,
     ),
     BondType(
         formula="cyclohexane",
@@ -94,6 +98,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=3.0,
         sdf_files=("cyclohexane.sdf",),
         seniority=51,
+        is_ring=False,
     ),
     BondType(
         formula="piperidine",
@@ -109,6 +114,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             This must be stated in MANUAL
         """,
         seniority=54,
+        is_ring=False,
     ),
     BondType(
         formula="dioxane",
@@ -116,6 +122,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=5.5,
         sdf_files=("1,4-dioxane.sdf",),
         seniority=57,
+        is_ring=False,
     ),
     BondType(
         formula="morpholine",
@@ -123,6 +130,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=5.5,
         sdf_files=("1,4-morpholine.sdf",),
         seniority=60,
+        is_ring=False,
     ),
     BondType(
         formula="cyclohexene",
@@ -130,6 +138,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=6.9,
         sdf_files=("cyclohexene.sdf",),
         seniority=63,
+        is_ring=True,
     ),
     BondType(
         formula="piperazine",
@@ -145,6 +154,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             This must be stated in MANUAL
         """,
         seniority=66,
+        is_ring=False,
     ),
     BondType(
         formula="thiacyclopropane",
@@ -154,6 +164,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Dummy ring for proper assignement of 5-membered rings within bicyclo[3.1.0] structures",
         seniority=88,
         placeholder_ring=True,
+        is_ring=False,
     ),
     BondType(
         formula="oxacyclopropane",
@@ -163,6 +174,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Dummy ring for proper assignement of 5-membered rings within bicyclo[3.1.0] structures",
         seniority=89,
         placeholder_ring=True,
+        is_ring=False,
     ),
     BondType(
         formula="azacyclopropane",
@@ -172,6 +184,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Dummy ring for proper assignement of 5-membered rings within bicyclo[3.1.0] structures",
         seniority=90,
         placeholder_ring=True,
+        is_ring=False,
     ),
     BondType(
         formula="cyclobutane",
@@ -179,6 +192,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=7.2,
         sdf_files=("cyclobutane.sdf",),
         seniority=95,
+        is_ring=False,
     ),
     BondType(
         formula="cyclopropane",
@@ -186,6 +200,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=7.2,
         sdf_files=("cyclopropane.sdf",),
         seniority=99,
+        is_ring=False,
     ),
     BondType(
         formula="C#C",

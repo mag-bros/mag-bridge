@@ -121,12 +121,23 @@ class MBSubstructMatcher:
 
         for match, candidates in grouped_candidates.items():
             used_local: set[int] = set()
-            skip_removal_check = (
-                max(c.seniority for c in candidates) >= SENIORITY_THRESHOLD
+            seen: set[tuple[int, ...]] = set()
+
+            max_seniority = max(c.seniority for c in candidates)
+            is_ring = any(c.is_ring for c in candidates)
+
+            # if it's a ring => force checking (so: do NOT skip)
+            skip_removal_check = (max_seniority >= SENIORITY_THRESHOLD) and (
+                not is_ring
             )
 
             for bmc in candidates:
                 atoms = tuple(sorted(bmc.atoms))
+
+                # optional: remove exact duplicates (RDKit symmetry/permutations)
+                if atoms in seen:
+                    continue
+                seen.add(atoms)
 
                 if (not skip_removal_check) and used_local.intersection(atoms):
                     continue
