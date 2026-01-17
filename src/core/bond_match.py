@@ -119,13 +119,13 @@ class MBSubstructMatcher:
         # (A) Filter self-overlap within each formula (any shared atom => reject)
         filtered = defaultdict(list)
 
-        for match, match_candidates in grouped_candidates.items():
+        for match, candidates in grouped_candidates.items():
             used_local: set[int] = set()
             skip_removal_check = (
-                max(c.seniority for c in match_candidates) >= SENIORITY_THRESHOLD
+                max(c.seniority for c in candidates) >= SENIORITY_THRESHOLD
             )
 
-            for bmc in match_candidates:
+            for bmc in candidates:
                 atoms = tuple(sorted(bmc.atoms))
 
                 if (not skip_removal_check) and used_local.intersection(atoms):
@@ -139,31 +139,32 @@ class MBSubstructMatcher:
     @staticmethod
     def _FilterCrossOverlaps(
         mol: MBMolecule,
-        filtered: dict[str, list[BondMatchCandidate]],
+        grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[BondMatchCandidate]]:
         # (B) Remove cross-formula overlap by seniority (shared >1 atom => reject)
         final_by_formula = defaultdict(list)
-        accepted_candidates: list[BondMatchCandidate] = []  # keep NON-placeholder only
+        accepted_candidates: list[BondMatchCandidate] = []
 
-        matches = sorted(
-            ((f, lst, max(c.seniority for c in lst)) for f, lst in filtered.items()),
+        all_matches = sorted(
+            (
+                (f, lst, max(c.seniority for c in lst))
+                for f, lst in grouped_candidates.items()
+            ),
             key=lambda t: (-t[2], t[0]),
         )
 
-        for match, match_candidates, match_seniority in matches:
-            skip_removal_check = match_seniority >= SENIORITY_THRESHOLD
+        for match, candidates, seniority in all_matches:
+            skip_removal_check = seniority >= SENIORITY_THRESHOLD
 
-            for bmc in match_candidates:
+            for bmc in candidates:
                 atoms = tuple(sorted(bmc.atoms))
                 atom_set = set(atoms)
 
                 # Saturated rings in bicyclic structure overlaps with 3 or more shared atoms => reject
-                is_bicyclic_overlap = (match_seniority > SENIORITY_THRESHOLD) and any(
+                if (seniority > SENIORITY_THRESHOLD) and any(
                     len(atom_set & set(acc_can.atoms)) >= 3
                     for acc_can in accepted_candidates
-                )
-
-                if is_bicyclic_overlap:
+                ):
                     BicyclicOverlaps.InjectDerivedMatches(
                         mol, bmc, accepted_candidates, final_by_formula
                     )
@@ -180,9 +181,9 @@ class MBSubstructMatcher:
                 final_by_formula[match].append(bmc)
                 accepted_candidates.append(bmc)
 
-        result = dict(final_by_formula)
         filtered_result = {
-            k: [c for c in v if not c.placeholder_ring] for k, v in result.items()
+            k: [c for c in v if not c.placeholder_ring]
+            for k, v in dict(final_by_formula).items()
         }
         return filtered_result
 
