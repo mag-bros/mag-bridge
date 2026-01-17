@@ -6,7 +6,7 @@ from src.core.compound import MBCompound
 from src.loader import MBLoader
 
 
-def _run_molecule_match(group: str, idx: int, cm: CommonMolecule) -> None:
+def _run_test_common_mols(group: str, idx: int, cm: CommonMolecule) -> None:
     expected_smiles: set[str] = cm.SMILES
 
     compound: MBCompound = MBLoader.FromSDF(cm.sdf_file, subdir=MOLECULE_MATCH_SUBDIR)
@@ -36,7 +36,7 @@ def test_molecule_match_ions(
     common_mol_params: tuple[int, CommonMolecule],
 ) -> None:
     idx, common_mol = common_mol_params
-    _run_molecule_match(group="ions", idx=idx, cm=common_mol)
+    _run_test_common_mols(group="ions", idx=idx, cm=common_mol)
 
 
 @_params_for(group="ligands")
@@ -44,7 +44,7 @@ def test_molecule_match_ligands(
     common_mol_params: tuple[int, CommonMolecule],
 ) -> None:
     idx, common_mol = common_mol_params
-    _run_molecule_match(group="ligands", idx=idx, cm=common_mol)
+    _run_test_common_mols(group="ligands", idx=idx, cm=common_mol)
 
 
 @_params_for(group="organic_solvents")
@@ -52,4 +52,4 @@ def test_molecule_match_organic_solvents(
     common_mol_params: tuple[int, CommonMolecule],
 ) -> None:
     idx, common_mol = common_mol_params
-    _run_molecule_match(group="organic_solvents", idx=idx, cm=common_mol)
+    _run_test_common_mols(group="organic_solvents", idx=idx, cm=common_mol)

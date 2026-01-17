@@ -1,6 +1,6 @@
 from typing import Any
 
-from rdkit.Chem import Atom
+from rdkit.Chem import Atom, Bond, BondType
 
 from src.constants.provider import METAL_CATIONS, ConstDB
 
@@ -20,6 +20,10 @@ class MBAtom:
         self.total_degree: int = self.GetTotalDegree()
         self.charge: int | None = self.GetCharge()
         self.pascal_values: dict = ConstDB.GetPascalValues(atom=self)
+        self.has_double_bond: bool = any(
+            b.GetBondType() == BondType.DOUBLE for b in self._atom.GetBonds()
+        )
+        self.idx = self.GetIdx()
 
     def IsRing(self) -> bool:
         """Return True if the atom is in a ring consisting of 3 to 8 atoms.
@@ -120,3 +124,7 @@ class MBAtom:
     def GetProp(self, key: str) -> Any:
         """Return property value by key."""
         return self._atom.GetProp(key=key)
+
+    def GetBonds(self) -> Any:
+        """Return property value by key."""
+        return self._atom.GetBonds()

@@ -10,7 +10,7 @@ from src import (
 )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class DiamagneticContributionTestSDF:
     """
     Test case for validating diamagnetic susceptibility contribution calculations - one compound per SDF file.
@@ -55,7 +55,7 @@ class DiamagneticContributionTestSDF:
         return ", ".join(parts)
 
 
-CALC_DIAMAG_CONTR_TEST_CASES: dict[str, list[DiamagneticContributionTestSDF]] = {
+CALC_DIAMAG_CONTR_TESTS: dict[str, list[DiamagneticContributionTestSDF]] = {
     DIAMAG_COMPOUND_ATOMS_SUBDIR: [
         DiamagneticContributionTestSDF(
             sdf_file="2-methylpropan-1-ol.sdf",

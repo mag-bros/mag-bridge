@@ -7,8 +7,8 @@ from src import (
 )
 from src.core.compound import MBCompound
 from src.loader import MBLoader
-from tests.core.diamag_test_data import (
-    CALC_DIAMAG_CONTR_TEST_CASES,
+from tests.data.diamag_tests import (
+    CALC_DIAMAG_CONTR_TESTS,
     DiamagneticContributionTestSDF,
 )
 
@@ -42,7 +42,7 @@ def _run_diamag_contr_test(
 def _params_for(subdir: str):
     return pytest.mark.parametrize(
         "diamag_contr_params",
-        list(enumerate(CALC_DIAMAG_CONTR_TEST_CASES[subdir])),
+        list(enumerate(CALC_DIAMAG_CONTR_TESTS[subdir])),
         ids=lambda p: f"<{p[0]}> {p[1].sdf_file}",
     )
 
