@@ -19,19 +19,21 @@ class BondType:
 
 
 # Relevant bond type representation (see reference https://doi.org/10.1021/ed085p532)
-RELEVANT_BOND_TYPES: list[BondType] = [
-    BondType(
-        formula="C=C",
-        SMARTS="[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]=[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]",
-        constitutive_corr=5.5,
-        sdf_files=("C2H4.sdf",),
-        description="""
+DOUBLE_BOND = BondType(
+    formula="C=C",
+    SMARTS="[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]=[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]",
+    constitutive_corr=5.5,
+    sdf_files=("C2H4.sdf",),
+    description="""
             Condition: C are NOT aromatic theirself and not bound to aryl group  - this rejects all aromatic rings that are not listed; 
             Also excluded: cyclohexene, C=C-C=C and H2C=CH-CH2- (allyl group). The C atoms in C=C-C=C cannot be part of C=C-Ar bond type.
             Note: All exclusions must be applied for both atoms
             """,
-        seniority=0,
-    ),
+    seniority=0,
+)
+
+RELEVANT_BOND_TYPES: list[BondType] = [
+    DOUBLE_BOND,
     BondType(
         formula="C=C-C=C",
         SMARTS="[C;!$([c]);!$(C1=CCCCC1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1=CCCCC1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]-[C;!$([c]);!$(C1=CCCCC1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]=[C;!$([c]);!$(C1=CCCCC1)!$([C]=[C]-[c]);!$([c]-[C]=[C])]",

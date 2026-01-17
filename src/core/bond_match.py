@@ -6,6 +6,7 @@ from typing import Iterable
 
 from loader import MBAtom, MBMolecule
 from src.constants.bond_types import (
+    DOUBLE_BOND,
     RELEVANT_BOND_TYPES,
     SENIORITY_THRESHOLD,
     BondType,
@@ -175,20 +176,12 @@ class MBSubstructMatcher:
                         indexes: tuple[int, ...] = tuple(a.idx for a in free_atoms)
                         additional_double_bonds = (sum(double_bonds) // 2) % 2
 
-                        cc = BondType(
-                            formula="C=C",
-                            SMARTS="[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]=[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]",
-                            constitutive_corr=5.5,
-                            sdf_files=("C2H4.sdf",),
-                            seniority=0,
-                        )
-
                         double_bond_atoms = tuple(
                             a for a, m in zip(indexes, double_bonds) if m
                         )
 
                         accepted_candidates.append(
-                            BondMatchCandidate.from_bt(cc, double_bond_atoms)
+                            BondMatchCandidate.from_bt(DOUBLE_BOND, double_bond_atoms)
                         )
                         final_hits_by_formula["C=C"].append(double_bond_atoms)
 
