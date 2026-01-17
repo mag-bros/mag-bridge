@@ -116,21 +116,21 @@ class MBMolecule:
 
     def GetDoubleBondAtomsIndexes(
         self,
-        excluded_idx: set[int] | None = None,
+        exclude_idx: set[int] | None = None,
         include_h: bool = False,
     ) -> tuple[int, ...]:
         """
         Return atom indices for atoms that participate in at least one DOUBLE bond,
-        optionally excluding indices in excluded_idx.
+        optionally excluding indices in exclude_idx.
         Uses MBAtom.has_double_bond.
         """
-        excluded_idx = excluded_idx or set()
+        exclude_idx = exclude_idx or set()
 
         return tuple(
             a.idx
             for a in self._atoms
             if (include_h or a.symbol != "H")
-            and a.idx not in excluded_idx
+            and a.idx not in exclude_idx
             and a.has_double_bond
         )
 

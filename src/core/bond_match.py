@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from typing import Iterable
 
@@ -159,23 +160,9 @@ class MBSubstructMatcher:
                 )
 
                 if is_bicyclic_overlap:
-                    if bmc.formula == "cyclohexene":
-                        excluded_idx = {
-                            i for acc in accepted_candidates for i in acc.atoms
-                        }
-                        double_bond_atoms = mol.GetDoubleBondAtomsIndexes(
-                            excluded_idx=excluded_idx
-                        )
-
-                        if double_bond_atoms:
-                            accepted_candidates.append(
-                                BondMatchCandidate.from_bt(
-                                    DOUBLE_BOND, double_bond_atoms
-                                )
-                            )
-                            final_hits_by_formula[DOUBLE_BOND.formula].append(
-                                double_bond_atoms
-                            )
+                    BicyclicOverlaps.InjectDerivedMatches(
+                        mol, bmc, accepted_candidates, final_hits_by_formula
+                    )
 
                     continue
 
@@ -192,3 +179,56 @@ class MBSubstructMatcher:
                     final_hits_by_formula[match].append(atoms)
 
         return dict(final_hits_by_formula)
+
+
+class BicyclicOverlaps:
+    _Rule = Callable[
+        [
+            MBMolecule,
+            BondMatchCandidate,
+            list[BondMatchCandidate],
+            dict[str, list[tuple[int, ...]]],
+        ],
+        None,
+    ]
+    _rules: dict[str, _Rule] | None = None
+
+    @classmethod
+    def _get_rules(cls) -> dict[str, _Rule]:
+        if cls._rules is None:
+            cls._rules = {
+                "cyclohexene": cls._rule_cyclohexene,
+            }
+        return cls._rules
+
+    @classmethod
+    def InjectDerivedMatches(
+        cls,
+        mol: MBMolecule,
+        bmc: BondMatchCandidate,
+        accepted_candidates: list[BondMatchCandidate],
+        final_hits_by_formula: dict[str, list[tuple[int, ...]]],
+    ) -> None:
+        rule = cls._get_rules().get(bmc.formula)
+        if rule is None:
+            return
+        rule(mol, bmc, accepted_candidates, final_hits_by_formula)
+
+    @staticmethod
+    def _rule_cyclohexene(
+        mol: MBMolecule,
+        bmc: BondMatchCandidate,
+        accepted_candidates: list[BondMatchCandidate],
+        final_hits_by_formula: dict[str, list[tuple[int, ...]]],
+    ) -> None:
+        exclude_idx = {i for acc in accepted_candidates for i in acc.atoms}
+        double_bond_atoms = mol.GetDoubleBondAtomsIndexes(exclude_idx=exclude_idx)
+        if not double_bond_atoms:
+            return
+
+        accepted_candidates.append(
+            BondMatchCandidate.from_bt(DOUBLE_BOND, double_bond_atoms)
+        )
+        final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(
+            double_bond_atoms
+        )
