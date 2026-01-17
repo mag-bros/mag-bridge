@@ -276,7 +276,7 @@ class Renderer:
             )
             atom_color_map: dict[int, RGBf] = {}
 
-            # sort groups by luminance so desired seniorityrity is applied
+            # sort groups by luminance so desired priority is applied
             group_items = []
             for f, atoms in (groups or {}).items():
                 col = formula_color.get(f, (1.0, 0.0, 0.0))
