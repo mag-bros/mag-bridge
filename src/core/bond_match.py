@@ -4,7 +4,7 @@ from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass
 from typing import Iterable
 
-from loader import MBMolecule
+from loader import MBAtom, MBMolecule
 from src.constants.bond_types import (
     RELEVANT_BOND_TYPES,
     SENIORITY_THRESHOLD,
@@ -61,10 +61,12 @@ class MBSubstructMatcher:
                 candidates.append(BondMatchCandidate.from_bt(bt, hit))
 
         # --- 2) Resolve overlaps + compute renderer outputs
-        return MBSubstructMatcher._Postprocess(candidates)
+        return MBSubstructMatcher._Postprocess(mol, candidates)
 
     @staticmethod
-    def _Postprocess(candidates: list[BondMatchCandidate]) -> SubstructMatchResult:
+    def _Postprocess(
+        mol: MBMolecule, candidates: list[BondMatchCandidate]
+    ) -> SubstructMatchResult:
         """Remove overlapping substructures (same logic as previous version)."""
         if not candidates:
             return SubstructMatchResult.empty()
@@ -74,7 +76,9 @@ class MBSubstructMatcher:
         for c in candidates:
             grouped_candidates[c.formula].append(c)
 
-        final_hits_by_formula = MBSubstructMatcher._FilterOverlaps(grouped_candidates)
+        final_hits_by_formula = MBSubstructMatcher._FilterOverlaps(
+            mol, grouped_candidates
+        )
 
         # Build counters + highlight structures
         matches_counter: Counter[str] = Counter()
@@ -99,6 +103,7 @@ class MBSubstructMatcher:
 
     @staticmethod
     def _FilterOverlaps(
+        mol: MBMolecule,
         grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[tuple[int, ...]]]:
         # (A) Filter self-overlap within each formula (any shared atom => reject)
@@ -130,17 +135,56 @@ class MBSubstructMatcher:
 
         for match in matches:
             f_seniority = seniority_by_f[match]
-            skip_removal_check = f_seniority >= SENIORITY_THRESHOLD
+            skip_removal_check = (
+                f_seniority >= SENIORITY_THRESHOLD
+            )  # TODO make better name for this variable
             kept_atoms: list[tuple[int, ...]] = []
 
             for bmc in filtered[match]:
                 atoms = tuple(sorted(bmc.atoms))
                 atom_set = set(atoms)
 
-                if any(
-                    len(atom_set & set(acc_can.atoms)) >= 3
-                    for acc_can in accepted_candidates
-                ):
+                # Saturated rings in bicyclic structure overlaps with 3 or more shared atoms => reject
+                is_bicyclic_overlap = []
+                for acc_can in accepted_candidates:
+                    is_overlap = len(atom_set & set(acc_can.atoms)) >= 3
+                    is_senior = bmc.seniority > SENIORITY_THRESHOLD
+                    is_bicyclic_overlap.append(is_overlap and is_senior)
+
+                if any(is_bicyclic_overlap):
+                    if bmc.formula == "cyclohexene":
+                        free_atoms = []
+                        for acc_can in accepted_candidates:
+                            free_atoms.extend(
+                                [
+                                    a
+                                    for a in mol.GetAtoms()
+                                    if a.idx not in acc_can.atoms
+                                ]
+                            )
+
+                        double_bonds: list[bool] = [
+                            a.has_double_bond for a in free_atoms
+                        ]
+                        indexes: tuple[int, ...] = tuple(a.idx for a in free_atoms)
+                        additional_double_bonds = (sum(double_bonds) // 2) % 2
+                        cc = BondType(
+                            formula="C=C",
+                            SMARTS="[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]=[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]",
+                            constitutive_corr=5.5,
+                            sdf_files=("C2H4.sdf",),
+                            seniority=0,
+                        )
+                        double_bond_atoms = tuple(
+                            a for a, m in zip(indexes, double_bonds) if m
+                        )
+
+                        accepted_candidates.append(
+                            BondMatchCandidate.from_bt(cc, double_bond_atoms)
+                        )
+                        kept_atoms.append(double_bond_atoms)
+                        match = "C=C"
+
                     continue
 
                 if (not skip_removal_check) and any(

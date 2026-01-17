@@ -114,6 +114,10 @@ class MBMolecule:
         """Return all substructure matches for the given SMARTS pattern."""
         return self._mol.GetSubstructMatches(MolFromSmarts(smarts, mergeHs=True))
 
+    def GetAtoms(self) -> list[MBAtom]:
+        """Return the list of MBAtom objects in this molecule."""
+        return self._atoms
+
     def __str__(self):
         return f"{self.loaded_from}:{self.mol_index} ({self.smiles})"
 

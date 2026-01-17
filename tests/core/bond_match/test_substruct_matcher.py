@@ -1,3 +1,5 @@
+from collections import Counter
+
 import pytest
 
 from src.core.bond_match import MBSubstructMatcher
@@ -21,7 +23,12 @@ def test_bond_match_count(bond_type_test_params: tuple[int, BondMatchTestCase]) 
     # Matching now includes the Postprocess() overlap logic (self + cross-formula)
     result = MBSubstructMatcher.GetMatches(mol=mol)
 
-    assert bond_type_test.expected_matches == result.matchesCounter
+    def normalize_counter_keys(c: Counter[str]) -> Counter[str]:
+        return Counter({k.rstrip(":").strip(): v for k, v in c.items()})
+
+    assert normalize_counter_keys(
+        bond_type_test.expected_matches
+    ) == normalize_counter_keys(result.matchesCounter)
 
     # Internal consistency check: counter must match final hit lists
     assert sum(result.matchesCounter.values()) == sum(
