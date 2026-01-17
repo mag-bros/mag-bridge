@@ -136,37 +136,30 @@ class MBSubstructMatcher:
         filtered: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[tuple[int, ...]]]:
         # (B) Remove cross-formula overlap by seniority (shared >1 atom => reject)
-        seniority_by_match = {
-            f: max(c.seniority for c in lst) for f, lst in filtered.items()
-        }
-
-        # sort by (-seniority, formula)
-        matches = sorted(
-            filtered.items(), key=lambda kv: (-seniority_by_match[kv[0]], kv[0])
-        )
-
         final_hits_by_formula: dict[str, list[tuple[int, ...]]] = {}
         accepted_candidates: list[BondMatchCandidate] = []
 
-        for match, match_candidates in matches:
-            match_seniority = seniority_by_match[match]
-            skip_removal_check = (
-                match_seniority >= SENIORITY_THRESHOLD
-            )  # TODO make better name for this variable
+        # sort by (-seniority, formula) while carrying match seniority inline
+        matches = sorted(
+            ((f, lst, max(c.seniority for c in lst)) for f, lst in filtered.items()),
+            key=lambda t: (-t[2], t[0]),
+        )
+
+        for match, match_candidates, match_seniority in matches:
             kept_atoms: list[tuple[int, ...]] = []
+            skip_removal_check = match_seniority >= SENIORITY_THRESHOLD
 
             for bmc in match_candidates:
                 atoms = tuple(sorted(bmc.atoms))
                 atom_set = set(atoms)
 
                 # Saturated rings in bicyclic structure overlaps with 3 or more shared atoms => reject
-                is_bicyclic_overlap = []
-                for acc_can in accepted_candidates:
-                    is_overlap = len(atom_set & set(acc_can.atoms)) >= 3
-                    is_senior = bmc.seniority > SENIORITY_THRESHOLD
-                    is_bicyclic_overlap.append(is_overlap and is_senior)
+                is_bicyclic_overlap = (match_seniority > SENIORITY_THRESHOLD) and any(
+                    len(atom_set & set(acc_can.atoms)) >= 3
+                    for acc_can in accepted_candidates
+                )
 
-                if any(is_bicyclic_overlap):
+                if is_bicyclic_overlap:
                     if bmc.formula == "cyclohexene":
                         free_atoms = []
                         for acc_can in accepted_candidates:
