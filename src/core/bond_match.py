@@ -139,7 +139,6 @@ class MBSubstructMatcher:
         final_hits_by_formula = defaultdict(list)  # type: ignore[var-annotated]
         accepted_candidates: list[BondMatchCandidate] = []
 
-        # sort by (-seniority, formula) while carrying match seniority inline
         matches = sorted(
             ((f, lst, max(c.seniority for c in lst)) for f, lst in filtered.items()),
             key=lambda t: (-t[2], t[0]),
@@ -147,9 +146,6 @@ class MBSubstructMatcher:
 
         for match, match_candidates, match_seniority in matches:
             skip_removal_check = match_seniority >= SENIORITY_THRESHOLD
-            match_hits = final_hits_by_formula[
-                match
-            ]  # single output sink for this match
 
             for bmc in match_candidates:
                 atoms = tuple(sorted(bmc.atoms))
@@ -178,6 +174,7 @@ class MBSubstructMatcher:
                         ]
                         indexes: tuple[int, ...] = tuple(a.idx for a in free_atoms)
                         additional_double_bonds = (sum(double_bonds) // 2) % 2
+
                         cc = BondType(
                             formula="C=C",
                             SMARTS="[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]=[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]",
@@ -185,6 +182,7 @@ class MBSubstructMatcher:
                             sdf_files=("C2H4.sdf",),
                             seniority=0,
                         )
+
                         double_bond_atoms = tuple(
                             a for a, m in zip(indexes, double_bonds) if m
                         )
@@ -206,6 +204,6 @@ class MBSubstructMatcher:
                 # Placeholder rings must be "invisible" for overlap bookkeeping
                 accepted_candidates.append(bmc)
                 if not bmc.placeholder_ring:
-                    match_hits.append(atoms)
+                    final_hits_by_formula[match].append(atoms)
 
         return dict(final_hits_by_formula)
