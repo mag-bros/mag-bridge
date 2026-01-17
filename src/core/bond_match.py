@@ -163,18 +163,16 @@ class MBSubstructMatcher:
                         excluded_idx = {
                             i for acc in accepted_candidates for i in acc.atoms
                         }
-
-                        double_bond_atoms = tuple(
-                            a.idx
-                            for a in mol.GetAtoms()
-                            if a.idx not in excluded_idx and a.has_double_bond
+                        double_bond_atoms = mol.GetDoubleBondAtomsIndexes(
+                            excluded_idx=excluded_idx
                         )
 
                         if double_bond_atoms:
-                            cand = BondMatchCandidate.from_bt(
-                                DOUBLE_BOND, double_bond_atoms
+                            accepted_candidates.append(
+                                BondMatchCandidate.from_bt(
+                                    DOUBLE_BOND, double_bond_atoms
+                                )
                             )
-                            accepted_candidates.append(cand)
                             final_hits_by_formula[DOUBLE_BOND.formula].append(
                                 double_bond_atoms
                             )

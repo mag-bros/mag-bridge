@@ -114,6 +114,26 @@ class MBMolecule:
         """Return all substructure matches for the given SMARTS pattern."""
         return self._mol.GetSubstructMatches(MolFromSmarts(smarts, mergeHs=True))
 
+    def GetDoubleBondAtomsIndexes(
+        self,
+        excluded_idx: set[int] | None = None,
+        include_h: bool = False,
+    ) -> tuple[int, ...]:
+        """
+        Return atom indices for atoms that participate in at least one DOUBLE bond,
+        optionally excluding indices in excluded_idx.
+        Uses MBAtom.has_double_bond.
+        """
+        excluded_idx = excluded_idx or set()
+
+        return tuple(
+            a.idx
+            for a in self._atoms
+            if (include_h or a.symbol != "H")
+            and a.idx not in excluded_idx
+            and a.has_double_bond
+        )
+
     def GetAtoms(self) -> list[MBAtom]:
         """Return the list of MBAtom objects in this molecule."""
         return self._atoms
