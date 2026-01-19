@@ -250,7 +250,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=24,
         formula="N=O",
-        SMARTS="[N;X2;!$([N+])]=[O;X1]",
+        SMARTS="[N;!$([N+])]=[O;X1]",
         constitutive_corr=1.7,
         sdf_files=("N=O.sdf",),
         description="""

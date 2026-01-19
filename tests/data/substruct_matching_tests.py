@@ -1099,11 +1099,118 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"C=O": 1}),
         description="C=O assignement for HCO3- allowed.",
     ),
+    # TODO: 1. Resolve ester RC(=O)OR overlap through C=O
+    # TODO: 2. Exclude C=O overlap with ester groups!
     SubstructMatchTest(
         id=150,
-        SMILES="CC(=O)[O-]",
-        expected_matches=Counter({"C=O": 1}),
-        description="C=O assignement for HCO3- allowed.",
+        SMILES="CCOC1=NC2=CC=CC(=C2N1CC3=CC=C(C=C3)C4=CC=CC=C4C5=NNN=N5)C(=O)OC(C)OC(=O)OC6CCCCC6",
+        expected_matches=Counter(
+            {
+                "cyclohexane": 1,
+                "Ar-Ar": 2,
+                "Ar-COOR": 1,
+                "Ar-OR": 1,
+                "RCOOR": 1,
+                "benzene": 3,
+                "imidazole": 1,
+            }
+        ),
+        description="Carbonate RCOC(=O)OR example.",
+    ),
+    # TODO Ester and carbonyl overlap fix
+    # TODO Consider adding cyclohexadiene ring that is omitted currently? It will be more elegant to model 6-membered rings with C=C-C(=O)-C=C fragment.
+    SubstructMatchTest(
+        id=151,
+        SMILES="CCC(=O)OCC(=O)[C@]1(CC[C@@H]2[C@@]1(C[C@@H]([C@H]3[C@H]2CCC4=CC(=O)C=C[C@]34C)O)C)OC(=O)OCC",
+        expected_matches=Counter(
+            {
+                "cyclohexane": 2,
+                "cyclopentane": 1,
+                "C=O": 2,
+                "RCOOR": 2,
+                "C=C": 2,
+            }
+        ),
+        description="All C=O, RCOOR and ROCOOR possibilities.",
+    ),
+    SubstructMatchTest(
+        id=152,
+        SMILES="C[C@@]12[C@H]3CC[C@@H]([C@@]1(C(=O)OC2=O)C)O3",
+        expected_matches=Counter({"RCOOR": 2, "cyclohexane": 1}),
+        description="Cyclic anhydride fused with bicyclic fragment.",
+    ),
+    SubstructMatchTest(
+        id=153,
+        SMILES="C1=CC=C2C(=C1)C(=O)OC2=O",
+        expected_matches=Counter({"benzene": 1, "Ar-COOR": 2}),
+        description="Phthalic anhydride.",
+    ),
+    SubstructMatchTest(
+        id=154,
+        SMILES="C1=CC=C2C(=C1)C(=O)OC(=O)N2",
+        expected_matches=Counter({"benzene": 1}),
+        description="In aromatic system Ar-C(=O)NH2 and AR-COOR are correctly not matched.",
+    ),
+    SubstructMatchTest(
+        id=155,
+        SMILES="CC(C)[C@H]1C(=O)OC(=O)N1C(=O)OCC2=CC=CC=C2",
+        expected_matches=Counter({"RC(=O)NH2": 2, "RCOOR": 1, "benzene": 1}),
+        description="Structure with RC(=O)OC(=O)NC(=O)R motif.",
+    ),
+    SubstructMatchTest(
+        id=156,
+        SMILES="COC(=O)N1CC(=O)OC1=O",
+        expected_matches=Counter({"RC(=O)NH2": 2, "RCOOR": 1}),
+        description="Ring with RC(=O)OC(=O)NC(=O)R motif.",
+    ),
+    # TODO Should be mathed N=N and N=O bonds?
+    SubstructMatchTest(
+        id=157,
+        SMILES="[N-]=[N+]=O",
+        expected_matches=Counter({}),
+        description="",
+    ),
+    SubstructMatchTest(
+        id=158,
+        SMILES="[N]=O",
+        expected_matches=Counter({"N=O": 1}),
+        description="Simplest case of N=O bond matching.",
+    ),
+    SubstructMatchTest(
+        id=159,
+        SMILES="C1=CC2=C(C=CC(=C2N=C1)O)N=O",
+        expected_matches=Counter({"N=O": 1, "benzene": 1, "pyridine": 1, "Ar-OH": 1}),
+        description="N=O matching for Ar-N=O fragment allowed.",
+    ),
+    # TODO Allow N=N when part of N=[N+]-[O-]?
+    SubstructMatchTest(
+        id=160,
+        SMILES="CC(=O)OC/N=[N+](/C)\\[O-]",
+        expected_matches=Counter({"RCOOR": 1, "N=N": 1}),
+        description="Molecule with N=[N+]-[O-] group.",
+    ),
+    # TODO Fix RC(=O)NH2 self-matching via C=O
+    SubstructMatchTest(
+        id=161,
+        SMILES="CN(C(=O)N)N=O",
+        expected_matches=Counter({"N=O": 1, "R-C(=O)NH2": 1}),
+    ),
+    SubstructMatchTest(
+        id=162,
+        SMILES="C([N+](=O)[O-])(I)(Cl)Br",
+        expected_matches=Counter({"C-Cl": 1, "C-Br": 1, "C-I": 1, "-NO2": 1}),
+        description="C-X halogen bond matching check. Adjacent -NO2 group.",
+    ),
+    SubstructMatchTest(
+        id=163,
+        SMILES="C([N+](=O)[O-])([N+](=O)[O-])([N+](=O)[O-])[N+](=O)[O-]",
+        expected_matches=Counter({"-NO2": 4}),
+        description="Tetranitromethane.",
+    ),
+    SubstructMatchTest(
+        id=164,
+        SMILES="CC/C(=C\\C(=N\\O)\\C(=O)N)/C(C)[N+](=O)[O-]",
+        expected_matches=Counter({"-NO2": 1, "C=N": 1, "C=C": 1, "RC(=O)NH2": 1}),
     ),
     # SubstructMatchTest(
     #     id=149,
