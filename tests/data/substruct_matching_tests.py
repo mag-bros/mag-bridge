@@ -79,7 +79,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=8,
         SMILES="CCCCNC(=O)OCC#CI",
-        expected_matches=Counter({"C#C": 1, "C-I": 1}),
+        expected_matches=Counter({"C#C": 1, "C-I": 1, "RC(=O)NH2": 1}),
         description="""
             Important case of carbamate ROC(=O)NHR group.
             RCOOR and RCOONHR groups are not matched when being part of carbamate fragment.""",
@@ -219,7 +219,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="CC(=O)SC1CC2=CC(=O)CCC2(C3C1C4CCC5(C4(CC3)C)CCC(=O)O5)C",
         expected_matches=Counter(
             {
-                "C=O": 1,
+                "C=O": 2,
                 "RCOOR": 1,
                 "cyclohexane": 2,
                 "cyclohexene": 1,
@@ -284,9 +284,9 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=29,
         SMILES="C=CC1=C(N2C(C(C2=O)NC(=O)C(=NOCC(=O)O)C3=CSC(=N3)N)SC1)C(=O)O",
         expected_matches=Counter(
-            {"C=C-C=C": 1, "RCOOH": 2, "RC(=O)NH2": 1, "C=N": 1, "thiazole": 1}
+            {"C=C-C=C": 1, "RCOOH": 2, "RC(=O)NH2": 2, "C=N": 1, "thiazole": 1}
         ),
-        description="Thiazole derivative example.",
+        description="Thiazole derivative example. RCONR2 allowed.",
     ),
     SubstructMatchTest(
         id=30,
@@ -302,9 +302,16 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     ),
     SubstructMatchTest(
         id=31,
-        SMILES="CCN(CC)C(=O)C(=CC1=CC(=C(C(=C1)O)O)[N+](=O)[O-])C#N",  # TODO: What to do with amid group having tertiary C atom
+        SMILES="CCN(CC)C(=O)C(=CC1=CC(=C(C(=C1)O)O)[N+](=O)[O-])C#N",
         expected_matches=Counter(
-            {"-C#N": 1, "Ar-NO2": 1, "Ar-OH": 2, "benzene": 1, "Ar-C=C": 1}
+            {
+                "-C#N": 1,
+                "Ar-NO2": 1,
+                "Ar-OH": 2,
+                "benzene": 1,
+                "Ar-C=C": 1,
+                "RC(=O)NH2": 1,
+            }
         ),
         description="Molecule with Ar-NO2.",
     ),
@@ -318,9 +325,15 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     ),
     SubstructMatchTest(
         id=33,
-        SMILES="C1C2CC2N(C1C#N)C(=O)C(C34CC5CC(C3)CC(C5)(C4)O)N",  # TODO: What to do with RCONR2 group?
+        SMILES="C1C2CC2N(C1C#N)C(=O)C(C34CC5CC(C3)CC(C5)(C4)O)N",
         expected_matches=Counter(
-            {"cyclopropane": 1, "cyclohexane": 1, "pyrrolidine": 1, "-C#N": 1}
+            {
+                "cyclopropane": 1,
+                "cyclohexane": 1,
+                "pyrrolidine": 1,
+                "-C#N": 1,
+                "RC(=O)NH2": 1,
+            }
         ),
         description="Two bicyclic fragments and RCONR2 fragment.",
     ),
@@ -413,6 +426,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "benzene": 1,
                 "cyclohexane": 1,
                 "tetrahydrofuran": 1,
+                "RC(=O)NH2": 1,
             }
         ),
         description="Alkyllated amide bond.",
@@ -480,14 +494,14 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=53,
         SMILES="CC(C)(C)OC(=O)NC12CC(C1)(C2)C(=O)O",
-        expected_matches=Counter({"cyclobutane": 1, "RCOOH": 1}),
-        description="Bicyclo[1.1.1]pentane containing fused cyclobutane rings.",
+        expected_matches=Counter({"cyclobutane": 1, "RCOOH": 1, "RC(=O)NH2": 1}),
+        description="Bicyclo[1.1.1]pentane containing fused cyclobutane rings. Assignment of amide fragment allowed for carbamate group.",
     ),
     SubstructMatchTest(
         id=54,
         SMILES="CC(C)(C)OC(=O)NC12CCC(C1)(C2)C(=O)O",
-        expected_matches=Counter({"cyclobutane": 1, "RCOOH": 1}),
-        description="Bicyclo[2.1.1]hexane containing fused cyclobutane and cyclopentane rings.",
+        expected_matches=Counter({"cyclobutane": 1, "RCOOH": 1, "RC(=O)NH2": 1}),
+        description="Bicyclo[2.1.1]hexane containing fused cyclobutane and cyclopentane rings. Assignment of amide fragment allowed for carbamate group.",
     ),
     SubstructMatchTest(
         id=55,
@@ -504,8 +518,10 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=57,
         SMILES="CC(C)(C)OC(=O)N1CCC2(CC1)C3CC(C2C=C3)C(=O)O",
-        expected_matches=Counter({"RCOOH": 1, "cyclohexene": 1, "piperidine": 1}),
-        description="Cyclohexene containing bicyclo fragment bonded to piperidine ring.",
+        expected_matches=Counter(
+            {"RCOOH": 1, "cyclohexene": 1, "piperidine": 1, "RC(=O)NH2": 1}
+        ),
+        description="Cyclohexene containing bicyclo fragment bonded to piperidine ring. Assignment of amide fragment allowed for carbamate group.",
     ),
     SubstructMatchTest(
         id=58,
@@ -522,13 +538,15 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=60,
         SMILES="CC(C)(C)OC(=O)N1CC2CC2C1C(=O)O",
-        expected_matches=Counter({"RCOOH": 1, "cyclopropane": 1, "pyrrolidine": 1}),
+        expected_matches=Counter(
+            {"RCOOH": 1, "cyclopropane": 1, "pyrrolidine": 1, "RC(=O)NH2": 1}
+        ),
         description="Corner case of azabicyclo[3.1.0]hexene with fused piperidine, pyrrolidine and cyclopropane.",
     ),
     SubstructMatchTest(
         id=61,
         SMILES="C1C2C1(C(=O)NC2=O)C3=CC=CC=C3",
-        expected_matches=Counter({"benzene": 1, "cyclopropane": 1}),
+        expected_matches=Counter({"benzene": 1, "cyclopropane": 1, "RC(=O)NH2": 2}),
         description="Check for imide group incorporated into azabicyclo[3.2.1]hexene.",
     ),
     SubstructMatchTest(
@@ -850,6 +868,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"piperidine": 1}),
         description="with N/O",
     ),
+    # TODO allow overlap of RC(=O)NH2 only through N but NOT via C=O
     SubstructMatchTest(
         id=118,
         SMILES="C1CC2COC1CC2",
@@ -918,7 +937,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     ),
     SubstructMatchTest(
         id=131,
-        SMILES="CC(C1=CN=C(C=C1)C(F)(F)F)S(=NC#N)(=O)C",  # TODO: Should -C#N be allowed to form C-N bond?
+        SMILES="CC(C1=CN=C(C=C1)C(F)(F)F)S(=NC#N)(=O)C",
         expected_matches=Counter({"-C#N": 1, "pyridine": 1}),
         description="Corner case of N-C#N fragment.",
     ),
@@ -940,7 +959,14 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=134,
         SMILES="CNC(=O)C1=C(C=C(C=C1)N2C(=S)N(C(=O)C23CCC3)C4=CC(=C(N=C4)C#N)C(F)(F)F)F",
         expected_matches=Counter(
-            {"cyclobutane": 1, "-C#N": 1, "Ar-C(=O)NH2": 1, "benzene": 1, "pyridine": 1}
+            {
+                "cyclobutane": 1,
+                "-C#N": 1,
+                "Ar-C(=O)NH2": 1,
+                "benzene": 1,
+                "pyridine": 1,
+                "RC(=O)NH2": 1,
+            }
         ),
         description="The case of C(=S)NR-Ar fragment.",
     ),
@@ -1030,7 +1056,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
             {
                 "Ar-Ar": 1,
                 "Ar-C(=O)NH2": 1,
-                "RCONH2": 1,
+                "RC(=O)NH2": 1,
                 "RCOOH": 1,
                 "Ar-Cl": 1,
                 "benzene": 1,
@@ -1060,10 +1086,29 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"N=O": 1}),
         description="One molecule having -NO and -NO2 groups. N-N=O allowed.",
     ),
+    # TODO: RCONH2 can overlap only by N atom but not carbonyl C=O fragment
     SubstructMatchTest(
         id=148,
         SMILES="C1CSCCN1NC(=O)N(CCCl)N=O",
-        expected_matches=Counter({"C=O": 1, "N=O": 1, "C-Cl": 1}),
-        description="",
+        expected_matches=Counter({"RCONH2": 1, "N=O": 1, "C-Cl": 1}),
+        description="Molecule with NC(=O)N fragment",
     ),
+    SubstructMatchTest(
+        id=149,
+        SMILES="C(=O)(O)[O-]",
+        expected_matches=Counter({"C=O": 1}),
+        description="C=O assignement for HCO3- allowed.",
+    ),
+    SubstructMatchTest(
+        id=150,
+        SMILES="CC(=O)[O-]",
+        expected_matches=Counter({"C=O": 1}),
+        description="C=O assignement for HCO3- allowed.",
+    ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="C(=O)(O)[O-]",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
 ]

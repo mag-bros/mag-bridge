@@ -191,6 +191,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         sdf_files=("cyclobutane.sdf",),
         seniority=95,
     ),
+    # TODO: RCONH2 can overlap only by N atom but not carbonyl C=O fragment
     BondType(
         id=18,
         formula="cyclopropane",
@@ -212,15 +213,15 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=20,
         formula="C=O",
-        SMARTS="[C;X3;!$([C]-[c]);!$([C](=[O;X1])[O*]);!$([C](=[O;X1])[N*]);!$([C](=[O;X1])[S*]);!$([C]([C]#[C]-[C])(=[O])[C])]=[O;X1]",
+        SMARTS="[C;X3;!$([C]-[c]);!$([C]([H])(=[O])[O*]);!$([C]([C])(=[O])[O*]);!$([C](=[O;X1])[N*]);!$([C]([C]#[C]-[C])(=[O])[C])]=[O;X1]",
         constitutive_corr=6.3,
         sdf_files=("C=O.sdf",),
-        description="Condition: C cannot be bound to aryl group. Omitted additional bond to O/N/S in any form.",
+        description="Condition: C cannot be bound to aryl group. Omitted additional bond to O/N in any form. C=O can be assigned as part of thioester RC(=O)SR.",
     ),
     BondType(
         id=21,
         formula="RCOOH",
-        SMARTS="[C;X3;!$([C]-[c])](=[O;X1])[$([O;H1;X2]),$([O-;X1])]",
+        SMARTS="[C;X3;!$([C]-[c]);!$([C]([O])([O])=[O])](=[O;X1])[$([O;H1;X2]),$([O-;X1])]",
         constitutive_corr=-5.0,
         sdf_files=(
             "RCOOH.sdf",
@@ -322,7 +323,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=33,
         formula="RCOOR",
-        SMARTS="[C;X3;!$([C]-[c]);!$(C([O,N])[O,N])](=[O;X1])[O;X2]-[C]",
+        SMARTS="[C;X3;!$([C]-[c]);!$(C([O])[N])](=[O;X1])[O;X2]-[C]",
         constitutive_corr=-5.0,
         sdf_files=("RCOOR.sdf",),
         description="R = aliphatic group",
@@ -330,15 +331,16 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=34,
         formula="RC(=O)NH2",
-        SMARTS="[C;X3;!$([C]-[c]);!$(C([O,N])[O,N])](=[O;X1])[$([N;X3;H2]),$([N;X3;H1;!$(N([C]=[O])[C]=[O])][C])]",
+        SMARTS="[C;X3;!$([C]-[c])](=[O;X1])[$([N;X3;H2]),$([N;X3;H1][C]),$([N;X3;H0]([C])[C])]",
         constitutive_corr=-3.5,
         sdf_files=(
             "RCONH2.sdf",
             "RCONHR.sdf",
+            "RCONR2.sdf",
         ),
         description="""
             Note: Intentional extention for considering not only RCONH2, but also RCONHR. 
-            Eexcluded: ROC(=O)OR and RNHC(=O)OR groups.
+            Eexcluded: RNHC(=O)OR group - for this motif only C(=O)OR but not RNHC(=O) fragment will be assigned due to higher constitutive corr value of the former.
             This must be noted in Software's MANUAL.""",
     ),
     BondType(
@@ -480,14 +482,15 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=51,
         formula="Ar-C(=O)NH2",
-        SMARTS="[c]-[C;X3](=[O;X1])[$([N;X3;H2]),$([N;X3;H1][C])]",
+        SMARTS="[c]-[C;X3](=[O;X1])[$([N;X3;H2]),$([N;X3;H1][C]),$([N;X3;H0]([C])[C])]",
         constitutive_corr=-1.5,
         sdf_files=(
             "Ar-CONH2.sdf",
             "Ar-CONHR.sdf",
+            "Ar-CONR2.sdf",
         ),
         description="""
-            Note: Intentional extention for considering not only ArCONH2, but also ArCONHR. 
+            Note: Intentional extention for considering not only ArCONH2, but also Ar-CONHR and Ar-CONR2. 
             This must be noted in Software's MANUAL.""",
     ),
     BondType(
