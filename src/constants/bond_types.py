@@ -370,7 +370,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=37,
         formula="Ar-NR2",
-        SMARTS="[c]-[N;X3]([C;!$([C]=[O])])[C;!$([C]=[O])]",
+        SMARTS="[c]-[N;X3]([C;!$([C]=[O,S])])[C;!$([C]=[O,S])]",
         constitutive_corr=1,
         sdf_files=("Ar-NR2.sdf",),
     ),
@@ -417,7 +417,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=43,
         formula="Ar-OR",  # NOT unique atoms
-        SMARTS="[c]-[O;X2][C]",
+        SMARTS="[c]-[O;X2][C;!$([C]=[O])]",
         constitutive_corr=-1,
         sdf_files=("Ar-OR.sdf",),
         description="Cyclic ethers bound to aromatic C atom are also considered",

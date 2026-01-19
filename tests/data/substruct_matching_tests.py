@@ -300,36 +300,36 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         ),
         description="Example encompassing C=C-C=C, C=C and CH2=CH-CH2- bond types.",
     ),
-    # TODO add new test in this place, SMILES not unique
-    # SubstructMatchTest(
-    #     id=31,
-    #     SMILES="CC1=C(C(CCC1)(C)C)C=CC(=CC=CC(=CC(=O)O)C)C",
-    #     expected_matches=Counter({"C=C-C=C": 2, "RCOOH": 1, "cyclohexene": 1}),
-    #     description="Examine C=C-C=C self-matching.",
-    # ),
-    # TODO add new test in this place, SMILES not unique
-    # SubstructMatchTest(
-    #     id=32,
-    #     SMILES="CC1=C(C(CC(C1=O)O)(C)C)C=CC(=CC=CC(=CC=CC=C(C)C=CC=C(C)C=CC2=C(C(=O)C(CC2(C)C)O)C)C)C",
-    #     expected_matches=Counter({"C=C-C=C": 4, "C=C": 1, "C=O": 2, "cyclohexene": 2}),
-    #     description="Examine C=C-C=C self-matching.",
-    # ),
-    # TODO add new test in this place, SMILES not unique
-    # SubstructMatchTest(
-    #     id=33,
-    #     SMILES="C=CC1=C(N2C(C(C2=O)NC(=O)C(=NOCC(=O)O)C3=CSC(=N3)N)SC1)C(=O)O",
-    #     expected_matches=Counter(
-    #         {"C=C-C=C": 1, "RCOOH": 2, "RC(=O)NH2": 1, "C=N": 1, "thiazole": 1}
-    #     ),
-    #     description="Thiazole derivative example.",
-    # ),
-    # TODO add new test in this place, SMILES not unique
-    # SubstructMatchTest(
-    #     id=34,
-    #     SMILES="C=CCCCC(=C)C/C=C/C(C)=C/C=C/C(C)=C/C=C/C=C(C)/C=C/C=C(C)/C=C/C=C(C)/CC/C=C(C)\C",
-    #     expected_matches=Counter({"C=C-C=C": 5, "C=C": 2, "CH2=CH-CH2-": 1}),
-    #     description="Example encompassing C=C-C=C, C=C and CH2=CH-CH2- bond types.",
-    # ),
+    SubstructMatchTest(
+        id=31,
+        SMILES="CCN(CC)C(=O)C(=CC1=CC(=C(C(=C1)O)O)[N+](=O)[O-])C#N",  # TODO: What to do with amid group having tertiary C atom
+        expected_matches=Counter(
+            {"-C#N": 1, "Ar-NO2": 1, "Ar-OH": 2, "benzene": 1, "Ar-C=C": 1}
+        ),
+        description="Molecule with Ar-NO2.",
+    ),
+    SubstructMatchTest(
+        id=32,
+        SMILES="C1=CC(=C2C(=C1)OC(O2)(F)F)C3=CNC=C3C#N",
+        expected_matches=Counter(
+            {"-C#N": 1, "Ar-Ar": 1, "Ar-OR": 2, "benzene": 1, "pyrrole": 1}
+        ),
+        description="Interesting Ar-OR matching.",
+    ),
+    SubstructMatchTest(
+        id=33,
+        SMILES="C1C2CC2N(C1C#N)C(=O)C(C34CC5CC(C3)CC(C5)(C4)O)N",  # TODO: What to do with RCONR2 group?
+        expected_matches=Counter(
+            {"cyclopropane": 1, "cyclohexane": 1, "pyrrolidine": 1, "-C#N": 1}
+        ),
+        description="Two bicyclic fragments and RCONR2 fragment.",
+    ),
+    SubstructMatchTest(
+        id=34,
+        SMILES="C(#N)S",
+        expected_matches=Counter({"-C#N": 1}),
+        description="Thiocyanite group - C#N bond matching accepted.",
+    ),
     SubstructMatchTest(
         id=35,
         SMILES="CC1=C(C(=O)CC1OC(=O)C2C(C2(C)C)C=C(C)C)CC=C",
@@ -915,5 +915,155 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=130,
         SMILES="N1CC2C=CC1CO2",
         expected_matches=Counter({"morpholine": 1, "C=C": 1}),
+    ),
+    SubstructMatchTest(
+        id=131,
+        SMILES="CC(C1=CN=C(C=C1)C(F)(F)F)S(=NC#N)(=O)C",  # TODO: Should -C#N be allowed to form C-N bond?
+        expected_matches=Counter({"-C#N": 1, "pyridine": 1}),
+        description="Corner case of N-C#N fragment.",
+    ),
+    SubstructMatchTest(
+        id=132,
+        SMILES="C1CSC(=NC#N)N1CC2=CN=C(C=C2)Cl",
+        expected_matches=Counter({"-C#N": 1, "Ar-Cl": 1, "C=N": 1, "pyridine": 1}),
+        description="Conjugated bond system containing N atoms.",
+    ),
+    SubstructMatchTest(
+        id=133,
+        SMILES="CC1=C(C(C(=C(N1)C#N)C(=O)OC)C2=CC(=CC=C2)[N+](=O)[O-])C(=O)OC(C)C",
+        expected_matches=Counter(
+            {"-C#N": 1, "Ar-NO2": 1, "RCOOR": 2, "benzene": 1, "C=C": 2}
+        ),
+        description="Unknown unsaturated N-ring matching.",
+    ),
+    SubstructMatchTest(
+        id=134,
+        SMILES="CNC(=O)C1=C(C=C(C=C1)N2C(=S)N(C(=O)C23CCC3)C4=CC(=C(N=C4)C#N)C(F)(F)F)F",
+        expected_matches=Counter(
+            {"cyclobutane": 1, "-C#N": 1, "Ar-C(=O)NH2": 1, "benzene": 1, "pyridine": 1}
+        ),
+        description="The case of C(=S)NR-Ar fragment.",
+    ),
+    SubstructMatchTest(
+        id=135,
+        SMILES="C1=CC=C2C(=C1)N=C(S2)SCSC#N",
+        expected_matches=Counter({"benzene": 1, "thiazole": 1, "-C#N": 1}),
+        description="",
+    ),
+    SubstructMatchTest(
+        id=136,
+        SMILES="C1=CC=C(C(=C1)C=C(C#N)C#N)Cl",
+        expected_matches=Counter({"-C#N": 2, "Ar-Cl": 1, "benzene": 1, "Ar-C=C": 1}),
+        description="matching for conjugated bond system with -C#N groups.",
+    ),
+    SubstructMatchTest(
+        id=137,
+        SMILES="CC1(C2CCC1(C(C2)OC(=O)CSC#N)C)C",
+        expected_matches=Counter({"cyclohexane": 1, "-C#N": 1, "RCOOR": 1}),
+        description="thiocyanate groupe and bicyclic fragment.",
+    ),
+    SubstructMatchTest(
+        id=138,
+        SMILES="CC1=CC(=CC(=C1NC2=NC(=NC=C2)NC3=CC=C(C=C3)C#N)C)C=CC#N",
+        expected_matches=Counter(
+            {"-C#N": 2, "benzene": 2, "pyrimidine": 1, "Ar-C=C": 1}
+        ),
+        description="pryimidine derivative with conjugated bond system having -C#N groups",
+    ),
+    SubstructMatchTest(
+        id=139,
+        SMILES="CC(C)(COC1=CN2C(=C(C=N2)C#N)C(=C1)C3=CN=C(C=C3)N4CC5CC(C4)N5CC6=CN=C(C=C6)OC)O",
+        expected_matches=Counter(
+            {
+                "piperazine": 1,
+                "-C#N": 1,
+                "Ar-Ar": 1,
+                "Ar-NR2": 1,
+                "Ar-OR": 2,
+                "pyridine": 3,
+            }
+        ),
+        description="Nontrival structure with mutliple N-rings and bicyclic fragment.",
+    ),
+    SubstructMatchTest(
+        id=140,
+        SMILES="CCCCCCCC(=O)OC1=C(C=C(C=C1Br)C#N)Br",
+        expected_matches=Counter({"-C#N": 1, "Ar-Br": 2, "benzene": 1}),
+        description="The case of RC(=O)O-Ar bond type.",
+    ),
+    SubstructMatchTest(
+        id=141,
+        SMILES="CCOP(=O)(C#N)N(C)C",
+        expected_matches=Counter({"-C#N": 1}),
+        description="Corner case of P-C#N bonding.",
+    ),
+    SubstructMatchTest(
+        id=142,
+        SMILES="C1CC1NC(=O)C2=CN(C3=C(C2=O)C=CC=N3)C4=CC=CC(=C4)C#CC5=C[N+](=CC=C5)[O-]",
+        expected_matches=Counter(
+            {
+                "cyclopropane": 1,
+                "Ar-C#C-Ar": 1,
+                "Ar-C(=O)NH2": 1,
+                "benzene": 1,
+                "pyridine": 2,
+            }
+        ),
+        description="The case of Ar-C#C-Ar bond and pirydine N-oxide fragment.",
+    ),
+    SubstructMatchTest(
+        id=143,
+        SMILES="C1CCC2=C(C1)C=C3C=CC4=C(C=CC5=C4C3=C2C=C5)N=O",
+        expected_matches=Counter({"benzene": 4, "N=O": 1}),
+        description="Nitroso bond type",
+    ),
+    SubstructMatchTest(
+        id=144,
+        SMILES="CC1C(OCCN1N=O)C2=CC=CC=C2",
+        expected_matches=Counter({"morpholine": 1, "benzene": 1, "N=O": 1}),
+        description="N-nitroso group (N-N=O).",
+    ),
+    SubstructMatchTest(
+        id=145,
+        SMILES="CC1=C(C(=NO1)C2=CC=CC=C2Cl)C(=O)N[C@H]3[C@@H]4N(C3=O)[C@H](C(S4)(C)C)C(=O)O",
+        expected_matches=Counter(
+            {
+                "Ar-Ar": 1,
+                "Ar-C(=O)NH2": 1,
+                "RCONH2": 1,
+                "RCOOH": 1,
+                "Ar-Cl": 1,
+                "benzene": 1,
+                "isoxazole": 1,
+            }
+        ),
+        description="Isoxazole is not matched with N=O bond. Ar-C(=O)NHR and RCONR2 within saturated ring.",
+    ),
+    SubstructMatchTest(
+        id=146,
+        SMILES="CC1=C(C(=NO1)C2=C(C=CC=C2Cl)Cl)C(=O)NC(=S)N3CCOCC3",
+        expected_matches=Counter(
+            {
+                "morpholine": 1,
+                "Ar-Ar": 1,
+                "Ar-C(=O)NH2": 1,
+                "Ar-Cl": 2,
+                "benzene": 1,
+                "isoxazole": 1,
+            }
+        ),
+        description="N-acylthiourea C(=S)NHC(=O) derivative example.",
+    ),
+    SubstructMatchTest(
+        id=147,
+        SMILES="C1N(CN(CN1[N+](=O)[O-])[N+](=O)[O-])N=O",
+        expected_matches=Counter({"N=O": 1}),
+        description="One molecule having -NO and -NO2 groups. N-N=O allowed.",
+    ),
+    SubstructMatchTest(
+        id=148,
+        SMILES="C1CSCCN1NC(=O)N(CCCl)N=O",
+        expected_matches=Counter({"C=O": 1, "N=O": 1, "C-Cl": 1}),
+        description="",
     ),
 ]
