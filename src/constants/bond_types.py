@@ -260,7 +260,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=25,
         formula="-NO2",
-        SMARTS="[C;!c]-[N+;X3]([O-;X1])=[O;X1]",
+        SMARTS="[*;!c]-[N+;X3]([O-;X1])=[O;X1]",
         constitutive_corr=-2.0,
         sdf_files=("-NO2.sdf",),
         description="""
@@ -346,7 +346,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=35,
         formula="C=N",
-        SMARTS="[C;X2,X3;!$([c]);!$(C(=[N])=[S]);!$([C]([N])([N])=[N])]=[N;!$([n]);!$([N](=[C]([C])[C])-[N]=[C]([C])[C])]",
+        SMARTS="[C;X2,X3;!$([c]);!$(C(=[N])=[S])]=[N;!$([n]);!$([N](=[C]([C])[C])-[N]=[C]([C])[C])]",
         constitutive_corr=8.15,
         sdf_files=(
             "C=N.sdf",

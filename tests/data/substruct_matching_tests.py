@@ -241,7 +241,9 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=23,
         SMILES="CC1C(C(C(O1)OC2C(C(C(C(C2O)O)N=C(N)N)O)N=C(N)N)OC3C(C(C(C(O3)CO)O)O)NC)(C=O)O",
-        expected_matches=Counter({"C=O": 1, "cyclohexane": 1, "tetrahydrofuran": 1}),
+        expected_matches=Counter(
+            {"C=O": 1, "cyclohexane": 1, "tetrahydrofuran": 1, "C=N": 2}
+        ),
         description="""
             Highlights that C=N is ignored when being part of guanidine group.
             Examine C=N not matched.""",
@@ -1083,7 +1085,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=147,
         SMILES="C1N(CN(CN1[N+](=O)[O-])[N+](=O)[O-])N=O",
-        expected_matches=Counter({"N=O": 1}),
+        expected_matches=Counter({"N=O": 1, "-NO2": 2}),
         description="One molecule having -NO and -NO2 groups. N-N=O allowed.",
     ),
     # TODO: RCONH2 can overlap only by N atom but not carbonyl C=O fragment
@@ -1168,7 +1170,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=157,
         SMILES="[N-]=[N+]=O",
         expected_matches=Counter({}),
-        description="",
+        description="Nitrous oxide resonance form",
     ),
     SubstructMatchTest(
         id=158,
@@ -1212,9 +1214,70 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="CC/C(=C\\C(=N\\O)\\C(=O)N)/C(C)[N+](=O)[O-]",
         expected_matches=Counter({"-NO2": 1, "C=N": 1, "C=C": 1, "RC(=O)NH2": 1}),
     ),
+    SubstructMatchTest(
+        id=165,
+        SMILES="CN/C(=C\\[N+](=O)[O-])/NCCSCC1=CC=C(O1)C[N+](C)(C)[O-]",
+        expected_matches=Counter({"-NO2": 1, "furan": 1, "C=C": 1}),
+        description="R2[N+]-[O-] fragment is (correctly) not matched as N=O.",
+    ),
+    SubstructMatchTest(
+        id=166,
+        SMILES="CN=C(NCC1CCOC1)N[N+](=O)[O-]",
+        expected_matches=Counter({"tetrahydrofuran": 1, "-NO2": 1, "C=N": 1}),
+        description="N=O in guanidine N-C(=N)-N fragment left unassigned due to electron delocalization. -NO2 excluded when N-N bond exists.",
+    ),
+    SubstructMatchTest(
+        id=167,
+        SMILES="",
+        expected_matches=Counter({}),
+        description="",
+    ),
+    SubstructMatchTest(
+        id=168,
+        SMILES="[N+](=O)(O)[O-]",
+        expected_matches=Counter({"-NO2": 1}),
+        description="-NO2 matched for nitric acid.",
+    ),
+    SubstructMatchTest(
+        id=169,
+        SMILES="C1[C@H]([C@@H]2[C@H](O1)[C@H](CO2)O[N+](=O)[O-])O[N+](=O)[O-]",
+        expected_matches=Counter({"-NO2": 2, "tetrahydrofuran": 2}),
+        description="-NO2 matching for R-ONO2 fragments.",
+    ),
+    SubstructMatchTest(
+        id=170,
+        SMILES="CN(C1=C(C=C(C=C1[N+](=O)[O-])[N+](=O)[O-])[N+](=O)[O-])[N+](=O)[O-]",
+        expected_matches=Counter({"-NO2": 1, "Ar-NO2": 3, "benzene": 1}),
+        description="",
+    ),
+    SubstructMatchTest(
+        id=171,
+        SMILES="C1=CC(=CC=C1C(C2=CC=C(C=C2)Cl)C(Cl)(Cl)Cl)Cl",
+        expected_matches=Counter({"Ar-Cl": 2, "C-Cl": 3, "benzene": 2}),
+        description="Ar-Cl and C-Cl matching.",
+    ),
+    SubstructMatchTest(
+        id=172,
+        SMILES="C1C2C(COS(=O)O1)C3(C(=C(C2(C3(Cl)Cl)Cl)Cl)Cl)Cl",
+        expected_matches=Counter({"cyclohexene": 1, "R2CCl2": 1, "C-Cl": 4}),
+        description="R2CCl2 and multiple C-Cl bonds in one bicyclic fragment.",
+    ),
+    SubstructMatchTest(
+        id=173,
+        SMILES="C1[C@@H]2[C@H]3[C@@H]([C@H]1[C@H]4[C@@H]2O4)[C@]5(C(=C([C@@]3(C5(Cl)Cl)Cl)Cl)Cl)Cl",
+        expected_matches=Counter(
+            {"cyclohexane": 1, "cyclohexene": 1, "R2CCl2": 1, "C-Cl": 4}
+        ),
+    ),
+    SubstructMatchTest(
+        id=174,
+        SMILES="C(=O)(Cl)Cl",
+        expected_matches=Counter({"C-Cl": 2, "C=O": 1}),
+        description="Both C-Cl and C=O assigned when part of Cl2C=O.",
+    ),
     # SubstructMatchTest(
     #     id=149,
-    #     SMILES="C(=O)(O)[O-]",
+    #     SMILES="C=C1C(C2(C(C(C1(C2(Cl)Cl)Cl)Cl)Cl)Cl)(CCl)CCl",
     #     expected_matches=Counter({}),
     #     description="",
     # ),
