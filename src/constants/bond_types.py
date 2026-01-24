@@ -271,7 +271,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=26,
         formula="C-Cl",
-        SMARTS="[C;!$([c]);!$([C]([C])([C])([Cl])[Cl]);!$([C;H1]([C])([Cl])[Cl]);!$([C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])([Cl])-[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])[Cl])]-[Cl]",
+        SMARTS="[C;!$([c]);!$([C]([C])([C])([Cl])[Cl]);!$([C;X4;H1]([C;!$(C=O);!$(C#N)])([Cl])[Cl]);!$([C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])([Cl])-[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])[Cl])]-[Cl]",
         constitutive_corr=3.1,
         sdf_files=("C-Cl.sdf",),
         description="Excluded: R2CCl2, RCHCl2, Ar-Cl and Cl-CR2-CR2-Cl",
@@ -293,7 +293,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=29,
         formula="RCHCl2",
-        SMARTS="[C;X4;H1]([C])([Cl])[Cl]",
+        SMARTS="[C;X4;H1]([C;!$(C=O);!$(C#N)])([Cl])[Cl]",
         constitutive_corr=6.43,
         sdf_files=("RCHCl2.sdf",),
     ),
@@ -331,7 +331,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=34,
         formula="RC(=O)NH2",
-        SMARTS="[C;X3;!$([C]-[c])](=[O;X1])[$([N;X3;H2]),$([N;X3;H1][C]),$([N;X3;H0]([C])[C])]",
+        SMARTS="[C;X3;!$([C]-[c])](=[O;X1])[$([N;X3;H2]),$([N;X3;H1;!$([N]-[c])][C]),$([N;X3;H0;!$([N]-[c])]([C])[C])]",
         constitutive_corr=-3.5,
         sdf_files=(
             "RCONH2.sdf",
