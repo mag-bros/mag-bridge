@@ -51,10 +51,11 @@ def pytest_unconfigure(config: pytest.Config) -> None:
     if report is None:
         return
 
-    tr.write_line("=" * 80)
-    tr.write_line("Bond type coverage report")
-    tr.write_line("=" * 80)
-    tr.write_line(f"Markdown report: {report.md_path}")
-    tr.write_line("")
-    tr.write(report.md_content)
-    tr.write_line("")
+    # extra summary
+    # tr.write_line("=" * 80)
+    # tr.write_line("Bond type coverage report")
+    # tr.write_line("=" * 80)
+    # tr.write_line(f"Markdown report: {report.md_path}")
+    # tr.write_line("")
+    # tr.write(report.md_content)
+    # tr.write_line("")

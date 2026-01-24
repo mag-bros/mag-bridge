@@ -118,7 +118,7 @@ def test_bond_type_coverage(request, bond_coverage_report_publish) -> None:
 
     lines += [
         "",
-        "| formula | tests_count | tests_pct |",
+        "| formula | Usage in Tests | % Coverage |",
         "|---|---:|---:|",
     ]
     for f in ranked:

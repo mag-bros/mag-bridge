@@ -4,7 +4,7 @@
 ## Missing [8]
 `Br-CR2-CR2-Br`, `R2C=N-N=CR2`, `RC#C-C(=O)R`, `azacyclopropane`, `oxacyclopropane`, `pyrazine`, `thiacyclopropane`, `triazine`
 
-| formula | tests_count | tests_pct |
+| formula | Usage in Tests | % Coverage |
 |---|---:|---:|
 | `Br-CR2-CR2-Br` | 0 | 0.00% |
 | `R2C=N-N=CR2` | 0 | 0.00% |
