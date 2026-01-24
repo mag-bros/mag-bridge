@@ -40,16 +40,10 @@ def _run_diamag_contr_test(
 
 
 def _params_for(subdir: str):
-    def _safe_id(p) -> str:
-        try:
-            return f"<{p[0]}> {p[1].sdf_file}"
-        except Exception:
-            return str(p)
-
     return pytest.mark.parametrize(
         "diamag_contr_params",
         list(enumerate(CALC_DIAMAG_CONTR_TESTS[subdir])),
-        ids=_safe_id,
+        ids=lambda id: f"<{p[0]}> {p[1].sdf_file}",
     )
 
 
