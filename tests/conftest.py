@@ -2,14 +2,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, cast
+from typing import Callable
 
 import pytest
 
 
 @dataclass(frozen=True)
 class BondCoverageReport:
-    """Data needed to print the bond coverage report."""
+    """Bond coverage report payload produced by a single test."""
 
     md_path: str
     md_content: str
@@ -19,8 +19,9 @@ BOND_COVERAGE_REPORT = pytest.StashKey[BondCoverageReport | None]()
 
 
 def pytest_configure(config: pytest.Config) -> None:
+    """Register marker and initialize stash slot."""
     config.addinivalue_line(
-        "markers", "bond_coverage_report: emit bond coverage report at end"
+        "markers", "bond_coverage_report: produces bond coverage report artifacts"
     )
     config.stash[BOND_COVERAGE_REPORT] = None
 
@@ -29,7 +30,7 @@ def pytest_configure(config: pytest.Config) -> None:
 def bond_coverage_report_publish(
     request: pytest.FixtureRequest,
 ) -> Callable[[str, str], None]:
-    """Publish the bond coverage report data for end-of-run printing."""
+    """Store report metadata in the pytest stash (no terminal output)."""
 
     def publish(md_path: str, md_content: str) -> None:
         request.config.stash[BOND_COVERAGE_REPORT] = BondCoverageReport(
@@ -38,24 +39,3 @@ def bond_coverage_report_publish(
         )
 
     return publish
-
-
-@pytest.hookimpl(trylast=True)
-def pytest_unconfigure(config: pytest.Config) -> None:
-    tr_plugin = config.pluginmanager.getplugin("terminalreporter")
-    if tr_plugin is None:
-        return
-    tr = cast(pytest.TerminalReporter, tr_plugin)
-
-    report = config.stash.get(BOND_COVERAGE_REPORT, None)
-    if report is None:
-        return
-
-    # extra summary
-    # tr.write_line("=" * 80)
-    # tr.write_line("Bond type coverage report")
-    # tr.write_line("=" * 80)
-    # tr.write_line(f"Markdown report: {report.md_path}")
-    # tr.write_line("")
-    # tr.write(report.md_content)
-    # tr.write_line("")
