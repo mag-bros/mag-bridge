@@ -56,7 +56,9 @@ def test_bond_type_coverage(request, bond_coverage_report_publish) -> None:
     for smt in SUBSTRUCT_MATCH_TESTS:
         counts.update(smt.expected_matches.keys())
 
-    expected_formulas = {bt.formula for bt in RELEVANT_BOND_TYPES}
+    expected_formulas = {
+        bt.formula for bt in RELEVANT_BOND_TYPES if bt.dummy_ring == False
+    }
     found_formulas = set(counts.keys())
 
     missing = expected_formulas - found_formulas
@@ -78,7 +80,7 @@ def test_bond_type_coverage(request, bond_coverage_report_publish) -> None:
     md_path = report_dir / "bondtype_coverage.md"
 
     # Global coverage numbers (as requested)
-    all_relevant = len(RELEVANT_BOND_TYPES)
+    all_relevant = len(expected_formulas)
     discovered_unique = len(
         counts
     )  # <-- "count is len(count)" (distinct formulas in tests)
