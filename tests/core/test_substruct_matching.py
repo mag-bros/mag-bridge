@@ -1,5 +1,4 @@
 from collections import Counter
-from typing import Counter
 
 import pytest
 
@@ -11,12 +10,15 @@ from tests.data.substruct_matching_tests import (
 )
 
 
+@pytest.mark.counter_metrics(group="bondtypes")
 @pytest.mark.parametrize(
     "substruct_match_test",
     SUBSTRUCT_MATCH_TESTS,
     ids=lambda p: f"<{p.id}> {p.SMILES}",
 )
-def test_substruct_matches(substruct_match_test: SubstructMatchTest) -> None:
+def test_substruct_matches(
+    substruct_match_test: SubstructMatchTest, counter_metrics_sink
+) -> None:
     """Test if a molecules matches all expected substructures - Bond Types."""
 
     if substruct_match_test.skip_test:
@@ -26,8 +28,9 @@ def test_substruct_matches(substruct_match_test: SubstructMatchTest) -> None:
 
     mol = MBLoader.MolFromSmiles(smiles=substruct_match_test.SMILES)
 
-    # Matching now includes the Postprocess() overlap logic (self + cross-formula)
+    # Actual test: GetMatches()
     result = MBSubstructMatcher.GetMatches(mol=mol)
+    counter_metrics_sink(result.matchesCounter)
 
     def normalize_counter_keys(c: Counter[str]) -> Counter[str]:
         return Counter({k.rstrip(":").strip(): v for k, v in c.items()})
