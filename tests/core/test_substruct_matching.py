@@ -60,7 +60,6 @@ def test_bond_type_coverage(request, bond_coverage_report_publish) -> None:
     found_formulas = set(counts.keys())
 
     missing = expected_formulas - found_formulas
-    # assert not missing, f"Missing ({len(missing)}): {sorted(missing)}"
 
     total_tests = len(SUBSTRUCT_MATCH_TESTS)
 
@@ -131,3 +130,5 @@ def test_bond_type_coverage(request, bond_coverage_report_publish) -> None:
     md_path.write_text(md_text, encoding="utf-8")
 
     bond_coverage_report_publish(str(md_path), md_text)
+
+    assert not missing, f"Missing ({len(missing)}): {sorted(missing)}"
