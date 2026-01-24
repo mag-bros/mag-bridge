@@ -1,18 +1,15 @@
 # BondType Substruct Matching Tests Coverage
 
-- Status ❌ [59/65]
-## Missing [8]
-`Br-CR2-CR2-Br`, `R2C=N-N=CR2`, `RC#C-C(=O)R`, `azacyclopropane`, `oxacyclopropane`, `pyrazine`, `thiacyclopropane`, `triazine`
+- Status ❌ [59/62]
+## Missing [5]
+`Br-CR2-CR2-Br`, `R2C=N-N=CR2`, `RC#C-C(=O)R`, `pyrazine`, `triazine`
 
 | formula | Usage in Tests | % Coverage |
 |---|---:|---:|
 | `Br-CR2-CR2-Br` | 0 | 0.00% |
 | `R2C=N-N=CR2` | 0 | 0.00% |
 | `RC#C-C(=O)R` | 0 | 0.00% |
-| `azacyclopropane` | 0 | 0.00% |
-| `oxacyclopropane` | 0 | 0.00% |
 | `pyrazine` | 0 | 0.00% |
-| `thiacyclopropane` | 0 | 0.00% |
 | `triazine` | 0 | 0.00% |
 | `Ar-C#C` | 1 | 0.42% |
 | `Ar-CHO` | 1 | 0.42% |
