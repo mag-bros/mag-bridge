@@ -38,6 +38,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="CC(=C)C1CC2=C(O1)C=CC3=C2OC4COC5=CC(=C(C=C5C4C3=O)OC)OC",
         expected_matches=Counter({"Ar-OR": 5, "benzene": 2, "C=C": 1, "Ar-C(=O)R": 1}),
     ),
+    # TODO Fix required - Ar-O-Ar should be matched twice as Ar-OR bond type.
     SubstructMatchTest(
         id=5,
         SMILES="CC1(C(C1C(=O)OC(C#N)C2=CC(=CC=C2)OC3=CC=CC=C3)C=C(Cl)Cl)C",
@@ -49,6 +50,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "benzene": 2,
                 "cyclopropane": 1,
                 "C=C": 1,
+                "Ar-OR": 2,
             }
         ),
         description="Tests if ArOAr was not incorrectly matched.",
@@ -428,6 +430,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "benzene": 1,
                 "cyclohexane": 1,
                 "tetrahydrofuran": 1,
+                "RC(=O)NH2": 1,
             }
         ),
         description="Alkyllated amide bond.",
@@ -966,6 +969,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "Ar-C(=O)NH2": 1,
                 "benzene": 1,
                 "pyridine": 1,
+                "RC(=O)NH2": 1,
             }
         ),
         description="The case of C(=S)NR-Ar fragment.",
@@ -1014,7 +1018,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=140,
         SMILES="CCCCCCCC(=O)OC1=C(C=C(C=C1Br)C#N)Br",
-        expected_matches=Counter({"-C#N": 1, "Ar-Br": 2, "benzene": 1}),
+        expected_matches=Counter({"-C#N": 1, "Ar-Br": 2, "benzene": 1, "RCOOR": 1}),
         description="The case of RC(=O)O-Ar bond type.",
     ),
     SubstructMatchTest(
@@ -1181,7 +1185,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"N=O": 1, "benzene": 1, "pyridine": 1, "Ar-OH": 1}),
         description="N=O matching for Ar-N=O fragment allowed.",
     ),
-    # TODO Allow N=N when part of N=[N+]-[O-]?
     SubstructMatchTest(
         id=160,
         SMILES="CC(=O)OC/N=[N+](/C)\\[O-]",
@@ -1555,7 +1558,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({}),
         description="Structure too complicated to analyse bond types.",
     ),
-    # TODO After fix Cl-CR2-CR2-Cl should not match because 3 C-C bonds overlay with one cyclobutane ring.
+    # TODO After fix Cl-CR2-CR2-Cl should not match because 3 C-C bonds (max 2 C-C) overlay with one cyclobutane ring.
     SubstructMatchTest(
         id=213,
         SMILES="C12(C3(C4(C1(C5(C2(C3(C45Cl)F)F)Cl)F)F)F)F",
@@ -1584,6 +1587,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         ),
         description="Cl-CR2-CR2-Cl is not matched because some R = C=O",
     ),
+    # TODO Fix ring/Cl-CR2-CR2-Cl overlap
     SubstructMatchTest(
         id=217,
         SMILES="C1C2(C1(C3(CC3(C4(C2=CC=CC4Cl)Cl)Cl)Cl)Cl)Cl",
@@ -1674,7 +1678,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=226,
         SMILES="C1C[C@H]2C3=CC=CC=C3[C@@H]1C2(C4([C@@H]5CC[C@H]4C6=CC=CC=C56)Cl)Cl",
-        expected_matches=Counter({"cyclohexane": 2, "benzene": 2, "Cl-CR2-CR2-Cl": 1}),
+        expected_matches=Counter({"cyclopentane": 2, "benzene": 2, "Cl-CR2-CR2-Cl": 1}),
         description="Rare case where Cl-CR2-CR2-Cl is correctly assigned as bridge between two bicyclic structures.",
     ),
     SubstructMatchTest(
@@ -1683,6 +1687,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"benzene": 20}),
         description="RDKit fails when drawing fullerene structure. 15 pentagons are not assigned because they are treated as uncommon rings.",
     ),
+    # TODO Cl-CR2-CR2-Cl must not match due to ring overlap
     SubstructMatchTest(
         id=230,
         SMILES="C12(C3(C4(C1(C5(C2(C3(C45Cl)Cl)Cl)Cl)Cl)Cl)Cl)Cl",
@@ -1750,8 +1755,10 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=239,
         SMILES="CN(C1=CC=C(C=C1)OC(=O)C2=CC=CO2)C(=O)C(Cl)Cl",
-        expected_matches=Counter({"furan": 1, "benzene": 1, "C-Cl": 2}),
-        description="RCHCl2 is not matched when R = C(=O)NH2, C(=O)OR or C(=O)OH. Ar-C(=O)OR is not matched if R = Ar.",
+        expected_matches=Counter(
+            {"furan": 1, "benzene": 1, "C-Cl": 2, "RC(=O)NH2": 1, "Ar-COOR": 1}
+        ),
+        description="RCHCl2 is not matched when R = C(=O)NH2, C(=O)OR or C(=O)OH. Ar-C(=O)OR is allowed to match if R = Ar.",
     ),
     SubstructMatchTest(
         id=240,
@@ -1759,6 +1766,119 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"RCHCl2": 1, "C-Cl": 1, "R2CCl2": 1}),
         description="RCHCl2 and R2CCl2 matches allowed to overlap by one C-C bond.",
     ),
+    SubstructMatchTest(
+        id=241,
+        SMILES="C(=O)C(=C(C(=O)O)Cl)C(Cl)Cl",
+        expected_matches=Counter(
+            {"C=O": 1, "C=C": 1, "C-Cl": 1, "RCHCl2": 1, "RCOOH": 1}
+        ),
+    ),
+    SubstructMatchTest(
+        id=242,
+        SMILES="C1=CC=C(C=C1)CC(Cl)Cl",
+        expected_matches=Counter({"benzene": 1, "RCHCl2": 1}),
+    ),
+    SubstructMatchTest(
+        id=243,
+        SMILES="C(C(=O)OC(=O)C(Cl)Cl)(Cl)Cl",
+        expected_matches=Counter({"RCOOR": 2, "C-Cl": 4}),
+        description="RC(=O)OC(=O)R is matched as two RCOOR.",
+    ),
+    SubstructMatchTest(
+        id=244,
+        SMILES="C(C(Cl)Cl)(Cl)Cl",
+        expected_matches=Counter({"RCHCl2": 2}),
+        description="Self-overlap via C-C allowed for RCHCl2 bond types.",
+    ),
+    SubstructMatchTest(
+        id=245,
+        SMILES="C(#N)C(Cl)Cl",
+        expected_matches=Counter({"-C#N": 1, "C-Cl": 2}),
+    ),
+    SubstructMatchTest(
+        id=246,
+        SMILES="C(C(=O)Cl)(Cl)Cl",
+        expected_matches=Counter({"C=O": 1, "C-Cl": 3}),
+        description="Acyl chloride group treated as separate C=O and C-Cl bond types.",
+    ),
+    SubstructMatchTest(
+        id=247,
+        SMILES="CC1COC2=CC=CC=C2N1C(=O)C(Cl)Cl",
+        expected_matches=Counter({"C-Cl": 2, "Ar-OR": 1, "RC(=O)NH2": 1, "benzene": 1}),
+        description="",
+    ),
+    SubstructMatchTest(
+        id=248,
+        SMILES=" C(#N)Br",
+        expected_matches=Counter({"C-Br": 1, "-C#N": 1}),
+        description="",
+    ),
+    SubstructMatchTest(
+        id=249,
+        SMILES="CC1(CS(=O)(=O)CC1(C)Br)Br",
+        expected_matches=Counter({"Br-CR2-CR2-Br": 1}),
+        description="Br-CR2-CR2-Br is matched when ring is uncommon.",
+    ),
+    SubstructMatchTest(
+        id=250,
+        SMILES="C1=CC=C(C=C1)C2=C(C(C2(C3=CC=CC=C3)Br)(C4=CC=CC=C4)Br)C5=CC=CC=C5",
+        expected_matches=Counter({"benzene": 4, "C-Br": 2, "Ar-C=C": 1}),
+        description="Br-CR2-CR2-Br is not matched when one of R = Ar.",
+    ),
+    # TODO Fix ring/Br-CBr2-CBr2-Br overlap
+    SubstructMatchTest(
+        id=251,
+        SMILES="C1CCC2(CCCCC2(C1)Br)Br",
+        expected_matches=Counter({"C-Br": 2, "cyclohexane": 2}),
+        description="Matching of Br-CR2-CR2-Br is not allowed if three its C-C bonds are found in common ring.",
+    ),
+    # TODO Fix ring/Br-CBr2-CBr2-Br overlap
+    SubstructMatchTest(
+        id=252,
+        SMILES="C12(C3(C4(C1(C5(C2(C3(C45Br)Br)Br)Br)Br)Br)Br)Br",
+        expected_matches=Counter({"cyclobutane": 6, "C-Br": 8}),
+    ),
+    SubstructMatchTest(
+        id=253,
+        SMILES="CC1(C=CC=CC1(C)Br)Br",
+        expected_matches=Counter({"Br-CR2-CR2-Br": 1, "C=C-C=C": 1}),
+    ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
     # SubstructMatchTest(
     #     id=149,
     #     SMILES="",

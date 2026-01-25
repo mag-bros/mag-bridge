@@ -323,7 +323,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=33,
         formula="RCOOR",
-        SMARTS="[C;X3;!$([C]-[c]);!$(C([O])[N])](=[O;X1])[O;X2]-[C]",
+        SMARTS="[C;X3;!$([C]-[c]);!$(C([O])[N])](=[O;X1])[O;X2]-[#6]",
         constitutive_corr=-5.0,
         sdf_files=("RCOOR.sdf",),
         description="R = aliphatic group",
@@ -331,7 +331,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=34,
         formula="RC(=O)NH2",
-        SMARTS="[C;X3;!$([C]-[c])](=[O;X1])[$([N;X3;H2]),$([N;X3;H1;!$([N]-[c])][C]),$([N;X3;H0;!$([N]-[c])]([C])[C])]",
+        SMARTS="[C;X3;!$([C]-[c])](=[O;X1])[$([N;X3;H2]),$([N;X3;H1][#6]),$([N;X3;H0]([#6])[#6])]",
         constitutive_corr=-3.5,
         sdf_files=(
             "RCONH2.sdf",
@@ -386,7 +386,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=39,
         formula="Ar-COOR",
-        SMARTS="[c]-[C;X3](=[O;X1])[O;X2]-[C]",
+        SMARTS="[c]-[C;X3](=[O;X1])[O;X2]-[#6]",
         constitutive_corr=-1.5,
         sdf_files=("Ar-COOR.sdf",),
     ),
@@ -418,8 +418,8 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         id=43,
-        formula="Ar-OR",  # NOT unique atoms
-        SMARTS="[c]-[O;X2][C;!$([C]=[O])]",
+        formula="Ar-OR",
+        SMARTS="[c]-[O;X2][#6;!$([C]=[O])]",
         constitutive_corr=-1,
         sdf_files=("Ar-OR.sdf",),
         description="Cyclic ethers bound to aromatic C atom are also considered",
@@ -482,7 +482,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=51,
         formula="Ar-C(=O)NH2",
-        SMARTS="[c]-[C;X3](=[O;X1])[$([N;X3;H2]),$([N;X3;H1][C]),$([N;X3;H0]([C])[C])]",
+        SMARTS="[c]-[C;X3](=[O;X1])[$([N;X3;H2]),$([N;X3;H1][#6]),$([N;X3;H0]([#6])[#6])]",
         constitutive_corr=-1.5,
         sdf_files=(
             "Ar-CONH2.sdf",
