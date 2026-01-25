@@ -300,7 +300,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=30,
         formula="C-Br",
-        SMARTS="[C;!$([c]);!$([C]([C])([C])([Br])-[C]([C])([C])[Br])]-[Br]",
+        SMARTS="[C;!$([c]);!$([C;X4]([C;!$(C#N);!$(C=O)])([C!$(C#N);!$(C=O)])([Br])-[C;X4]([C!$(C#N);!$(C=O)])([C!$(C#N);!$(C=O)])[Br])]-[Br]",
         constitutive_corr=4.1,
         sdf_files=("C-Br.sdf",),
         description="Excluded: Ar-Br and Br-CR2-CR2-Br",
@@ -308,7 +308,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=31,
         formula="Br-CR2-CR2-Br",
-        SMARTS="[C;X4]([C])([C])([Br])-[C;X4]([C])([C])[Br]",
+        SMARTS="[C;X4]([C;!$(C#N);!$(C=O)])([C!$(C#N);!$(C=O)])([Br])-[C;X4]([C!$(C#N);!$(C=O)])([C!$(C#N);!$(C=O)])[Br]",
         constitutive_corr=6.24,
         sdf_files=("Br-CR2-CR2-Br.sdf",),
     ),

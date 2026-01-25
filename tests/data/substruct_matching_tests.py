@@ -492,7 +492,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=52,
         SMILES="C1CC2CC2C1",
-        expected_matches=Counter({"cyclopentane:": 1, "cyclopropane": 1}),
+        expected_matches=Counter({"cyclopentane": 1, "cyclopropane": 1}),
         description="Corner case of bicyclo[3.1.0]hexane. To solve: cyclopropane must not share 3 atom indicies with cyclohexene ring.",
     ),
     SubstructMatchTest(
@@ -1094,7 +1094,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=148,
         SMILES="C1CSCCN1NC(=O)N(CCCl)N=O",
-        expected_matches=Counter({"RCONH2": 1, "N=O": 1, "C-Cl": 1}),
+        expected_matches=Counter({"RC(=O)NH2": 1, "N=O": 1, "C-Cl": 1}),
         description="Molecule with NC(=O)N fragment",
     ),
     SubstructMatchTest(
@@ -1843,18 +1843,19 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="CC1(C=CC=CC1(C)Br)Br",
         expected_matches=Counter({"Br-CR2-CR2-Br": 1, "C=C-C=C": 1}),
     ),
-    # SubstructMatchTest(
-    #     id=149,
-    #     SMILES="",
-    #     expected_matches=Counter({}),
-    #     description="",
-    # ),
-    # SubstructMatchTest(
-    #     id=149,
-    #     SMILES="",
-    #     expected_matches=Counter({}),
-    #     description="",
-    # ),
+    # TODO Fix self-overlap
+    SubstructMatchTest(
+        id=254,
+        SMILES="C(C(C)(C(C)(C(C)(Br)C(C)(Br)C)Br)Br)(C)(Br)C",
+        expected_matches=Counter({"Br-CR2-CR2-Br": 2, "C-Br": 1}),
+        description="Br-CR2-CR2-Br chain - self-overlap case.",
+    ),
+    SubstructMatchTest(
+        id=255,
+        SMILES="CCC(C#N)(C(C)(C#N)Br)Br",
+        expected_matches=Counter({"C-Br": 2, "-C#N": 2}),
+        description="",
+    ),
     # SubstructMatchTest(
     #     id=149,
     #     SMILES="",
