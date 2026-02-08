@@ -16,6 +16,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 // Safe API bridge
 contextBridge.exposeInMainWorld('electronAPI', {
   apiRequest: (url, method, body) => ipcRenderer.invoke('api-request', { url, method, body }),
+  selectFile: () => ipcRenderer.invoke('select-file'),
 });
 
 // ============================================================================

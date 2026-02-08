@@ -1,6 +1,6 @@
 // frontend/main.js
 const { spawn } = require('child_process');
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 
 const { createLogger } = require('./logging');
@@ -28,9 +28,7 @@ function createWindow() {
   log.bindWindow(mainWindow, 'main');
 
   if (cfg.isProd) {
-    mainWindow.loadFile(
-      path.join(__dirname, 'build/frontend/browser/index.html'),
-    );
+    mainWindow.loadFile(path.join(__dirname, 'build/frontend/browser/index.html'));
   } else {
     mainWindow.loadURL('http://localhost:4200');
     mainWindow.webContents.openDevTools();
@@ -68,7 +66,7 @@ function startDevBackend() {
     String(cfg.uvicorn.port),
     '--log-level',
     cfg.uvicorn.logLevel,
-    '--use-colors'
+    '--use-colors',
   );
 
   if (!cfg.uvicorn.accessLog) args.push('--no-access-log');
@@ -164,7 +162,6 @@ ipcMain.handle('api-request', async (_event, { url, method = 'GET', body = null 
 
     // ✅ success: same behaviour as before – raw JSON goes back to renderer
     return await response.json();
-
   } catch (err) {
     const info = classifyApiError(err);
 
@@ -183,6 +180,18 @@ ipcMain.handle('api-request', async (_event, { url, method = 'GET', body = null 
 
     throw err;
   }
+});
+
+ipcMain.handle('select-file', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+  });
+
+  if (result.canceled) {
+    return null;
+  }
+
+  return result.filePaths[0];
 });
 
 // helper: classify main error types once, for logging and future use
