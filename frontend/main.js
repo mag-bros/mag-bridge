@@ -2,13 +2,12 @@
 const { spawn } = require('child_process');
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
-const userDataDir = app.getPath('userData');
-const sdfDir = path.join(userDataDir, 'sdf');
 
 const { createLogger } = require('./logging');
 const { getAppConfig, configToString } = require('./app-config');
-cfg = getAppConfig();
+const cfg = getAppConfig();
 const log = createLogger();
+const sdfDir = cfg.userSdfDir;
 
 log.info(`=== MagBridge configuration ===\n${configToString(cfg)}`);
 
@@ -82,7 +81,7 @@ function startDevBackend() {
     PYTHONUNBUFFERED: '1',
     PYTHONPATH: [cfg.cwd, process.env.PYTHONPATH || ''].filter(Boolean).join(path.delimiter),
     FORCE_COLOR: '1',
-    APP_DATA_DIR: userDataDir,
+    APP_DATA_DIR: sdfDir,
   };
 
   log.info('Spawning managed backend (dev)', {
@@ -91,7 +90,7 @@ function startDevBackend() {
     cwd: cfg.cwd,
   });
 
-  log.info(`Electron userData path: ${userDataDir}`);
+  log.info(`Electron userData path: ${sdfDir}`);
 
   backendProcess = spawn(cfg.python, args, {
     cwd: cfg.cwd,
