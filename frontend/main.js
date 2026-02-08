@@ -2,6 +2,8 @@
 const { spawn } = require('child_process');
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
+const userDataDir = app.getPath('userData');
+const sdfDir = path.join(userDataDir, 'sdf');
 
 const { createLogger } = require('./logging');
 const { getAppConfig, configToString } = require('./app-config');
@@ -45,7 +47,7 @@ function startProdBackend() {
 
   backendProcess = spawn(cfg.backendExecutablePath, {
     stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, PYTHONUNBUFFERED: '1' },
+    env: { ...process.env, PYTHONUNBUFFERED: '1', sdfDir },
   });
   log.info('Backend process spawned.', { path: cfg.backendExecutablePath });
 
@@ -80,6 +82,7 @@ function startDevBackend() {
     PYTHONUNBUFFERED: '1',
     PYTHONPATH: [cfg.cwd, process.env.PYTHONPATH || ''].filter(Boolean).join(path.delimiter),
     FORCE_COLOR: '1',
+    APP_DATA_DIR: userDataPath,
   };
 
   log.info('Spawning managed backend (dev)', {
@@ -87,6 +90,8 @@ function startDevBackend() {
     args: args.join(' '),
     cwd: cfg.cwd,
   });
+
+  log.info(`Electron userData path: ${userDataPath}`);
 
   backendProcess = spawn(cfg.python, args, {
     cwd: cfg.cwd,

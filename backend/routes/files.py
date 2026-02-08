@@ -1,7 +1,10 @@
 import logging
 from fastapi import APIRouter
 from pydantic import BaseModel
-import os
+from pathlib import Path
+import shutil
+
+from backend.config import SDF_DIR
 
 files_router = APIRouter(prefix="/files", tags=["files"])
 logger = logging.getLogger("uvicorn.access")
@@ -11,12 +14,18 @@ class FilePathRequest(BaseModel):
 
 @files_router.post("/upload")
 async def upload_file(data: FilePathRequest):
-    if not os.path.exists(data.path):
-        logger.info(f"Upload attempt: file does not exist: {data.path}")
+    src = Path(data.path)
+
+    if not src.exists():
+        logger.info(f"Upload attempt: file does not exist: {src}")
         return {"error": "File does not exist"}
 
-    logger.info(f"File uploaded: {data.path}")
+    dest = SDF_DIR / src.name
+
+    shutil.copy2(src, dest)
+
+    logger.info(f"SDF copied: {src} -> {dest}")
+
     return {
-        "path": data.path,
-        "filename": os.path.basename(data.path),
+        "filename": src.name,
     }
