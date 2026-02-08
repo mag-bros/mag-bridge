@@ -47,7 +47,7 @@ function startProdBackend() {
 
   backendProcess = spawn(cfg.backendExecutablePath, {
     stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, PYTHONUNBUFFERED: '1', sdfDir },
+    env: { ...process.env, PYTHONUNBUFFERED: '1', APP_DATA_DIR: sdfDir },
   });
   log.info('Backend process spawned.', { path: cfg.backendExecutablePath });
 
@@ -82,7 +82,7 @@ function startDevBackend() {
     PYTHONUNBUFFERED: '1',
     PYTHONPATH: [cfg.cwd, process.env.PYTHONPATH || ''].filter(Boolean).join(path.delimiter),
     FORCE_COLOR: '1',
-    APP_DATA_DIR: userDataPath,
+    APP_DATA_DIR: userDataDir,
   };
 
   log.info('Spawning managed backend (dev)', {
@@ -91,7 +91,7 @@ function startDevBackend() {
     cwd: cfg.cwd,
   });
 
-  log.info(`Electron userData path: ${userDataPath}`);
+  log.info(`Electron userData path: ${userDataDir}`);
 
   backendProcess = spawn(cfg.python, args, {
     cwd: cfg.cwd,

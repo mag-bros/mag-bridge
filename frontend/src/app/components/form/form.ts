@@ -23,6 +23,12 @@ export class Form {
         return;
       }
 
+      const allowedExtension = '.sdf';
+      if (!path.toLowerCase().endsWith(allowedExtension)) {
+        this.response = 'Only SDF files are allowed';
+        return;
+      }
+
       this.restService.post(this.restService.endpoints.files.upload, { path }).subscribe({
         next: (res: any) => {
           this.response = `Uploaded: ${res.filename}`;
