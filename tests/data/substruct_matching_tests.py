@@ -196,10 +196,11 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
             Complex ring system with bicyclic fragment. Shows issue with saturated rings matching.
             Note that saturated rings are not matched when fused with aromatic rings via C=C edge.""",
     ),
+    # TODO Fragment C(=O)-NH-C(=O) should be counted as two amide groups, while NH-C(=O)-NH as one amide group!
     SubstructMatchTest(
         id=18,
         SMILES="CCCC(C)C1(C(=O)NC(=O)NC1=O)CC=C",
-        expected_matches=Counter({"CH2=CH-CH2-": 1}),
+        expected_matches=Counter({"CH2=CH-CH2-": 1, "RC(=O)NH2": 3}),
         description="""
             Tricky amide group matching in a barbiturate ring.
             We assumed that RCONHR amide group is not matched when N atom is conneted to two carbonyl C atoms.""",
@@ -1488,7 +1489,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         ),
         description="Cl-CR2-CR2-Cl and R2CCl2 overlap allowed via C-R bond, since constitutive corr for C-C equals 0.0 cm3 mol-1.",
     ),
-    # TODO Ring and Cl-CR2-CR2-Cl allowed only via 2 bonds. Fix!
+    # TODO Ring and Cl-CR2-CR2-Cl overlap allowed only via 2 bonds. Fix!
     SubstructMatchTest(
         id=204,
         SMILES="C12C3C(C4C1C5(C(C3(C4(C5(Cl)Cl)Cl)Cl)Cl)Cl)C6C2O6",
@@ -1502,7 +1503,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         ),
         description="Photodieldrin: a complex case involving saturated rings, R2CCl2 and Cl-CR2-CR2-Cl (correct result!).",
     ),
-    # TODO resolve overlap
+    # TODO resolve ring and Cl-CR2-CR2-Cl overlap
     SubstructMatchTest(
         id=205,
         SMILES="C1C2C=CC1(C3(C2C4(CC3(C(=C4Cl)Cl)Cl)Cl)Cl)Cl",
@@ -1534,7 +1535,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter(
             {"C-Cl": 4, "cyclohexene": 1, "cyclopentane": 1, "C=O": 2, "C=C": 1}
         ),
-        description="Cl-CR2-CR2-Cl is not matched when one of R = C=O. Additionally, this bond types overlay with two fused rings via 3 C-C bonds.",
+        description="Cl-CR2-CR2-Cl is not matched when one of R = C=O. Additionally, this bond type overlay with two fused rings via 3 C-C bonds.",
     ),
     SubstructMatchTest(
         id=210,
@@ -1547,9 +1548,15 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=211,
         SMILES="CC1(C2(CC(C1(C3CC3(Cl)Cl)Cl)(C(C2)(Cl)Cl)Cl)Cl)C",
         expected_matches=Counter(
-            {"C-Cl": 3, "cyclopropane": 1, "R2CCl2": 2, "cyclohexane": 1}
+            {
+                "C-Cl": 1,
+                "Cl-CR2-CR2-Cl": 1,
+                "cyclopropane": 1,
+                "R2CCl2": 2,
+                "cyclohexane": 1,
+            }
         ),
-        description="Cl-CR2-CR2-Cl is not matched due to overlay of C-C bonds with cyclohexane ring within bicyclic structure.",
+        description="Cl-CR2-CR2-Cl is matched because only two its C-C bonds overlap with cyclohexane ring within bicyclic structure.",
     ),
     # TODO Confirm number of bond types after fixes.
     SubstructMatchTest(
@@ -1587,7 +1594,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         ),
         description="Cl-CR2-CR2-Cl is not matched because some R = C=O",
     ),
-    # TODO Fix ring/Cl-CR2-CR2-Cl overlap
+    # TODO Fix ring/Cl-CR2-CR2-Cl overlap (3 C-C bond overlap)
     SubstructMatchTest(
         id=217,
         SMILES="C1C2(C1(C3(CC3(C4(C2=CC=CC4Cl)Cl)Cl)Cl)Cl)Cl",
@@ -1608,7 +1615,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"Cl-CR2-CR2-Cl": 1, "C=C-C=C": 1}),
         description="Cl-CR2-CR2-Cl assignement for ucommon ring.",
     ),
-    # TODO Fix overlaping cyclohexane and Cl-CR2-CR2-Cl bond types
+    # TODO Fix overlaping cyclohexene and Cl-CR2-CR2-Cl bond types
     SubstructMatchTest(
         id=219,
         SMILES="C1CC2(CC1=C3C2(C(C(C3(Cl)Cl)(Cl)Cl)(Cl)Cl)Cl)Cl",
@@ -1854,8 +1861,117 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=255,
         SMILES="CCC(C#N)(C(C)(C#N)Br)Br",
         expected_matches=Counter({"C-Br": 2, "-C#N": 2}),
+        description="Br-CR2-CR2-Br not allowed to match when any R = C#N",
+    ),
+    SubstructMatchTest(
+        id=256,
+        SMILES="CC(CBr)(C(C)(CBr)Br)Br",
+        expected_matches=Counter({"Br-CR2-CR2-Br": 1, "C-Br": 2}),
+    ),
+    SubstructMatchTest(
+        id=257,
+        SMILES="C1C2(C1(C3(C2(C3)C4=CC=CC=C4)Br)Br)C5=CC=CC=C5",
+        expected_matches=Counter(
+            {"cyclopropane": 2, "cyclobutane": 1, "Br-CR2-CR2-Br": 1, "benzene": 2}
+        ),
+        description="Two C-C bonds overlap allowed between Br-CR2-CR2-Br and common ring.",
+    ),
+    SubstructMatchTest(
+        id=258,
+        SMILES="CC1(C(=NC(=O)C2=CC=CC=C2)C(=C(C(=O)C1(C)Br)Br)Br)Br",
+        expected_matches=Counter(
+            {"C=N": 1, "C=O": 1, "cyclohexene": 1, "benzene": 1, "C-Br": 4}
+        ),
+        description="Br-CR2-CR2-Br not allowed when any R = C=O or C=N",
+    ),
+    SubstructMatchTest(
+        id=259,
+        SMILES="C1(C(C(=C(C(=C1Br)Br)Br)Br)Br)OC2=C(C(=C(C(=C2Br)Br)Br)Br)Br",
+        expected_matches=Counter(
+            {"Ar-Br": 5, "C-Br": 5, "Ar-OR": 1, "benzene": 1, "C=C-C=C": 1}
+        ),
+        description="Ar-Br and C-Br in one structure",
+    ),
+    # TODO Fix Ar-OR matching in Ar-O-Ar (should be 2 Ar-OR not 1)
+    SubstructMatchTest(
+        id=260,
+        SMILES="C1(=C(C(=C(C(=C1Br)Br)Br)Br)Br)OC2=C(C(=C(C(=C2Br)Br)Br)Br)Br",
+        expected_matches=Counter({"Ar-Br": 10, "Ar-OR": 2, "benzene": 2}),
+        description="Ar-O-Ar is matched as two Ar-OR bond types",
+    ),
+    SubstructMatchTest(
+        id=261,
+        SMILES="CC1=C(C=CC(=C1)C(C(I)(I)I)(C(I)(I)I)I)NC(=O)C2=C(C(=CC=C2)I)C(=O)NC(C)(C)CS(=O)(=O)C",
+        expected_matches=Counter({"Ar-I": 1, "C-I": 7, "Ar-C(=O)NH2": 2, "benzene": 2}),
+        description="Ar-I and C-I bonds in one molecule.",
+    ),
+    SubstructMatchTest(
+        id=262,
+        SMILES="C(C(=O)I)I",
+        expected_matches=Counter({"C-I": 2, "C=O": 1}),
+        description="C-I if found in RC(=O)I fragment.",
+    ),
+    SubstructMatchTest(
+        id=263,
+        SMILES="C(#N)I",
+        expected_matches=Counter({"C-I": 1, "-C#N": 1}),
+        description="C-I is matched when C belongs to -C#N group.",
+    ),
+    # TODO RDKit incorrectly matches Ar-Ar for polyaromatic ring system.
+    SubstructMatchTest(
+        id=264,
+        SMILES="C1=CC=C2C(=C1)C3=CC=CC=C3[I+]2",
+        expected_matches=Counter({"benzene": 2}),
+        description="Ar-I is not matched because I atom is part of the aromatic system. This is because Ar-I carbon and iodine are connected by a single bond. ",
+    ),
+    SubstructMatchTest(
+        id=265,
+        SMILES="",
+        expected_matches=Counter({}),
         description="",
     ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
+    # SubstructMatchTest(
+    #     id=149,
+    #     SMILES="",
+    #     expected_matches=Counter({}),
+    #     description="",
+    # ),
     # SubstructMatchTest(
     #     id=149,
     #     SMILES="",

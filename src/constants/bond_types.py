@@ -300,7 +300,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=30,
         formula="C-Br",
-        SMARTS="[C;!$([c]);!$([C;X4]([C;!$(C#N);!$(C=O)])([C!$(C#N);!$(C=O)])([Br])-[C;X4]([C!$(C#N);!$(C=O)])([C!$(C#N);!$(C=O)])[Br])]-[Br]",
+        SMARTS="[C;!$([c]);!$([C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])([Br])-[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])[Br])]-[Br]",
         constitutive_corr=4.1,
         sdf_files=("C-Br.sdf",),
         description="Excluded: Ar-Br and Br-CR2-CR2-Br",
@@ -308,7 +308,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=31,
         formula="Br-CR2-CR2-Br",
-        SMARTS="[C;X4]([C;!$(C#N);!$(C=O)])([C!$(C#N);!$(C=O)])([Br])-[C;X4]([C!$(C#N);!$(C=O)])([C!$(C#N);!$(C=O)])[Br]",
+        SMARTS="[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])([Br])-[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])[Br]",
         constitutive_corr=6.24,
         sdf_files=("Br-CR2-CR2-Br.sdf",),
     ),
@@ -378,8 +378,8 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     ),
     BondType(
         id=38,
-        formula="Ar-C(=O)R",  ## NOT unique atoms
-        SMARTS="[c]-[C;X3](=[O;X1])[C]",
+        formula="Ar-C(=O)R",
+        SMARTS="[c]-[C;X3](=[O;X1])[#6]",
         constitutive_corr=-1.5,
         sdf_files=("Ar-COR.sdf",),
     ),
@@ -462,7 +462,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=49,
         formula="Ar-I",
-        SMARTS="[c]-[I]",
+        SMARTS="[c]-[I;!R]",
         constitutive_corr=-3.5,
         sdf_files=("Ar-I.sdf",),
     ),
