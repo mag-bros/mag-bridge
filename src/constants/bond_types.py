@@ -191,7 +191,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         sdf_files=("cyclobutane.sdf",),
         seniority=95,
     ),
-    # TODO: RCONH2 can overlap only by N atom but not carbonyl C=O fragment
     BondType(
         id=18,
         formula="cyclopropane",
@@ -300,7 +299,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=30,
         formula="C-Br",
-        SMARTS="[C;!$([c]);!$([C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])([Br])-[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])[Br])]-[Br]",
+        SMARTS="[C;!$([c]);!$([C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])([Br;X1])-[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])[Br;X1])]-[Br;X1]",
         constitutive_corr=4.1,
         sdf_files=("C-Br.sdf",),
         description="Excluded: Ar-Br and Br-CR2-CR2-Br",
@@ -308,14 +307,14 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=31,
         formula="Br-CR2-CR2-Br",
-        SMARTS="[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])([Br])-[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])[Br]",
+        SMARTS="[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])([Br;X1])-[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])[Br;X1]",
         constitutive_corr=6.24,
         sdf_files=("Br-CR2-CR2-Br.sdf",),
     ),
     BondType(
         id=32,
         formula="C-I",
-        SMARTS="[C;!c]-[I]",
+        SMARTS="[C;!c]-[I;X1]",
         constitutive_corr=4.1,
         sdf_files=("C-I.sdf",),
         description="Condition: C is NOT aromatic.",
@@ -323,11 +322,12 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=33,
         formula="RCOOR",
-        SMARTS="[C;X3;!$([C]-[c]);!$(C([O])[N])](=[O;X1])[O;X2]-[#6]",
+        SMARTS="[C;X3;!$([C]-[c]);!$(C([O])[N])](=[O;X1])[O;X2;H0]",
         constitutive_corr=-5.0,
         sdf_files=("RCOOR.sdf",),
         description="R = aliphatic group",
     ),
+    # TODO: RCONH2 can overlap only by N atom but not carbonyl C=O fragment
     BondType(
         id=34,
         formula="RC(=O)NH2",
@@ -386,7 +386,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=39,
         formula="Ar-COOR",
-        SMARTS="[c]-[C;X3](=[O;X1])[O;X2]-[#6]",
+        SMARTS="[c]-[C;X3](=[O;X1])[O;X2;H0]",
         constitutive_corr=-1.5,
         sdf_files=("Ar-COOR.sdf",),
     ),
@@ -419,7 +419,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=43,
         formula="Ar-OR",
-        SMARTS="[c]-[O;X2][#6;!$([C]=[O])]",
+        SMARTS="[c]-[O;X2]-[C,N,O;!$([C]=[O])]",
         constitutive_corr=-1,
         sdf_files=("Ar-OR.sdf",),
         description="Cyclic ethers bound to aromatic C atom are also considered",
@@ -448,7 +448,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=47,
         formula="Ar-Br",
-        SMARTS="[c]-[Br]",
+        SMARTS="[c]-[Br;X1]",
         constitutive_corr=-3.5,
         sdf_files=("Ar-Br.sdf",),
     ),
@@ -462,7 +462,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=49,
         formula="Ar-I",
-        SMARTS="[c]-[I;!R]",
+        SMARTS="[c]-[I;X1]",
         constitutive_corr=-3.5,
         sdf_files=("Ar-I.sdf",),
     ),
