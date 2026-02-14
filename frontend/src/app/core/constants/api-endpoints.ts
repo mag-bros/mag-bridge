@@ -5,7 +5,7 @@ export const ApiEndpoints = {
     home: `${environment.apiUrl}/`,
     health: `${environment.apiUrl}/health`,
   },
-  math: {
-    divideByTwo: (number: number) => `${environment.apiUrl}/divideByTwo?number=${number}`,
+  files: {
+    upload: `${environment.apiUrl}/files/upload`,
   },
 };

@@ -13,16 +13,14 @@ import { interval, Subscription } from 'rxjs';
   templateUrl: './app.html',
 })
 export class AppComponent {
-
   isLoading = true;
   private backendCheckSubscription!: Subscription;
 
   constructor(
     private restService: RestService,
     private ngZone: NgZone,
-    private cdr: ChangeDetectorRef
-  ) { }
-
+    private cdr: ChangeDetectorRef,
+  ) {}
 
   ngOnInit() {
     this.startBackendHealthCheck();
@@ -44,9 +42,7 @@ export class AppComponent {
   }
 
   private checkBackendHealth(startTime: number) {
-    const health$ = this.restService.get<any>(
-      this.restService.endpoints.general.health
-    );
+    const health$ = this.restService.get<any>(this.restService.endpoints.general.health);
 
     health$.subscribe({
       next: (res) => this.handleBackendReady(res, startTime),

@@ -1,12 +1,13 @@
 // frontend/main.js
 const { spawn } = require('child_process');
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 
 const { createLogger } = require('./logging');
 const { getAppConfig, configToString } = require('./app-config');
-cfg = getAppConfig();
+const cfg = getAppConfig();
 const log = createLogger();
+const sdfDir = cfg.userSdfDir;
 
 log.info(`=== MagBridge configuration ===\n${configToString(cfg)}`);
 
@@ -28,9 +29,7 @@ function createWindow() {
   log.bindWindow(mainWindow, 'main');
 
   if (cfg.isProd) {
-    mainWindow.loadFile(
-      path.join(__dirname, 'build/frontend/browser/index.html'),
-    );
+    mainWindow.loadFile(path.join(__dirname, 'build/frontend/browser/index.html'));
   } else {
     mainWindow.loadURL('http://localhost:4200');
     mainWindow.webContents.openDevTools();
@@ -47,7 +46,7 @@ function startProdBackend() {
 
   backendProcess = spawn(cfg.backendExecutablePath, {
     stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, PYTHONUNBUFFERED: '1' },
+    env: { ...process.env, PYTHONUNBUFFERED: '1', APP_DATA_DIR: sdfDir },
   });
   log.info('Backend process spawned.', { path: cfg.backendExecutablePath });
 
@@ -68,7 +67,7 @@ function startDevBackend() {
     String(cfg.uvicorn.port),
     '--log-level',
     cfg.uvicorn.logLevel,
-    '--use-colors'
+    '--use-colors',
   );
 
   if (!cfg.uvicorn.accessLog) args.push('--no-access-log');
@@ -82,6 +81,7 @@ function startDevBackend() {
     PYTHONUNBUFFERED: '1',
     PYTHONPATH: [cfg.cwd, process.env.PYTHONPATH || ''].filter(Boolean).join(path.delimiter),
     FORCE_COLOR: '1',
+    APP_DATA_DIR: sdfDir,
   };
 
   log.info('Spawning managed backend (dev)', {
@@ -89,6 +89,8 @@ function startDevBackend() {
     args: args.join(' '),
     cwd: cfg.cwd,
   });
+
+  log.info(`Electron userData path: ${sdfDir}`);
 
   backendProcess = spawn(cfg.python, args, {
     cwd: cfg.cwd,
@@ -164,7 +166,6 @@ ipcMain.handle('api-request', async (_event, { url, method = 'GET', body = null 
 
     // ✅ success: same behaviour as before – raw JSON goes back to renderer
     return await response.json();
-
   } catch (err) {
     const info = classifyApiError(err);
 
@@ -183,6 +184,18 @@ ipcMain.handle('api-request', async (_event, { url, method = 'GET', body = null 
 
     throw err;
   }
+});
+
+ipcMain.handle('select-file', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+  });
+
+  if (result.canceled) {
+    return null;
+  }
+
+  return result.filePaths[0];
 });
 
 // helper: classify main error types once, for logging and future use
