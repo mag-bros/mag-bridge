@@ -270,7 +270,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=26,
         formula="C-Cl",
-        SMARTS="[C;!$([c]);!$([C]([C])([C])([Cl])[Cl]);!$([C;X4;H1]([C;!$(C=O);!$(C#N)])([Cl])[Cl]);!$([C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])([Cl])-[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])[Cl])]-[Cl]",
+        SMARTS="[C;!$([c]);!$([C]([C])([C])([Cl])[Cl]);!$([C;X4;H1]([C;!$(C=O);!$(C#N)])([Cl])[Cl]);!$([C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])([Cl])-[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])[Cl])]-[Cl;X1]",
         constitutive_corr=3.1,
         sdf_files=("C-Cl.sdf",),
         description="Excluded: R2CCl2, RCHCl2, Ar-Cl and Cl-CR2-CR2-Cl",
@@ -322,7 +322,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=33,
         formula="RCOOR",
-        SMARTS="[C;X3;!$([C]-[c]);!$(C([O])[N])](=[O;X1])[O;X2;H0]",
+        SMARTS="[C;X3;!$([C]-[c]);!$(C([O])[N])](=[O;X1])[O;X2;H0][#6,N,O,Si]",
         constitutive_corr=-5.0,
         sdf_files=("RCOOR.sdf",),
         description="R = aliphatic group",
@@ -372,7 +372,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=37,
         formula="Ar-NR2",
-        SMARTS="[c]-[N;X3]([C;!$([C]=[O,S])])[C;!$([C]=[O,S])]",
+        SMARTS="[c]-[N]([#6;!$([C]=[O,S])])[#6;!$([C]=[O,S])]",
         constitutive_corr=1,
         sdf_files=("Ar-NR2.sdf",),
     ),
@@ -386,7 +386,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=39,
         formula="Ar-COOR",
-        SMARTS="[c]-[C;X3](=[O;X1])[O;X2;H0]",
+        SMARTS="[c]-[C;X3](=[O;X1])[O;X2;H0][#6,N,O,Si]",
         constitutive_corr=-1.5,
         sdf_files=("Ar-COOR.sdf",),
     ),
@@ -419,7 +419,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=43,
         formula="Ar-OR",
-        SMARTS="[c]-[O;X2]-[C,N,O;!$([C]=[O])]",
+        SMARTS="[c]-[O;X2]-[#6,N,O;!$([C]=[O])]",
         constitutive_corr=-1,
         sdf_files=("Ar-OR.sdf",),
         description="Cyclic ethers bound to aromatic C atom are also considered",
@@ -455,7 +455,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=48,
         formula="Ar-Cl",
-        SMARTS="[c]-[Cl]",
+        SMARTS="[c]-[Cl;X1]",
         constitutive_corr=-2.5,
         sdf_files=("Ar-Cl.sdf",),
     ),
