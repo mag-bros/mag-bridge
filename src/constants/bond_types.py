@@ -21,7 +21,7 @@ class BondType:
 DOUBLE_BOND = BondType(
     id=1,
     formula="C=C",
-    SMARTS="[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]=[C;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]",
+    SMARTS="[C;X3,X2;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]=[C;X3,X2;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]",
     constitutive_corr=5.5,
     sdf_files=("C2H4.sdf",),
     description="""
@@ -117,7 +117,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=10,
         formula="dioxane",
-        SMARTS="O1CCOCC1",
+        SMARTS="O1[C;!$(C=O)][C;!$(C=O)]O[C;!$(C=O)][C;!$(C=O)]1",
         constitutive_corr=5.5,
         sdf_files=("1,4-dioxane.sdf",),
         seniority=57,
@@ -202,7 +202,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=19,
         formula="C#C",
-        SMARTS="[C;!$([C]-[c]);!$([C]([C])#[C]-[C](=[O])-[C])]#[C;!$([C]-[c]);!$([C]([C])#[C]-[C](=[O])-[C])]",
+        SMARTS="[C;!$([C]-[c]);!$([C]([!c])#[C]-[C](=[O])-[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]#[C;!$([C]-[c]);!$([C]([!c])#[C]-[C](=[O])-[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]",
         constitutive_corr=0.8,
         sdf_files=("C2H2.sdf",),
         description="""
@@ -212,7 +212,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=20,
         formula="C=O",
-        SMARTS="[C;X3;!$([C]-[c]);!$([C]([H])(=[O])[O*]);!$([C]([C])(=[O])[O*]);!$([C](=[O;X1])[N*]);!$([C]([C]#[C]-[C])(=[O])[C])]=[O;X1]",
+        SMARTS="[C;X3,X2;!$([C]-[c]);!$([C]([H])(=[O])[O*]);!$([C]([C])(=[O])[O*]);!$([C](=[O;X1])[N*]);!$([C]([C]#[C]-[!c])(=[O])[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]=[O;X1]",
         constitutive_corr=6.3,
         sdf_files=("C=O.sdf",),
         description="Condition: C cannot be bound to aryl group. Omitted additional bond to O/N in any form. C=O can be assigned as part of thioester RC(=O)SR.",
@@ -501,7 +501,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=53,
         formula="RC#C-C(=O)R",
-        SMARTS="[C;X2]([C])#[C;X2]-[C;X3](=[O;X1])[C]",
+        SMARTS="[C;X2]([!c])#[C;X2]-[C;X3](=[O;X1])[!c;!#5;!#50;!#7;!#8;!#9;!#14;!#15;!#16]",
         constitutive_corr=0.8,
         sdf_files=("RC#C-C(=O)R.sdf",),
     ),

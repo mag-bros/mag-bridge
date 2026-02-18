@@ -2157,8 +2157,8 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=299,
         SMILES="CCCC[Sn](CCCC)(CCCC)OC(=O)C1=CC=CC=C1",
-        expected_matches=Counter({"benzene": 1, "Ar-COOR": 1}),
-        description="Ar-COOR is matched for fragments with R = Sn.",
+        expected_matches=Counter({"benzene": 1}),
+        description="Ar-COOR is not allowed to be matched for fragments with R = Sn.",
     ),
     SubstructMatchTest(
         id=300,
@@ -2169,22 +2169,20 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=301,
         SMILES="C1=CC=C2C(=C1)C(=O)OS2(=O)=O",
-        expected_matches=Counter({"benzene": 1, "Ar-COOR": 1}),
-        description="Ar-COOR matching allowed for Ar-C(=O)-SO2 fragment.",
+        expected_matches=Counter({"benzene": 1}),
+        description="Ar-COOR matching NOT allowed for Ar-C(=O)-SO2 fragment.",
     ),
     SubstructMatchTest(
         id=302,
         SMILES="B(C1=CC(=C(C=C1)C)Cl)(C2=CC(=C(C=C2)C)Cl)OC(=O)C3=C(C=CC=N3)O",
-        expected_matches=Counter(
-            {"pyridine": 1, "benzene": 2, "Ar-COOR": 1, "Ar-Cl": 2, "Ar-OH": 1}
-        ),
-        description="Ar-COOR matching allowed for Ar-C(=O)-B fragment.",
+        expected_matches=Counter({"pyridine": 1, "benzene": 2, "Ar-Cl": 2, "Ar-OH": 1}),
+        description="Ar-COOR matching NOT allowed for Ar-C(=O)-B fragment.",
     ),
     SubstructMatchTest(
         id=303,
         SMILES="C1=CC=C2C(=C1)C(=O)O[Hg]O2",
-        expected_matches=Counter({"benzene": 1, "Ar-COOR": 1}),
-        description="Ar-COOR matching allowed for Ar-C(=O)-Hg fragment.",
+        expected_matches=Counter({"benzene": 1}),
+        description="Ar-COOR matching NOT allowed for Ar-C(=O)-Hg fragment.",
     ),
     SubstructMatchTest(
         id=304,
@@ -2415,7 +2413,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=333,
         SMILES="B(C1=CC(=C(C=C1)C)Cl)(C2=CC(=C(C=C2)C)Cl)OC(=O)C3=C(C=CC=N3)O",
-        expected_matches=Counter({"pyridine": 1, "benzene": 2, "Ar-OH": 2, "Ar-Cl": 2}),
+        expected_matches=Counter({"pyridine": 1, "benzene": 2, "Ar-OH": 1, "Ar-Cl": 2}),
         description="Assignment omitted for Ar-C(=O)R if R = B.",
     ),
     SubstructMatchTest(
@@ -2433,7 +2431,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=336,
         SMILES="C1=CC=C2C(=C1)C3=CC=CC=C3C(=O)C2=O",
-        expected_matches=Counter({"Ar-C(=O)R": 2, "Ar-AR": 1, "benzene": 2}),
+        expected_matches=Counter({"Ar-C(=O)R": 2, "Ar-Ar": 1, "benzene": 2}),
         description="Since the middle ring is not aromatic, Ar-Ar and Ar-C(=O)R assignment is allowed.",
     ),
     SubstructMatchTest(
@@ -2445,13 +2443,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=338,
         SMILES="C1=CC=C2C(=C1)C3=CC=CC=C3C2=O",
-        expected_matches=Counter({"benzene": 2, "Ar-Ar": 1, "C=O": 1}),
+        expected_matches=Counter({"benzene": 2, "Ar-Ar": 1, "Ar-C(=O)R": 1}),
         description="",
     ),
     SubstructMatchTest(
         id=339,
         SMILES="C1(C=CC=C1)=O",
-        expected_matches=Counter({"C=C-C=C": 1, "C=O": 1, "Ar-Ar": 1}),
+        expected_matches=Counter({"C=C-C=C": 1, "C=O": 1}),
         description="Aromaticity check: not aromatic -> correct.",
     ),
     SubstructMatchTest(
@@ -2483,7 +2481,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=344,
         SMILES="C/C(=N/N=C(\\C1=CC=CC=C1)/C)/C2=CC=CC=C2",
-        expected_matches=Counter({"R2C=N-N=CR2": 1, "benzene": 4}),
+        expected_matches=Counter({"R2C=N-N=CR2": 1, "benzene": 2}),
     ),
     SubstructMatchTest(
         id=345,
@@ -2493,7 +2491,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=346,
         SMILES="CN1C2=CC=CC=C2/C(=N/N=C\\3/C4=CC=CC=C4N(C=C3)C)/C=C1",
-        expected_matches=Counter({}),
+        expected_matches=Counter({"benzene": 2, "pyridine": 2}),
         description="Corner case: The R₂C=N–N=CR₂ bond type is not assigned because it is part of an aromatic structure.",
     ),
     SubstructMatchTest(
@@ -2591,7 +2589,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"C=C-C=C": 2, "N=N": 1, "C=N": 2, "R2C=N-N=CR2": 1}),
         description="Lack of aromaticity implies complicated bond assignment.",
     ),
-    # TOD
+    # TODO Current logic supporting SMARTS excludes possibility of assigning two C=C bonds within C=C=C fragment. Fix required.
     SubstructMatchTest(
         id=361,
         SMILES="CCC1=C(C(=CC=C1)/C(=N/N=C(\\C)/C2=CC=CCC2(C)C)/C=C=C)F",
@@ -2600,22 +2598,239 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         ),
         description="C=C=C fragment is assigned as two C=C bonds.",
     ),
-    # SubstructMatchTest(
-    #     id=149,
-    #     SMILES="",
-    #     expected_matches=Counter({}),
-    #     description="",
-    # ),
-    # SubstructMatchTest(
-    #     id=149,
-    #     SMILES="",
-    #     expected_matches=Counter({}),
-    #     description="",
-    # ),
-    # SubstructMatchTest(
-    #     id=149,
-    #     SMILES="",
-    #     expected_matches=Counter({}),
-    #     description="",
-    # ),
+    SubstructMatchTest(
+        id=362,
+        SMILES="CC(C)C1=CC=CC=C1/C=C/C2=NN=C(C3C2CC3)CC4=CC=C(C=C4)OC(F)(F)F",
+        expected_matches=Counter(
+            {"benzene": 2, "Ar-OR": 1, "cyclobutane": 1, "R2C=N-N=CR2": 1, "Ar-C=C": 1}
+        ),
+    ),
+    SubstructMatchTest(
+        id=363,
+        SMILES="CC1=CC=C(C=C1)C(=O)C(=C=O)/C(=N\\N=C(C2=CC=CC=C2)C3=CC=CC=C3)/C(=O)OC",
+        expected_matches=Counter(
+            {
+                "Ar-C(=O)R": 1,
+                "C=O": 1,
+                "R2C=N-N=CR2": 1,
+                "RCOOR": 1,
+                "benzene": 3,
+                "C=C": 1,
+            }
+        ),
+        description="C=C=O group is matched as separate C=C and C=O bonds.",
+    ),
+    SubstructMatchTest(
+        id=364,
+        SMILES="C1=CC=C2C(=C1)C3=CC=CC=C3C2=N/N=C\\4/C5=C(C=CC(=C5)F)NC4=O",
+        expected_matches=Counter(
+            {"benzene": 3, "RC(=O)NH2": 1, "R2C=N-N=CR2": 1, "Ar-Ar": 1}
+        ),
+    ),
+    SubstructMatchTest(
+        id=365,
+        SMILES="CC#CC#CC(=O)C1=CC=CC=C1",
+        expected_matches=Counter({"Ar-C(=O)R": 1, "C#C": 2, "benzene": 1}),
+        description="RC#C-C(=O)R bond type is not matched if any R = Ar.",
+    ),
+    SubstructMatchTest(
+        id=366,
+        SMILES="CC(=O)C#CC1=CC=CC=C1",
+        expected_matches=Counter({"C=O": 1, "Ar-C#C": 1, "benzene": 1}),
+        description="RC#C-C(=O)R bond type is not matched if any R = Ar.",
+    ),
+    SubstructMatchTest(
+        id=367,
+        SMILES="CCCCCCCC1C(O1)CC#CC#CC(=O)CCO",
+        expected_matches=Counter({"C#C": 1, "RC#C-C(=O)R": 1}),
+        description="RC≡C–C(=O)R matches if the adjacent carbon forms a double or triple bond. ",
+    ),
+    SubstructMatchTest(
+        id=368,
+        SMILES="C#CC(=O)O",
+        expected_matches=Counter({"C#C": 1, "RCOOH": 1}),
+    ),
+    SubstructMatchTest(
+        id=369,
+        SMILES="C#CC=O",
+        expected_matches=Counter({"RC#C-C(=O)R": 1}),
+        description="RC#C-C=OR assignment allowed if R = H.",
+    ),
+    # TODO Fix self-matching of RC#C-C(=O)R bond type
+    SubstructMatchTest(
+        id=370,
+        SMILES="CC(=O)C#CC(=O)C",
+        expected_matches=Counter({"RC#C-C(=O)R": 1, "C=O": 1}),
+        description="Check for self-matching of RC#C-C(=O)R bond type.",
+    ),
+    # TODO Fix self-matching of RC#C-C(=O)R bond type
+    SubstructMatchTest(
+        id=371,
+        SMILES="CC(C)(C)C#CC(=O)C#CC(C)(C)C",
+        expected_matches=Counter({"C#C": 1, "RC#C-C(=O)R": 1}),
+        description="Check for self-matching of RC#C-C(=O)R bond type.",
+    ),
+    SubstructMatchTest(
+        id=372,
+        SMILES="CCCCC#CC(=O)C#CC1=CC=CC=C1",
+        expected_matches=Counter({"Ar-C#C": 1, "RC#C-C(=O)R": 1, "benzene": 1}),
+    ),
+    SubstructMatchTest(
+        id=373,
+        SMILES="CC1=C(C(C[C@@H](C1)O)(C)C)C#CC(=O)C",
+        expected_matches=Counter({"cyclohexene": 1, "RC#C-C(=O)R": 1}),
+    ),
+    # TODO Fix self-matching of RC#C-C(=O)R bond type
+    SubstructMatchTest(
+        id=374,
+        SMILES="C#CC(=O)C#C",
+        expected_matches=Counter({"C#C": 1, "RC#C-C(=O)R": 1}),
+        description="Check for self-matching of RC#C-C(=O)R bond type.",
+    ),
+    SubstructMatchTest(
+        id=375,
+        SMILES="CC(C)(C#CC(=O)SC)N1CCOCC1",
+        expected_matches=Counter({"morpholine": 1, "C#C": 1, "C=O": 1}),
+        description="RC#C-C(=O)R' is not matched if R' = B,N,O,F,Si,P,S or Sn.",
+    ),
+    SubstructMatchTest(
+        id=376,
+        SMILES="C[Si](C)(C)C#CC(=O)Cl",
+        expected_matches=Counter({"RC#C-C(=O)R": 1, "C-Cl": 1}),
+        description="",
+    ),
+    SubstructMatchTest(
+        id=378,
+        SMILES="C#CC(=O)F",
+        expected_matches=Counter({"C=O": 1, "C#C": 1}),
+        description="RC#C-C(=O)R' is allowed to be matched if R = Si.",
+    ),
+    SubstructMatchTest(
+        id=379,
+        SMILES="C(=O)C#CI",
+        expected_matches=Counter({"RC#C-C(=O)R": 1, "C-I": 1}),
+        description="RC#C-C(=O)R' is allowed to be matched if R = I.",
+    ),
+    SubstructMatchTest(
+        id=380,
+        SMILES="C1CC2(CCC1(C#CC(=O)C3=CCC(C=C3)F)O)OCCO2",
+        expected_matches=Counter({"cyclohexane": 1, "RC#C-C(=O)R": 1, "C=C-C=C": 1}),
+    ),
+    SubstructMatchTest(
+        id=381,
+        SMILES="C(CC(=O)C#CC#CC(=O)CCC(F)F)C(F)F",
+        expected_matches=Counter({"RC#C-C(=O)R": 2}),
+    ),
+    SubstructMatchTest(
+        id=382,
+        SMILES="COC1=CC=C(C=C1)N=C(C#CC=O)C(F)(F)F",
+        expected_matches=Counter(
+            {"Ar-OR": 1, "benzene": 1, "C=N": 1, "RC#C-C(=O)R": 1}
+        ),
+    ),
+    SubstructMatchTest(
+        id=383,
+        SMILES="CC1=CC2=C(C=C1)N=C3C(=N2)SC(=O)S3",
+        expected_matches=Counter({"benzene": 1, "pyrazine": 1}),
+    ),
+    SubstructMatchTest(
+        id=384,
+        SMILES="C1=CC=C(C=C1)C2=NC3=C(N=C(N=C3N=C2N)N)N",
+        expected_matches=Counter(
+            {"Ar-Ar": 1, "benzene": 1, "pyrazine": 1, "pyrimidine": 1}
+        ),
+        description="Check for pyrazine and pyrimidine matching in one structure.",
+    ),
+    SubstructMatchTest(
+        id=385,
+        SMILES="C1(=C(N=C(C(=N1)Cl)N)N)C(=O)N=C(N)N",
+        expected_matches=Counter({"C=N": 1, "Ar-Cl": 1, "pyrazine": 1}),
+    ),
+    SubstructMatchTest(
+        id=386,
+        SMILES="CC1=C(SSC1=S)C2=NC=CN=C2",
+        expected_matches=Counter({"Ar-Ar": 1, "pyrazine": 1}),
+    ),
+    SubstructMatchTest(
+        id=387,
+        SMILES="CCOC(=O)C1=C(N=C2N1C=CN=C2)C",
+        expected_matches=Counter({"imidazole": 1, "pyrazine": 1, "Ar-COOR": 1}),
+    ),
+    SubstructMatchTest(
+        id=388,
+        SMILES="CCOP(=S)(OCC)OC1=NOC(=C1)C2=CC=CC=C2",
+        expected_matches=Counter({"benzene": 1, "isoxazole": 1, "Ar-Ar": 1}),
+    ),
+    SubstructMatchTest(
+        id=389,
+        SMILES="CC1=C(C(=NO1)C)CSC2=CN=C(S2)NC(=O)C",
+        expected_matches=Counter({"RC(=O)NH2": 1, "thiazole": 1, "isoxazole": 1}),
+    ),
+    SubstructMatchTest(
+        id=390,
+        SMILES="CC1=CC(=NO1)N2C(N3CCCC3C2=O)C4=CC(=C(C(=C4)OC)OC)OC",
+        expected_matches=Counter(
+            {"pyrrolidine": 1, "Ar-OR": 3, "RC(=O)NH2": 1, "benzene": 1, "isoxazole": 1}
+        ),
+    ),
+    SubstructMatchTest(
+        id=391,
+        SMILES="CC(C)NC1=NC(=NC(=N1)SC)N=[N+]=[N-]",
+        expected_matches=Counter({"N=N": 2, "triazine": 1}),
+    ),
+    SubstructMatchTest(
+        id=392,
+        SMILES="C1=CC=NC(=C1)C2=NC(=NC(=N2)C3=CC=CC=N3)C4=CC=CC=N4",
+        expected_matches=Counter({"pyridine": 3, "triazine": 1, "Ar-Ar": 3}),
+    ),
+    SubstructMatchTest(
+        id=393,
+        SMILES="C1=CC=C(C(=C1)NC2=NC(=NC=N2)N3C=CC=C3)Cl",
+        expected_matches=Counter(
+            {"pyrrole": 1, "triazine": 1, "benzene": 1, "Ar-Cl": 1}
+        ),
+    ),
+    # TODO Fix Ar-NR2 matching
+    SubstructMatchTest(
+        id=394,
+        SMILES="C1=CC=C(C=C1)N(C2=CC=CC=C2)C3=NC(=NC(=N3)N)CCl",
+        expected_matches=Counter({"benzene": 2, "triazine": 1, "Ar-NR2": 3, "C-Cl": 1}),
+    ),
+    # TODO The same problem with Ar-OR matching.
+    SubstructMatchTest(
+        id=395,
+        SMILES="C1=C(C=C(C(=C1Br)OC2=NC(=NC(=N2)OC3=C(C=C(C=C3Br)Br)Br)OC4=C(C=C(C=C4Br)I)I)I)I",
+        expected_matches=Counter(
+            {"Ar-OR": 6, "Ar-I": 4, "Ar-Br": 5, "benzene": 3, "triazine": 1}
+        ),
+    ),
+    SubstructMatchTest(
+        id=396,
+        SMILES="CCOP(=S)(OCC)SC1C(OCCO1)SP(=S)(OCC)OCC",
+        expected_matches=Counter({"dioxane": 1}),
+        description="",
+    ),
+    SubstructMatchTest(
+        id=397,
+        SMILES="C1C(=O)OCC(=O)O1",
+        expected_matches=Counter({"RCOOR": 2}),
+        description="Dioxane is not matched if any of C atoms belongs to carbonyl group.",
+    ),
+    SubstructMatchTest(
+        id=398,
+        SMILES="C1(C(OC2C(O1)OC(C(O2)O)O)O)O",
+        expected_matches=Counter({"dioxane": 2}),
+    ),
+    SubstructMatchTest(
+        id=399,
+        SMILES="C1CN(C2=C(C(=O)N1)OC3=C2C=C(C=C3)C(F)(F)F)CC[C@H]4COCCO4",
+        expected_matches=Counter(
+            {"dioxane": 1, "benzene": 1, "furan": 1, "Ar-NR2": 1, "Ar-C(=O)NH2": 1}
+        ),
+    ),
+    SubstructMatchTest(
+        id=400,
+        SMILES="C1=COC(=C1)CSSCC2=CC=CO2",
+        expected_matches=Counter({"furan": 2}),
+    ),
 ]
