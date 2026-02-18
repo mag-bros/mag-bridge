@@ -2468,6 +2468,138 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"R2C=N-N=CR2": 1}),
         description="Simple case of R2C=N-N=CR2 assignment.",
     ),
+    SubstructMatchTest(
+        id=342,
+        SMILES="C1=CC=C(C=C1)C(=NN=C(C2=CC=CC=C2)C3=CC=CC=C3)C4=CC=CC=C4",
+        expected_matches=Counter({"R2C=N-N=CR2": 1, "benzene": 4}),
+        description="R2C=N-N=CR2 bond type is allowed to be matched when R = Ar.",
+    ),
+    SubstructMatchTest(
+        id=343,
+        SMILES="C1C(=NN=C(CS1(=O)=O)C2=CC=CC=C2)C3=CC=CC=C3",
+        expected_matches=Counter({"R2C=N-N=CR2": 1, "benzene": 2}),
+        description="R2C=N-N=CR2 assignment within the ring.",
+    ),
+    SubstructMatchTest(
+        id=344,
+        SMILES="C/C(=N/N=C(\\C1=CC=CC=C1)/C)/C2=CC=CC=C2",
+        expected_matches=Counter({"R2C=N-N=CR2": 1, "benzene": 4}),
+    ),
+    SubstructMatchTest(
+        id=345,
+        SMILES="C/C(=N\\N=C(\\C1C(C(C1)CC(=O)O)(C)C)/C)/C2C(C(C2)CC(=O)O)(C)C",
+        expected_matches=Counter({"R2C=N-N=CR2": 1, "cyclobutane": 2, "RCOOH": 2}),
+    ),
+    SubstructMatchTest(
+        id=346,
+        SMILES="CN1C2=CC=CC=C2/C(=N/N=C\\3/C4=CC=CC=C4N(C=C3)C)/C=C1",
+        expected_matches=Counter({}),
+        description="Corner case: The R₂C=N–N=CR₂ bond type is not assigned because it is part of an aromatic structure.",
+    ),
+    SubstructMatchTest(
+        id=347,
+        SMILES="CC(=N/N=C(/C1=CC=C(C=C1)[N+](=O)[O-])\\C23CN4CN(C2)CN(C3)C4)C",
+        expected_matches=Counter({"Ar-NO2": 1, "benzene": 1, "R2C=N-N=CR2": 1}),
+    ),
+    SubstructMatchTest(
+        id=348,
+        SMILES="CC(=NN=C1CC(N(C(C1)(C)C)O)(C)C)C2(CC(C3=C(C4C(C(=C3C2)O)C(=O)C5=C(C4=O)C(=CC=C5)OC)O)OC6CC(C(CO6)O)(C)N)O",
+        expected_matches=Counter(
+            {
+                "piperidine": 1,
+                "benzene": 1,
+                "cyclohexane": 1,
+                "Ar-C(=O)R": 2,
+                "Ar-OR": 1,
+                "R2C=N-N=CR2": 1,
+                "C=C-C=C": 1,
+            }
+        ),
+        description="",
+    ),
+    SubstructMatchTest(
+        id=349,
+        SMILES="C1=CC=C(C=C1)C(=NN=C2C=CC(=O)C=C2)C3=CC=CC=C3",
+        expected_matches=Counter({"C=O": 1, "R2C=N-N=CR2": 1, "benzene": 2, "C=C": 2}),
+        description="R₂C=N–N=CR₂ is matched because neither C=N bond constitutes an exocyclic bond of the aromatic ring.",
+    ),
+    SubstructMatchTest(
+        id=350,
+        SMILES="CC1=C(C2=CC=CC=C2N1)C3=CC(=NN=C(C3)C4=CC=CC=C4)C5=CC=CC=C5",
+        expected_matches=Counter(
+            {"benzene": 3, "R2C=N-N=CR2": 1, "pyrrole": 1, "Ar-C=C": 1}
+        ),
+        description="If conjugation extends beyond R2C=N-N=CR2 with addional C=C bonds, R2C=N-N=CR2 is matched along with relevant bond types (C=C, C=C-C=C, Ar-C=C, etc.).",
+    ),
+    SubstructMatchTest(
+        id=351,
+        SMILES="C/C(=N\\N)/C(=N/N=C(/C(=N/N=C(/C(=N/N)/C)\\C)/C)\\C)/C",
+        expected_matches=Counter({"R2C=N-N=CR2": 2, "C=N": 2}),
+        description="Check for R2C=N-N=CR2 self-matching, as well as R2C=N-N=CR2 and C=N match overlap.",
+    ),
+    SubstructMatchTest(
+        id=352,
+        SMILES="C/C(=N\\N)/C(=N/N=C(/C(=N/N=C(/C(=N/N=C(/C(=N/N)/C)\\C)/C)\\C)/C)\\C)/C",
+        expected_matches=Counter({"R2C=N-N=CR2": 3, "C=N": 2}),
+    ),
+    SubstructMatchTest(
+        id=353,
+        SMILES="CC12/C(=N/N=C\\3/C4(CN5CC3CN(C4)CC5)C)/C6CN(C1)CCN(C2)C6",
+        expected_matches=Counter({"R2C=N-N=CR2": 1, "piperidine": 2}),
+    ),
+    SubstructMatchTest(
+        id=354,
+        SMILES="C1=CC=C\\2C(=C1)C3=NC4=CC=CC=C4N=C3/C2=N/N=C\\5/C6=CC=CC=C6C7=NC8=CC=CC=C8N=C75",
+        expected_matches=Counter(
+            {"Ar-Ar": 2, "R2C=N-N=CR2": 1, "benzene": 4, "pyrazine": 2}
+        ),
+        description="Assignment of R2C=N-N=CR2 as part of non-alternat five-membered ring in polyaromatic system.",
+    ),
+    SubstructMatchTest(
+        id=355,
+        SMILES="C1=CN(C=CC1=NN=C2C=C[N+](=O)C=C2)[O-]",
+        expected_matches=Counter({"C=N": 1, "C=C": 2, "N=O": 1, "pyridine": 1}),
+        description="If a C=N bond in R₂C=N–N=CR₂ is part of an aromatic system, the fragment is not assigned and only one C=N bond is matched instead.",
+    ),
+    SubstructMatchTest(
+        id=356,
+        SMILES="C1=CC2=C(/C(=N/N=C/3\\C4=C(C(=CC(=C4)[N+](=O)[O-])[N+](=O)[O-])C5=C3C=C(C=C5)[N+](=O)[O-])/C6=C2C(=CC(=C6)[N+](=O)[O-])[N+](=O)[O-])C=C1[N+](=O)[O-]",
+        expected_matches=Counter(
+            {"Ar-NO2": 6, "benzene": 4, "Ar-Ar": 2, "R2C=N-N=CR2": 1}
+        ),
+    ),
+    SubstructMatchTest(
+        id=357,
+        SMILES="C1/C(=N/N=C/2\\C3=CC=CC=C3C(=C4C(=O)C5=CC=CC=C5C4=O)C2)/C6=CC=CC=C6C1=C7C(=O)C8=CC=CC=C8C7=O",
+        expected_matches=Counter(
+            {"benzene": 4, "Ar-C(=O)R": 4, "Ar-C=C": 2, "R2C=N-N=CR2": 1}
+        ),
+    ),
+    SubstructMatchTest(
+        id=358,
+        SMILES="C/C(=N\\N=C(\\C1=CC=C(C=C1)N=NC(C#N)C#N)/C)/C2=CC=C(C=C2)N=NC(C#N)C#N",
+        expected_matches=Counter({"-C#N": 4, "benzene": 2, "N=N": 2, "R2C=N-N=CR2": 1}),
+    ),
+    SubstructMatchTest(
+        id=359,
+        SMILES="C1=CC(=NN=[N-])C=CC1=NN=C2C=CC(=N[N+]#N)C=C2",
+        expected_matches=Counter({"C=N": 2, "N=N": 1, "C=C": 4, "R2C=N-N=CR2": 1}),
+    ),
+    SubstructMatchTest(
+        id=360,
+        SMILES="C1=CC(=NN=C2C=CC=CC2=N[N+]#N)C(=NN=[N-])C=C1",
+        expected_matches=Counter({"C=C-C=C": 2, "N=N": 1, "C=N": 2, "R2C=N-N=CR2": 1}),
+        description="Lack of aromaticity implies complicated bond assignment.",
+    ),
+    # TOD
+    SubstructMatchTest(
+        id=361,
+        SMILES="CCC1=C(C(=CC=C1)/C(=N/N=C(\\C)/C2=CC=CCC2(C)C)/C=C=C)F",
+        expected_matches=Counter(
+            {"C=C-C=C": 1, "R2C=N-N=CR2": 1, "benzene": 1, "C=C": 2}
+        ),
+        description="C=C=C fragment is assigned as two C=C bonds.",
+    ),
     # SubstructMatchTest(
     #     id=149,
     #     SMILES="",

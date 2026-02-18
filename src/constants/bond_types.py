@@ -346,12 +346,9 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=35,
         formula="C=N",
-        SMARTS="[C;X2,X3;!$([c]);!$(C(=[N])=[S])]=[N;!$([n]);!$([N](=[C]([C])[C])-[N]=[C]([C])[C])]",
+        SMARTS="[C;X2,X3;!$([c]);!$(C(=[N])=[S])]=[N;!$([n]);!$([N](=[C]([#6])[#6])-[N]=[C]([#6])[#6])]",
         constitutive_corr=8.15,
-        sdf_files=(
-            "C=N.sdf",
-            "R2C=N-N=CRAr.sdf",
-        ),
+        sdf_files=("C=N.sdf",),
         description="""
             Condition: N and C are NOT aromatic - this excludes aromatic rings that are not listed in the reference.
             Also excluded: Azines R2C=N-N=CR2""",
@@ -496,10 +493,10 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=52,
         formula="R2C=N-N=CR2",
-        SMARTS="[C;X3;!c]([C])([C])=[N;X2;!n]-[N;X2;!n]=[C;X3;!c]([C])[C]",
+        SMARTS="[C;X3;!c]([#6])([#6])=[N;X2;!n]-[N;X2;!n]=[C;X3;!c]([#6])[#6]",
         constitutive_corr=10.2,
-        sdf_files=("R2C=N-N=CR2.sdf",),
-        description="Azines R2C=N-N=CR2",
+        sdf_files=("R2C=N-N=CR2.sdf", "R2C=N-N=CRAr.sdf"),
+        description="Azines R2C=N-N=CR2. R is assumed to represent aliphatic or aryl moiety.",
     ),
     BondType(
         id=53,
