@@ -150,9 +150,12 @@ class MBSubstructMatcher:
         accepted_candidates: list[BondMatchCandidate] = []
 
         # TODO - migrate seniority into cross_overlap_prio isolated field
+        def _overlap_sort(t):
+            return -t[2], t[0]
+
         all_matches = sorted(
             ((f, lst, max(c.seniority for c in lst)) for f, lst in grouped_candidates.items()),
-            key=lambda t: (-t[2], t[0]),
+            key=_overlap_sort,
         )
 
         for match, candidates, _ in all_matches:
