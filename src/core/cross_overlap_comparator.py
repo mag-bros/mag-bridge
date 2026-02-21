@@ -23,12 +23,3 @@ class CrossOverlapComparator:
             return hierarchy.index(formula1) < hierarchy.index(formula2)
         except ValueError:
             return False
-
-    @staticmethod
-    def get_priority_index(formula: str, group: CrossOverlapGroup, rules: dict[CrossOverlapGroup, str]) -> int:
-        """Get priority index for formula in hierarchy, returning -1 if not found."""
-        hierarchy = CrossOverlapComparator._parse(rules[group])
-        try:
-            return hierarchy.index(formula)
-        except ValueError:
-            return -1

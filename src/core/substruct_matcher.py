@@ -6,11 +6,14 @@ from dataclasses import asdict, dataclass
 from typing import Iterable
 
 from src.constants.bond_types import (
+    CROSS_OVERLAP_RULES,
     DOUBLE_BOND,
     RELEVANT_BOND_TYPES,
     SENIORITY_THRESHOLD,
     BondType,
+    CrossOverlapGroup,
 )
+from src.core.cross_overlap_comparator import CrossOverlapComparator
 from src.loader import MBMolecule
 
 
