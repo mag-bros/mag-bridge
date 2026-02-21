@@ -170,7 +170,7 @@ class MBSubstructMatcher:
                 overlaps_low_seniority = False
                 if bmc.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS:
                     for acc_can in accepted_candidates:
-                        if acc_can.seniority < SENIORITY_THRESHOLD:
+                        if acc_can.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS:
                             overlap = len(atom_set & set(acc_can.atoms))
                             if overlap >= 1:
                                 overlaps_low_seniority = True

@@ -32,7 +32,7 @@ class BondType:
     description: Optional[str] = ""
     dummy_ring: Optional[bool] = False
     seniority: int = SENIORITY_THRESHOLD
-    cross_overlap_group: Optional[CrossOverlapGroup] = CrossOverlapGroup.DOUBLE_BONDS
+    cross_overlap_group: Optional[CrossOverlapGroup] = CrossOverlapGroup.DEFAULT
 
 
 DOUBLE_BOND = BondType(
