@@ -69,9 +69,7 @@ class MBMolecule:
             mol_dia_contr += atom.pascal_values.get("charge", 0)
 
             # Add ox-state constant for covalently bonded atom when neither ring nor open-chain constants apply
-            if atom.has_covalent_bond and all(
-                key not in atom.pascal_values for key in ["ring", "open_chain"]
-            ):
+            if atom.has_covalent_bond and all(key not in atom.pascal_values for key in ["ring", "open_chain"]):
                 mol_dia_contr += atom.pascal_values.get("ox_state", 0)
 
             # Add ring constant for N and C atoms located within a ring
@@ -80,11 +78,7 @@ class MBMolecule:
 
             # Add open-chain constant for C or N atoms in chain fragments
             # or when no ring constant is defined for the atom type
-            if (
-                not atom.is_ring_relevant
-                and atom.ox_state is None
-                and atom.charge is None
-            ):
+            if not atom.is_ring_relevant and atom.ox_state is None and atom.charge is None:
                 mol_dia_contr += atom.pascal_values.get("open_chain", 0)
 
             if verbose:
@@ -126,13 +120,7 @@ class MBMolecule:
         """
         exclude_idx = exclude_idx or set()
 
-        return tuple(
-            a.idx
-            for a in self._atoms
-            if (include_h or a.symbol != "H")
-            and a.idx not in exclude_idx
-            and a.has_double_bond
-        )
+        return tuple(a.idx for a in self._atoms if (include_h or a.symbol != "H") and a.idx not in exclude_idx and a.has_double_bond)
 
     def GetAtoms(self) -> list[MBAtom]:
         """Return the list of MBAtom objects in this molecule."""

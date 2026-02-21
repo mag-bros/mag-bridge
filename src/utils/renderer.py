@@ -54,13 +54,11 @@ class Renderer:
         grid_color: RGBi = self.theme.GridLine
 
         # Align / sanitize inputs
-        mols, highlightAtomLists, highlightAtomGroupsPerMol, matchesCountersPerMol = (
-            self._align_inputs(
-                mols=mols,
-                highlightAtomLists=highlightAtomLists,
-                highlightAtomGroupsPerMol=highlightAtomGroupsPerMol,
-                matchesCountersPerMol=matchesCountersPerMol,
-            )
+        mols, highlightAtomLists, highlightAtomGroupsPerMol, matchesCountersPerMol = self._align_inputs(
+            mols=mols,
+            highlightAtomLists=highlightAtomLists,
+            highlightAtomGroupsPerMol=highlightAtomGroupsPerMol,
+            matchesCountersPerMol=matchesCountersPerMol,
         )
 
         # Precompute coords and legends
@@ -80,12 +78,10 @@ class Renderer:
         highlightBondLists = None
         highlightBondColors = None
         if highlightAtomGroupsPerMol is not None and formula_color:
-            highlightBondLists, highlightBondColors = (
-                self._build_highlight_bonds_from_groups(
-                    mols=mols,
-                    highlightAtomGroupsPerMol=highlightAtomGroupsPerMol,
-                    formula_color=formula_color,
-                )
+            highlightBondLists, highlightBondColors = self._build_highlight_bonds_from_groups(
+                mols=mols,
+                highlightAtomGroupsPerMol=highlightAtomGroupsPerMol,
+                formula_color=formula_color,
             )
 
         img = MolsToGridImage(
@@ -106,15 +102,11 @@ class Renderer:
         img = self._apply_theme_background(img, bg_surface)
 
         # Grid separators
-        img = self._add_grid_lines(
-            img, len(mols), mols_per_row, size, grid_color, sep_width
-        )
+        img = self._add_grid_lines(img, len(mols), mols_per_row, size, grid_color, sep_width)
 
         # Bottom label (your "Bonds matched..." line)
         if label:
-            img = self._add_label(
-                img, label, text_color, label_height, bg_color=self.theme.Background
-            )
+            img = self._add_label(img, label, text_color, label_height, bg_color=self.theme.Background)
 
         # Legend (compact, centered, bold separators)
         if showLegend and formula_color:
@@ -195,9 +187,7 @@ class Renderer:
             out.append(f"Mol {idx}: {MolToSmiles(m)}")
         return out
 
-    def _aggregate_counts(
-        self, matchesCountersPerMol: Optional[list[Counter[str]]]
-    ) -> Optional[dict[str, int]]:
+    def _aggregate_counts(self, matchesCountersPerMol: Optional[list[Counter[str]]]) -> Optional[dict[str, int]]:
         if not matchesCountersPerMol:
             return None
         agg: Counter[str] = Counter()
@@ -269,11 +259,7 @@ class Renderer:
 
         colors_per_mol: list[dict[int, RGBf]] = []
         for mol_i, atoms_union in enumerate(highlightAtomLists):
-            groups = (
-                highlightAtomGroupsPerMol[mol_i]
-                if mol_i < len(highlightAtomGroupsPerMol)
-                else {}
-            )
+            groups = highlightAtomGroupsPerMol[mol_i] if mol_i < len(highlightAtomGroupsPerMol) else {}
             atom_color_map: dict[int, RGBf] = {}
 
             # sort groups by luminance so desired priority is applied
@@ -411,9 +397,7 @@ class Renderer:
         for sw_rgb, txt in items:
             w = item_width(txt)
             # add separator width if not first element in the line
-            extra = (
-                (separator_gap * 2 + separator_w) if (draw_separators and cur) else 0
-            )
+            extra = (separator_gap * 2 + separator_w) if (draw_separators and cur) else 0
             if cur and (padding_x + cur_w + extra + w > W - padding_x):
                 lines.append(cur)
                 cur = []
@@ -431,9 +415,7 @@ class Renderer:
         text_h = draw_tmp.textbbox((0, 0), "Ag", font=font)[3]
         line_h = max(swatch, text_h)
 
-        legend_h = (
-            padding_y + len(lines) * line_h + (len(lines) - 1) * line_gap + padding_y
-        )
+        legend_h = padding_y + len(lines) * line_h + (len(lines) - 1) * line_gap + padding_y
 
         out = Image.new("RGB", (W, H + legend_h), bg_color)
         out.paste(img, (0, 0))
@@ -463,9 +445,7 @@ class Renderer:
                 # separator between items
                 if draw_separators and i < len(line) - 1:
                     x += separator_gap
-                    draw.rectangle(
-                        [x, y_s, x + separator_w, y_s + swatch], fill=(0, 0, 0)
-                    )
+                    draw.rectangle([x, y_s, x + separator_w, y_s + swatch], fill=(0, 0, 0))
                     x += separator_w + separator_gap
 
             y += line_h + line_gap

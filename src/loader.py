@@ -47,16 +47,9 @@ class MBLoader:
 
         failed = sum(1 for mol in raw_mols if mol is None)
         if failed:
-            raise SDFMalformedRecordError(
-                f"{failed} molecule(s) failed to parse in file '{sdf_path}'. "
-                "Check the SDF syntax or atom typing."
-            )
+            raise SDFMalformedRecordError(f"{failed} molecule(s) failed to parse in file '{sdf_path}'. Check the SDF syntax or atom typing.")
 
-        loaded_mols = [
-            MBMoleculeFactory.create(mol=mol, loaded_from=source_file, mol_index=i)
-            for i, mol in enumerate(raw_mols)
-            if mol
-        ]
+        loaded_mols = [MBMoleculeFactory.create(mol=mol, loaded_from=source_file, mol_index=i) for i, mol in enumerate(raw_mols) if mol]
 
         if not loaded_mols:
             raise SDFEmptyFileError("No valid molecules loaded from any file.")
@@ -67,9 +60,7 @@ class MBLoader:
 
     @staticmethod
     def MolFromSmiles(smiles: str) -> MBMolecule:
-        loaded_molecule = MBMoleculeFactory.create(
-            mol=MolFromSmiles(SMILES=smiles), loaded_from=smiles
-        )
+        loaded_molecule = MBMoleculeFactory.create(mol=MolFromSmiles(SMILES=smiles), loaded_from=smiles)
         if not loaded_molecule:
             raise MBLoaderError(f"Error loading molecule from smiles: {smiles}")
 
@@ -85,9 +76,7 @@ class MBLoader:
             raise SDFFileNotFoundError(f"File not found: {path}")
 
         if path.suffix.lower() != ".sdf":
-            raise MBLoaderError(
-                f"Invalid file extension '{path.suffix}'. Expected .sdf"
-            )
+            raise MBLoaderError(f"Invalid file extension '{path.suffix}'. Expected .sdf")
 
         if not path.is_file() or not os.access(path, os.R_OK):
             raise MBLoaderError(f"File is not readable: {path}")
@@ -97,17 +86,12 @@ class MBLoader:
 
         with open(path, "rb") as f:
             if b"\x00" in f.read(256):
-                raise MBLoaderError(
-                    f"File '{path}' appears to be binary, not SDF text."
-                )
+                raise MBLoaderError(f"File '{path}' appears to be binary, not SDF text.")
 
         with open(path, "r", encoding="utf-8", errors="ignore") as f:
             content = f.read()
             if not ("M  END" in content or "$$$$" in content):
-                raise MBLoaderError(
-                    f"File '{path}' does not appear to contain valid SDF records "
-                    "(missing 'M  END' or '$$$$')."
-                )
+                raise MBLoaderError(f"File '{path}' does not appear to contain valid SDF records (missing 'M  END' or '$$$$').")
 
 
 class MBMoleculeFactory:
