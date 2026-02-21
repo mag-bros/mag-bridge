@@ -121,7 +121,7 @@ class MBSubstructMatcher:
             used_local: set[int] = set()
             seen: set[tuple[int, ...]] = set()
 
-            max_seniority = max(c.seniority for c in candidates)
+            max_seniority = max(c.seniority for c in candidates)  # each candidate has the same seniority
             skip_removal_check = max_seniority >= SENIORITY_THRESHOLD
 
             for bmc in candidates:
@@ -155,8 +155,6 @@ class MBSubstructMatcher:
         )
 
         for match, candidates, seniority in all_matches:
-            skip_removal_check = seniority >= SENIORITY_THRESHOLD
-
             for bmc in candidates:
                 atoms = tuple(sorted(bmc.atoms))
                 atom_set = set(atoms)
@@ -166,12 +164,19 @@ class MBSubstructMatcher:
                     BicyclicOverlaps.InjectDerivedMatches(mol, bmc, accepted_candidates, final_by_formula)
                     continue
 
-                if (not skip_removal_check) and any(
-                    len(atom_set & set(acc_can.atoms)) >= 1 for acc_can in accepted_candidates if acc_can.seniority < SENIORITY_THRESHOLD
-                ):
+                # Rule for DOUBLE_BONDS group
+                overlaps_low_seniority = False
+                if bmc.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS:
+                    for acc_can in accepted_candidates:
+                        if acc_can.seniority < SENIORITY_THRESHOLD:
+                            overlap = len(atom_set & set(acc_can.atoms))
+                            if overlap >= 1:
+                                overlaps_low_seniority = True
+                                break
+                if overlaps_low_seniority:
                     continue
 
-                # Rules for CARBONYL_CONTAINING_BOND_TYPES group
+                # Rules for CARBONYL_BOND_TYPES group
 
                 # Placeholder rings must be "invisible" for overlap bookkeeping + output
                 final_by_formula[match].append(bmc)
