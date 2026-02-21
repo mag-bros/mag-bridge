@@ -14,9 +14,31 @@ class CrossOverlapGroup(str, Enum):
 
 
 CROSS_OVERLAP_RULES = {
-    CrossOverlapGroup.DOUBLE_BONDS: '"CH2=CH-CH2-" > "Ar-C=C" > "C=C-C=C" > "C=C"',
-    CrossOverlapGroup.BICYCLIC_STRUCTURES: '"cyclopropane" > "cyclobutane" > "azacyclopropane" > "oxacyclopropane" > "thiacyclopropane" > "piperazine" > "cyclohexene" > "morpholine" > "dioxane" > "piperidine" > "cyclohexane" > "pyrrolidine" > "tetrahydrofuran" > "cyclopentane"',
-    CrossOverlapGroup.CARBONYL_BOND_TYPES: '"RC(=O)NH2" > "Ar-C(=O)NH2" > "RCOOR" > "Ar-COOR" > "RCOOH" > "Ar-COOH" > "C=O"',
+    ## Elements to the left have higher priority!
+    CrossOverlapGroup.DOUBLE_BONDS: {"group_prio": 0, "order": ("CH2=CH-CH2-", "Ar-C=C", "C=C-C=C", "C=C")},
+    CrossOverlapGroup.CARBONYL_BOND_TYPES: {
+        "group_prio": 1,
+        "order": ("RC(=O)NH2", "Ar-C(=O)NH2", "RCOOR", "Ar-COOR", "RCOOH", "Ar-COOH", "C=O"),
+    },
+    CrossOverlapGroup.BICYCLIC_STRUCTURES: {
+        "group_prio": 2,
+        "order": (
+            "cyclopropane",
+            "cyclobutane",
+            "azacyclopropane",
+            "oxacyclopropane",
+            "thiacyclopropane",
+            "piperazine",
+            "cyclohexene",
+            "morpholine",
+            "dioxane",
+            "piperidine",
+            "cyclohexane",
+            "pyrrolidine",
+            "tetrahydrofuran",
+            "cyclopentane",
+        ),
+    },
 }
 
 
