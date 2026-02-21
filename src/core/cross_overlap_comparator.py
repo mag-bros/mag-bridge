@@ -20,6 +20,7 @@ class CrossOverlapComparator:
         """Check if formula1 has higher priority than formula2 in the hierarchy."""
         hierarchy = CrossOverlapComparator._parse(rules[group])
         try:
-            return hierarchy.index(formula1) < hierarchy.index(formula2)
+            is_higher = hierarchy.index(formula1) < hierarchy.index(formula2)
+            return is_higher
         except ValueError:
             return False

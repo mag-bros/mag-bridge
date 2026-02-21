@@ -159,38 +159,45 @@ class MBSubstructMatcher:
             for bmc in candidates:
                 atoms = tuple(sorted(bmc.atoms))
                 atom_set = set(atoms)
+                approve_candidate = True
 
-                # Rule for BICYCLIC_STRUCTURES group.
+                # CrossOverlapRule for BICYCLIC_STRUCTURES group
                 # Saturated rings in BICYCLIC_STRUCTURES overlaps with 3 or more shared atoms => reject
                 if bmc.cross_overlap_group == CrossOverlapGroup.BICYCLIC_STRUCTURES and any(
                     len(atom_set & set(acc_can.atoms)) >= 3 for acc_can in accepted_candidates
                 ):
                     BicyclicOverlaps.InjectDerivedMatches(mol, bmc, accepted_candidates, final_by_formula)
-                    continue
+                    approve_candidate = False
+                    # continue
 
-                # Rule for DOUBLE_BONDS group
+                # CrossOverlapRule for DOUBLE_BONDS group
                 if bmc.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS and any(
                     acc_can.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS and len(atom_set & set(acc_can.atoms)) >= 1
                     for acc_can in accepted_candidates
                 ):
-                    continue
+                    approve_candidate = False
+                    # continue
 
-                # Rules for CARBONYL_BOND_TYPES group
+                # CrossOverlapRule for CARBONYL_BOND_TYPES group
                 if bmc.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES:
                     for acc_can in accepted_candidates:
-                        if acc_can.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES and CrossOverlapComparator.is_higher_priority(
-                            formula1=bmc.formula,
-                            formula2=acc_can.formula,
-                            group=CrossOverlapGroup.CARBONYL_BOND_TYPES,
-                            rules=CROSS_OVERLAP_RULES,
-                        ):
-                            ...
-                        else:
-                            ...
+                        if acc_can.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES:
+                            if CrossOverlapComparator.is_higher_priority(
+                                formula1=bmc.formula,
+                                formula2=acc_can.formula,
+                                group=CrossOverlapGroup.CARBONYL_BOND_TYPES,
+                                rules=CROSS_OVERLAP_RULES,
+                            ):
+                                # candidate is higher prio -> add to result
+                                approve_candidate = True
+                            else:
+                                # candidate is lower prio -> reject candidate and skip to next
+                                approve_candidate = False
 
                 # Placeholder rings must be "invisible" for overlap bookkeeping + output
-                final_by_formula[match].append(bmc)
-                accepted_candidates.append(bmc)
+                if approve_candidate:
+                    final_by_formula[match].append(bmc)
+                    accepted_candidates.append(bmc)
 
         filtered_result = {k: [c for c in v if not c.dummy_ring] for k, v in dict(final_by_formula).items()}
         return filtered_result
