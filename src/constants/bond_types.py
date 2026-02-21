@@ -14,8 +14,9 @@ class CrossOverlapGroup(str, Enum):
 
 
 CROSS_OVERLAP_RULES = {
+    CrossOverlapGroup.DOUBLE_BONDS: "CH2=CH-CH2- > Ar-C=C > C=C-C=C > C=C",
     CrossOverlapGroup.BICYCLIC_STRUCTURES: "cyclopropane > cyclobutane > azacyclopropane > oxacyclopropane > thiacyclopropane > piperazine > cyclohexene > morpholine > dioxane > piperidine > cyclohexane > pyrrolidine > tetrahydrofuran > cyclopentane",
-    CrossOverlapGroup.CARBONYL_BOND_TYPES: "RCONH2 > Ar-CONH2 > RCOOR > Ar-COOR >COOH >Ar-COOH > C=O",
+    CrossOverlapGroup.CARBONYL_BOND_TYPES: "RC(=O)NH2 > Ar-C(=O)NH2 > RCOOR > Ar-COOR > RCOOH > Ar-COOH > C=O",
 }
 
 
