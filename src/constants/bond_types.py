@@ -1,7 +1,13 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import Optional
 
 SENIORITY_THRESHOLD = 40
+
+
+class ChainGroup(Enum):
+    DEFAULT = "DEFAULT"
+    CARBONYL_CONTAINING_BOND_TYPES = "CCBT"
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,7 +21,8 @@ class BondType:
     sdf_files: tuple[str, ...]
     description: Optional[str] = ""
     dummy_ring: Optional[bool] = False
-    seniority: int = SENIORITY_THRESHOLD  # TODO find better name for this variable?
+    seniority: int = SENIORITY_THRESHOLD
+    chain_group: Optional[ChainGroup] = ChainGroup.DEFAULT
 
 
 DOUBLE_BOND = BondType(
@@ -216,6 +223,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=6.3,
         sdf_files=("C=O.sdf",),
         description="Condition: C cannot be bound to aryl group. Omitted additional bond to O/N in any form. C=O can be assigned as part of thioester RC(=O)SR.",
+        chain_group=ChainGroup.CARBONYL_CONTAINING_BOND_TYPES,
     ),
     BondType(
         id=21,
