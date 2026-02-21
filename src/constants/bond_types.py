@@ -244,7 +244,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         cross_overlap_group=CrossOverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
-        id=33,
+        id=20,
         formula="RCOOR",
         SMARTS="[C;X3;!$([C]-[c]);!$(C([O])[N])](=[O;X1])[O;X2;H0][#6,N,O,Si]",
         constitutive_corr=-5.0,
@@ -253,7 +253,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         cross_overlap_group=CrossOverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
-        id=34,
+        id=21,
         formula="RC(=O)NH2",
         SMARTS="[C;X3;!$([C]-[c])](=[O;X1])[$([N;X3;H2]),$([N;X3;H1][#6]),$([N;X3;H0]([#6])[#6])]",
         constitutive_corr=-3.5,
@@ -263,13 +263,13 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "RCONR2.sdf",
         ),
         description="""
-            Note: Intentional extention for considering not only RCONH2, but also RCONHR. 
+            Note: Intentional extention for considering not only RCONH2, but also RCONHR.
             Eexcluded: RNHC(=O)OR group - for this motif only C(=O)OR but not RNHC(=O) fragment will be assigned due to higher constitutive corr value of the former.
             This must be noted in Software's MANUAL.""",
         cross_overlap_group=CrossOverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
-        id=39,
+        id=22,
         formula="Ar-COOR",
         SMARTS="[c]-[C;X3](=[O;X1])[O;X2;H0][#6,N,O,Si]",
         constitutive_corr=-1.5,
@@ -277,7 +277,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         cross_overlap_group=CrossOverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
-        id=50,
+        id=23,
         formula="Ar-COOH",
         SMARTS="[c]-[C;X3](=[O;X1])[$([O;H1;X2]),$([O-;X1])]",
         constitutive_corr=-1.5,
@@ -291,7 +291,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         cross_overlap_group=CrossOverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
-        id=51,
+        id=24,
         formula="Ar-C(=O)NH2",
         SMARTS="[c]-[C;X3](=[O;X1])[$([N;X3;H2]),$([N;X3;H1][#6]),$([N;X3;H0]([#6])[#6])]",
         constitutive_corr=-1.5,
@@ -301,12 +301,12 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "Ar-CONR2.sdf",
         ),
         description="""
-            Note: Intentional extention for considering not only ArCONH2, but also Ar-CONHR and Ar-CONR2. 
+            Note: Intentional extention for considering not only ArCONH2, but also Ar-CONHR and Ar-CONR2.
             This must be noted in Software's MANUAL.""",
         cross_overlap_group=CrossOverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
-        id=20,
+        id=25,
         formula="C#C",
         SMARTS="[C;!$([C]-[c]);!$([C]([!c])#[C]-[C](=[O])-[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]#[C;!$([C]-[c]);!$([C]([!c])#[C]-[C](=[O])-[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]",
         constitutive_corr=0.8,
@@ -316,7 +316,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             Also excluded: RC#C-C(=O)R""",
     ),
     BondType(
-        id=21,
+        id=26,
         formula="RCOOH",
         SMARTS="[C;X3;!$([C]-[c]);!$([C]([O])([O])=[O])](=[O;X1])[$([O;H1;X2]),$([O-;X1])]",
         constitutive_corr=-5.0,
@@ -325,11 +325,11 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "RCOO-.sdf",
         ),
         description="""
-            Note: Both RCOO- and RCOOH groups will be matched. 
+            Note: Both RCOO- and RCOOH groups will be matched.
             This must be noted in Software's MANUAL.""",
     ),
     BondType(
-        id=22,
+        id=27,
         formula="-N#C",
         SMARTS="[N+;X2]#[C-;X1]",
         constitutive_corr=0.0,
@@ -337,7 +337,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Condition: Isocyanide (isonitrile) group -N#C must be represented by the charged resonance structure",
     ),
     BondType(
-        id=23,
+        id=28,
         formula="-C#N",
         SMARTS="[C;X2]#[N;X1]",
         constitutive_corr=0.8,
@@ -345,7 +345,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Cyanide (nitrile) -C#N group",
     ),
     BondType(
-        id=24,
+        id=29,
         formula="N=O",
         SMARTS="[N;!$([N+](=O)[O])]=[O;X1]",
         constitutive_corr=1.7,
@@ -355,7 +355,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             Condition: N with formal charge +1 not allowed. This excludes nitro -NO2 group""",
     ),
     BondType(
-        id=25,
+        id=30,
         formula="-NO2",
         SMARTS="[*;!c]-[N+;X3]([O-;X1])=[O;X1]",
         constitutive_corr=-2.0,
@@ -366,7 +366,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             Excluded: Nitroso -N=O group""",
     ),
     BondType(
-        id=26,
+        id=31,
         formula="C-Cl",
         SMARTS="[C;!$([c]);!$([C]([C])([C])([Cl])[Cl]);!$([C;X4;H1]([C;!$(C=O);!$(C#N)])([Cl])[Cl]);!$([C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])([Cl])-[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])[Cl])]-[Cl;X1]",
         constitutive_corr=3.1,
@@ -374,28 +374,28 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Excluded: R2CCl2, RCHCl2, Ar-Cl and Cl-CR2-CR2-Cl",
     ),
     BondType(
-        id=27,
+        id=32,
         formula="Cl-CR2-CR2-Cl",
         SMARTS="[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])([Cl])-[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])[Cl]",
         constitutive_corr=4.3,
         sdf_files=("Cl-CR2-CR2-Cl.sdf",),
     ),
     BondType(
-        id=28,
+        id=33,
         formula="R2CCl2",
         SMARTS="[C;X4]([C])([C])([Cl])[Cl]",
         constitutive_corr=1.44,
         sdf_files=("R2CCl2.sdf",),
     ),
     BondType(
-        id=29,
+        id=34,
         formula="RCHCl2",
         SMARTS="[C;X4;H1]([C;!$(C=O);!$(C#N)])([Cl])[Cl]",
         constitutive_corr=6.43,
         sdf_files=("RCHCl2.sdf",),
     ),
     BondType(
-        id=30,
+        id=35,
         formula="C-Br",
         SMARTS="[C;!$([c]);!$([C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])([Br;X1])-[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])[Br;X1])]-[Br;X1]",
         constitutive_corr=4.1,
@@ -403,14 +403,14 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Excluded: Ar-Br and Br-CR2-CR2-Br",
     ),
     BondType(
-        id=31,
+        id=36,
         formula="Br-CR2-CR2-Br",
         SMARTS="[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])([Br;X1])-[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])[Br;X1]",
         constitutive_corr=6.24,
         sdf_files=("Br-CR2-CR2-Br.sdf",),
     ),
     BondType(
-        id=32,
+        id=37,
         formula="C-I",
         SMARTS="[C;!c]-[I;X1]",
         constitutive_corr=4.1,
@@ -418,7 +418,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Condition: C is NOT aromatic.",
     ),
     BondType(
-        id=35,
+        id=38,
         formula="C=N",
         SMARTS="[C;X2,X3;!$([c]);!$(C(=[N])=[S])]=[N;!$([n]);!$([N](=[C]([#6])[#6])-[N]=[C]([#6])[#6])]",
         constitutive_corr=8.15,
@@ -428,7 +428,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             Also excluded: Azines R2C=N-N=CR2""",
     ),
     BondType(
-        id=36,
+        id=39,
         formula="Ar-OH",
         SMARTS="[c]-[$([O;X2;H1]),$([O-;X1])]",
         constitutive_corr=-1,
@@ -441,32 +441,32 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             This must be stated in the MANUAL.""",
     ),
     BondType(
-        id=37,
+        id=40,
         formula="Ar-NR2",
         SMARTS="[c]-[N]([#6;!$([C]=[O,S])])[#6;!$([C]=[O,S])]",
         constitutive_corr=1,
         sdf_files=("Ar-NR2.sdf",),
     ),
     BondType(
-        id=38,
+        id=41,
         formula="Ar-C(=O)R",
         SMARTS="[c]-[C;X3](=[O;X1])[#6]",
         constitutive_corr=-1.5,
         sdf_files=("Ar-COR.sdf",),
     ),
     BondType(
-        id=40,
+        id=42,
         formula="N=N",
         SMARTS="[N;!$(n)]=[N;!$(n)]",
         constitutive_corr=1.85,
         sdf_files=("N=N.sdf",),
         description="""
-            Condition: N are NOT aromatic - this excludes aromatic rings that are not listed in the reference 
-            Also excluded: Azides R-N=N(+)=N(-)    
+            Condition: N are NOT aromatic - this excludes aromatic rings that are not listed in the reference
+            Also excluded: Azides R-N=N(+)=N(-)
             This should be noted in Software's MANUAL.""",
     ),
     BondType(
-        id=41,
+        id=43,
         formula="Ar-C#C",
         SMARTS="[c]-[C;X2]#[C;X2;!$([C]-[c])]",
         constitutive_corr=-1.5,
@@ -474,14 +474,14 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Condition: Only one C atom is connected with aryl group.",
     ),
     BondType(
-        id=42,
+        id=44,
         formula="Ar-C#C-Ar",
         SMARTS="[c]-[#6;X2]#[#6;X2]-[c]",
         constitutive_corr=3.85,
         sdf_files=("Ar-C#C-Ar.sdf",),
     ),
     BondType(
-        id=43,
+        id=45,
         formula="Ar-OR",
         SMARTS="[c]-[O;X2]-[#6,N,O;!$([C]=[O])]",
         constitutive_corr=-1,
@@ -489,42 +489,42 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="Cyclic ethers bound to aromatic C atom are also considered",
     ),
     BondType(
-        id=44,
+        id=46,
         formula="Ar-CHO",
         SMARTS="[c]-[C;X3;H1]=[O;X1]",
         constitutive_corr=-1.5,
         sdf_files=("Ar-CHO.sdf",),
     ),
     BondType(
-        id=45,
+        id=47,
         formula="Ar-Ar",
         SMARTS="[c]-[c]",
         constitutive_corr=-0.5,
         sdf_files=("Ar-Ar.sdf",),
     ),
     BondType(
-        id=46,
+        id=48,
         formula="Ar-NO2",
         SMARTS="[c]-[N+;X3](=[O;X1])[O-;X1]",
         constitutive_corr=-0.5,
         sdf_files=("Ar-NO2.sdf",),
     ),
     BondType(
-        id=47,
+        id=49,
         formula="Ar-Br",
         SMARTS="[c]-[Br;X1]",
         constitutive_corr=-3.5,
         sdf_files=("Ar-Br.sdf",),
     ),
     BondType(
-        id=48,
+        id=50,
         formula="Ar-Cl",
         SMARTS="[c]-[Cl;X1]",
         constitutive_corr=-2.5,
         sdf_files=("Ar-Cl.sdf",),
     ),
     BondType(
-        id=49,
+        id=51,
         formula="Ar-I",
         SMARTS="[c]-[I;X1]",
         constitutive_corr=-3.5,
