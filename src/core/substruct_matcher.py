@@ -5,13 +5,13 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from typing import Iterable
 
-from loader import MBMolecule
 from src.constants.bond_types import (
     DOUBLE_BOND,
     RELEVANT_BOND_TYPES,
     SENIORITY_THRESHOLD,
     BondType,
 )
+from src.loader import MBMolecule
 
 
 class BondMatchCandidate(BondType):
@@ -68,9 +68,7 @@ class MBSubstructMatcher:
         return MBSubstructMatcher._Postprocess(mol, candidates)
 
     @staticmethod
-    def _Postprocess(
-        mol: MBMolecule, candidates: list[BondMatchCandidate]
-    ) -> SubstructMatchResult:
+    def _Postprocess(mol: MBMolecule, candidates: list[BondMatchCandidate]) -> SubstructMatchResult:
         """Remove overlapping substructures (same logic as previous version)."""
         if not candidates:
             return SubstructMatchResult.empty()
@@ -80,17 +78,12 @@ class MBSubstructMatcher:
         for c in candidates:
             grouped_candidates[c.formula].append(c)
 
-        filtered: dict[str, list[BondMatchCandidate]] = (
-            MBSubstructMatcher._FilterSelfOverlaps(grouped_candidates)
-        )
+        filtered: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterSelfOverlaps(grouped_candidates)
 
-        final_candidates_by_formula: dict[str, list[BondMatchCandidate]] = (
-            MBSubstructMatcher._FilterCrossOverlaps(mol, filtered)
-        )
+        final_candidates_by_formula: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterCrossOverlaps(mol, filtered)
 
         final_hits_by_formula: dict[str, list[tuple[int, ...]]] = {
-            f: [tuple(sorted(c.atoms)) for c in lst]
-            for f, lst in final_candidates_by_formula.items()
+            f: [tuple(sorted(c.atoms)) for c in lst] for f, lst in final_candidates_by_formula.items()
         }
 
         # Build counters + highlight structures
@@ -136,9 +129,7 @@ class MBSubstructMatcher:
                     continue
                 seen.add(atoms)
 
-                if (not skip_removal_check) and len(
-                    used_local.intersection(atoms)
-                ) >= 3:
+                if (not skip_removal_check) and len(used_local.intersection(atoms)) >= 3:
                     continue
 
                 filtered[match].append(bmc)
@@ -156,10 +147,7 @@ class MBSubstructMatcher:
         accepted_candidates: list[BondMatchCandidate] = []
 
         all_matches = sorted(
-            (
-                (f, lst, max(c.seniority for c in lst))
-                for f, lst in grouped_candidates.items()
-            ),
+            ((f, lst, max(c.seniority for c in lst)) for f, lst in grouped_candidates.items()),
             key=lambda t: (-t[2], t[0]),
         )
 
@@ -171,19 +159,12 @@ class MBSubstructMatcher:
                 atom_set = set(atoms)
 
                 # Saturated rings in bicyclic structure overlaps with 3 or more shared atoms => reject
-                if (seniority > SENIORITY_THRESHOLD) and any(
-                    len(atom_set & set(acc_can.atoms)) >= 3
-                    for acc_can in accepted_candidates
-                ):
-                    BicyclicOverlaps.InjectDerivedMatches(
-                        mol, bmc, accepted_candidates, final_by_formula
-                    )
+                if (seniority > SENIORITY_THRESHOLD) and any(len(atom_set & set(acc_can.atoms)) >= 3 for acc_can in accepted_candidates):
+                    BicyclicOverlaps.InjectDerivedMatches(mol, bmc, accepted_candidates, final_by_formula)
                     continue
 
                 if (not skip_removal_check) and any(
-                    len(atom_set & set(acc_can.atoms)) >= 1
-                    for acc_can in accepted_candidates
-                    if acc_can.seniority < SENIORITY_THRESHOLD
+                    len(atom_set & set(acc_can.atoms)) >= 1 for acc_can in accepted_candidates if acc_can.seniority < SENIORITY_THRESHOLD
                 ):
                     continue
 
@@ -193,10 +174,7 @@ class MBSubstructMatcher:
                 final_by_formula[match].append(bmc)
                 accepted_candidates.append(bmc)
 
-        filtered_result = {
-            k: [c for c in v if not c.dummy_ring]
-            for k, v in dict(final_by_formula).items()
-        }
+        filtered_result = {k: [c for c in v if not c.dummy_ring] for k, v in dict(final_by_formula).items()}
         return filtered_result
 
 
