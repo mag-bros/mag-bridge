@@ -121,7 +121,7 @@ class MBSubstructMatcher:
             used_local: set[int] = set()
             seen: set[tuple[int, ...]] = set()
 
-            # TODO - migrate seniority into self_overlap_prio isolated field
+            # TODO (NOT FOR NOW) - migrate seniority into self_overlap_prio isolated field
             max_seniority = max(c.seniority for c in candidates)  # each candidate has the same seniority
             skip_removal_check = max_seniority >= SENIORITY_THRESHOLD
 
@@ -149,16 +149,9 @@ class MBSubstructMatcher:
         final_by_formula = defaultdict(list)
         accepted_candidates: list[BondMatchCandidate] = []
 
-        # TODO - migrate seniority into cross_overlap_prio isolated field
-        def _overlap_sort(t):
-            return -t[2], t[0]
+        all_matches = CrossOverlapComparator.sort_matches(grouped_candidates, CROSS_OVERLAP_RULES)
 
-        all_matches = sorted(
-            ((f, lst, max(c.seniority for c in lst)) for f, lst in grouped_candidates.items()),
-            key=_overlap_sort,
-        )
-
-        for match, candidates, _ in all_matches:
+        for match, candidates in all_matches:
             for bmc in candidates:
                 atoms = tuple(sorted(bmc.atoms))
                 atom_set = set(atoms)
@@ -184,7 +177,7 @@ class MBSubstructMatcher:
                 # CrossOverlapRule for CARBONYL_BOND_TYPES group
                 if bmc.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES:
                     for acc_can in accepted_candidates:
-                        has_overlapping_2_atoms = len(atom_set & set(acc_can.atoms)) >= 1
+                        has_overlapping_2_atoms = len(atom_set & set(acc_can.atoms)) >= 2
 
                         if has_overlapping_2_atoms and acc_can.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES:
                             if CrossOverlapComparator.is_higher_priority(
