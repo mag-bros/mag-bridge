@@ -121,6 +121,7 @@ class MBSubstructMatcher:
             used_local: set[int] = set()
             seen: set[tuple[int, ...]] = set()
 
+            # TODO - migrate seniority into self_overlap_prio isolated field
             max_seniority = max(c.seniority for c in candidates)  # each candidate has the same seniority
             skip_removal_check = max_seniority >= SENIORITY_THRESHOLD
 
@@ -148,6 +149,7 @@ class MBSubstructMatcher:
         final_by_formula = defaultdict(list)
         accepted_candidates: list[BondMatchCandidate] = []
 
+        # TODO - migrate seniority into cross_overlap_prio isolated field
         all_matches = sorted(
             ((f, lst, max(c.seniority for c in lst)) for f, lst in grouped_candidates.items()),
             key=lambda t: (-t[2], t[0]),
@@ -174,6 +176,17 @@ class MBSubstructMatcher:
                     continue
 
                 # Rules for CARBONYL_BOND_TYPES group
+                if bmc.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES:
+                    for acc_can in accepted_candidates:
+                        if acc_can.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES and CrossOverlapComparator.is_higher_priority(
+                            formula1=bmc.formula,
+                            formula2=acc_can.formula,
+                            group=CrossOverlapGroup.CARBONYL_BOND_TYPES,
+                            rules=CROSS_OVERLAP_RULES,
+                        ):
+                            ...
+                        else:
+                            ...
 
                 # Placeholder rings must be "invisible" for overlap bookkeeping + output
                 final_by_formula[match].append(bmc)
