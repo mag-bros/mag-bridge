@@ -154,13 +154,15 @@ class MBSubstructMatcher:
             key=lambda t: (-t[2], t[0]),
         )
 
-        for match, candidates, seniority in all_matches:
+        for match, candidates, _ in all_matches:
             for bmc in candidates:
                 atoms = tuple(sorted(bmc.atoms))
                 atom_set = set(atoms)
 
                 # Saturated rings in bicyclic structure overlaps with 3 or more shared atoms => reject
-                if (seniority > SENIORITY_THRESHOLD) and any(len(atom_set & set(acc_can.atoms)) >= 3 for acc_can in accepted_candidates):
+                if bmc.cross_overlap_group == CrossOverlapGroup.BICYCLIC_STRUCTURES and any(
+                    len(atom_set & set(acc_can.atoms)) >= 3 for acc_can in accepted_candidates
+                ):
                     BicyclicOverlaps.InjectDerivedMatches(mol, bmc, accepted_candidates, final_by_formula)
                     continue
 
