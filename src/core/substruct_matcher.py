@@ -187,6 +187,8 @@ class MBSubstructMatcher:
                 ):
                     continue
 
+                # Rules for CARBONYL_CONTAINING_BOND_TYPES group
+
                 # Placeholder rings must be "invisible" for overlap bookkeeping + output
                 final_by_formula[match].append(bmc)
                 accepted_candidates.append(bmc)
