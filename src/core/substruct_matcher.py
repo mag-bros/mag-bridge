@@ -181,7 +181,9 @@ class MBSubstructMatcher:
                 # CrossOverlapRule for CARBONYL_BOND_TYPES group
                 if bmc.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES:
                     for acc_can in accepted_candidates:
-                        if acc_can.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES:
+                        has_overlapping_2_atoms = len(atom_set & set(acc_can.atoms)) >= 1
+
+                        if has_overlapping_2_atoms and acc_can.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES:
                             if CrossOverlapComparator.is_higher_priority(
                                 formula1=bmc.formula,
                                 formula2=acc_can.formula,
