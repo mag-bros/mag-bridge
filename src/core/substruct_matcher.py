@@ -145,7 +145,6 @@ class MBSubstructMatcher:
         mol: MBMolecule,
         grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[BondMatchCandidate]]:
-        # (B) Remove cross-formula overlap by seniority (shared >1 atom => reject)
         final_by_formula = defaultdict(list)
         accepted_candidates: list[BondMatchCandidate] = []
 
@@ -159,7 +158,8 @@ class MBSubstructMatcher:
                 atoms = tuple(sorted(bmc.atoms))
                 atom_set = set(atoms)
 
-                # Saturated rings in bicyclic structure overlaps with 3 or more shared atoms => reject
+                # Rule for BICYCLIC_STRUCTURES group.
+                # Saturated rings in BICYCLIC_STRUCTURES overlaps with 3 or more shared atoms => reject
                 if bmc.cross_overlap_group == CrossOverlapGroup.BICYCLIC_STRUCTURES and any(
                     len(atom_set & set(acc_can.atoms)) >= 3 for acc_can in accepted_candidates
                 ):
@@ -167,15 +167,10 @@ class MBSubstructMatcher:
                     continue
 
                 # Rule for DOUBLE_BONDS group
-                overlaps_low_seniority = False
-                if bmc.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS:
-                    for acc_can in accepted_candidates:
-                        if acc_can.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS:
-                            overlap = len(atom_set & set(acc_can.atoms))
-                            if overlap >= 1:
-                                overlaps_low_seniority = True
-                                break
-                if overlaps_low_seniority:
+                if bmc.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS and any(
+                    acc_can.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS and len(atom_set & set(acc_can.atoms)) >= 1
+                    for acc_can in accepted_candidates
+                ):
                     continue
 
                 # Rules for CARBONYL_BOND_TYPES group
