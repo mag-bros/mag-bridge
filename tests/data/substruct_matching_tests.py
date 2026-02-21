@@ -2410,7 +2410,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=332,
         SMILES="CN1CCN(CC1)CCCN2C3=CC=CC=C3SC4=C2C=C(C=C4)C(Cl)(Br)I",
         expected_matches=Counter(
-            {"piperazine": 1, "benzene": 2, "R-Cl": 1, "R-Br": 1, "R-I": 1, "Ar-NR2": 2}
+            {"piperazine": 1, "benzene": 2, "C-Cl": 1, "C-Br": 1, "C-I": 1, "Ar-NR2": 2}
         ),
         description="Ar-NR-Ar fragment is assigned as two Ar-NR2, because the middle fused ring is not aromatic.",
     ),
