@@ -82,7 +82,7 @@ class MBSubstructMatcher:
         for c in candidates:
             grouped_candidates[c.formula].append(c)
 
-        filtered: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterSelfOverlaps(grouped_candidates)
+        filtered: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterSelfOverlaps(mol, grouped_candidates)
 
         final_candidates_by_formula: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterCrossOverlaps(mol, filtered)
 
@@ -146,13 +146,14 @@ class MBSubstructMatcher:
 
     @staticmethod
     def _FilterSelfOverlaps(
+        mol: MBMolecule,
         grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[BondMatchCandidate]]:
         # (A) Filter self-overlap within each formula (any shared atom => reject)
         filtered = defaultdict(list)
 
         for match, candidates in grouped_candidates.items():
-            approved_local_groups: set[tuple[int, ...]] = set()
+            accepted_candidates: list[BondMatchCandidate] = []
 
             # TODO (NOT FOR NOW) - migrate seniority into self_overlap_prio isolated field
             max_seniority = max(c.seniority for c in candidates)  # each candidate has the same seniority
@@ -163,7 +164,7 @@ class MBSubstructMatcher:
                 approve_candidate = True
 
                 # optional: remove exact duplicates (RDKit symmetry/permutations)
-                # if atoms in approved_local_groups:  # In the provided code snippet, the lines `approve_candidate = False`
+                # if atoms in accepted_candidates:  # In the provided code snippet, the lines `approve_candidate = False`
                 #     # and `continue` are used together within a conditional block. Here
                 #     # is an explanation of what these lines are doing:
                 #     approve_candidate = False
@@ -175,13 +176,14 @@ class MBSubstructMatcher:
                 #     continue
 
                 if bmc.cross_overlap_group == CrossOverlapGroup.BICYCLIC_STRUCTURES:
-                    for approved_local in approved_local_groups:
-                        if len(set(approved_local) & set(atoms)) >= 3:  # self overlap check
+                    for acc_cand in accepted_candidates:
+                        if len(set(acc_cand.atoms) & set(atoms)) >= 3:  # self overlap check
+                            BicyclicOverlaps.InjectDerivedMatches(mol, bmc, accepted_candidates, filtered)
                             approve_candidate = False
 
                 if approve_candidate:
                     filtered[match].append(bmc)
-                    approved_local_groups.add(atoms)
+                    accepted_candidates.append(bmc)
 
         return dict(filtered)
 
@@ -190,7 +192,7 @@ class MBSubstructMatcher:
         mol: MBMolecule,
         grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[BondMatchCandidate]]:
-        final_by_formula = defaultdict(list)
+        filtered = defaultdict(list)
         accepted_candidates: list[BondMatchCandidate] = []
 
         all_matches = CrossOverlapComparator.sort_matches(grouped_candidates, CROSS_OVERLAP_RULES)
@@ -206,7 +208,7 @@ class MBSubstructMatcher:
                 if bmc.cross_overlap_group == CrossOverlapGroup.BICYCLIC_STRUCTURES and any(
                     len(atom_set & set(acc_can.atoms)) >= 3 for acc_can in accepted_candidates
                 ):
-                    BicyclicOverlaps.InjectDerivedMatches(mol, bmc, accepted_candidates, final_by_formula)
+                    BicyclicOverlaps.InjectDerivedMatches(mol, bmc, accepted_candidates, filtered)
                     approve_candidate = False
                     # continue
 
@@ -240,10 +242,10 @@ class MBSubstructMatcher:
 
                 # Placeholder rings must be "invisible" for overlap bookkeeping + output
                 if approve_candidate:
-                    final_by_formula[match].append(bmc)
+                    filtered[match].append(bmc)
                     accepted_candidates.append(bmc)
 
-        filtered_result = {k: [c for c in v if not c.dummy_ring] for k, v in dict(final_by_formula).items()}
+        filtered_result = {k: [c for c in v if not c.dummy_ring] for k, v in dict(filtered).items()}
         return filtered_result
 
 
