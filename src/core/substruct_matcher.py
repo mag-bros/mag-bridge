@@ -175,10 +175,17 @@ class MBSubstructMatcher:
                 # if should_skip:
                 #     continue
 
+                # SelfOverlapRule for BICYCLIC_STRUCTURES group
                 if bmc.cross_overlap_group == CrossOverlapGroup.BICYCLIC_STRUCTURES:
                     for acc_cand in accepted_candidates:
                         if len(set(acc_cand.atoms) & set(atoms)) >= 3:  # self overlap check
                             BicyclicOverlaps.InjectDerivedMatches(mol, bmc, accepted_candidates, filtered)
+                            approve_candidate = False
+
+                # SelfOverlapRule for DOUBLE_BONDS group
+                if bmc.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS:
+                    for acc_cand in accepted_candidates:
+                        if len(set(acc_cand.atoms) & set(atoms)) >= 2:  # self overlap check
                             approve_candidate = False
 
                 if approve_candidate:
@@ -199,8 +206,7 @@ class MBSubstructMatcher:
 
         for match, candidates in all_matches:
             for bmc in candidates:
-                atoms = tuple(sorted(bmc.atoms))
-                atom_set = set(atoms)
+                atom_set = set(tuple(sorted(bmc.atoms)))
                 approve_candidate = True
 
                 # CrossOverlapRule for BICYCLIC_STRUCTURES group
@@ -214,7 +220,7 @@ class MBSubstructMatcher:
 
                 # CrossOverlapRule for DOUBLE_BONDS group
                 if bmc.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS and any(
-                    acc_can.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS and len(atom_set & set(acc_can.atoms)) >= 1
+                    acc_can.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS and len(atom_set & set(acc_can.atoms)) >= 2
                     for acc_can in accepted_candidates
                 ):
                     approve_candidate = False
