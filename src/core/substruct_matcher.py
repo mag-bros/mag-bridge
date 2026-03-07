@@ -4,6 +4,7 @@ from collections import Counter, defaultdict
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from typing import Iterable
+from warnings import deprecated
 
 from src.constants.bond_types import (
     CROSS_OVERLAP_RULES,
@@ -151,8 +152,7 @@ class MBSubstructMatcher:
         filtered = defaultdict(list)
 
         for match, candidates in grouped_candidates.items():
-            used_local: set[int] = set()
-            seen: set[tuple[int, ...]] = set()
+            approved_local_groups: set[tuple[int, ...]] = set()
 
             # TODO (NOT FOR NOW) - migrate seniority into self_overlap_prio isolated field
             max_seniority = max(c.seniority for c in candidates)  # each candidate has the same seniority
@@ -163,27 +163,25 @@ class MBSubstructMatcher:
                 approve_candidate = True
 
                 # optional: remove exact duplicates (RDKit symmetry/permutations)
-                # if atoms in seen:  # In the provided code snippet, the lines `approve_candidate = False`
+                # if atoms in approved_local_groups:  # In the provided code snippet, the lines `approve_candidate = False`
                 #     # and `continue` are used together within a conditional block. Here
                 #     # is an explanation of what these lines are doing:
                 #     approve_candidate = False
                 #     continue
-                # seen.add(atoms)
 
                 # has_used_atoms = len(used_local.intersection(atoms)) >= 3
                 # should_skip = (not skip_removal_check) and has_used_atoms
                 # if should_skip:
                 #     continue
 
-                # if bmc.cross_overlap_group == CrossOverlapGroup.BICYCLIC_STRUCTURES:
-                #     for group in seen:
-                #         if len(set(group) & set(atoms)) >= 3:
-                #             approve_candidate = False
-                #             continue
+                if bmc.cross_overlap_group == CrossOverlapGroup.BICYCLIC_STRUCTURES:
+                    for approved_local in approved_local_groups:
+                        if len(set(approved_local) & set(atoms)) >= 3:  # self overlap check
+                            approve_candidate = False
 
-                if approve_candidate or 1:
+                if approve_candidate:
                     filtered[match].append(bmc)
-                    # used_local.update(atoms)
+                    approved_local_groups.add(atoms)
 
         return dict(filtered)
 
