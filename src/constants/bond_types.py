@@ -7,6 +7,7 @@ SENIORITY_THRESHOLD = 40
 
 
 class CrossOverlapGroup(int, Enum):
+    Ar_N_BOND_TYPES = -2
     DEFAULT = -1
     DOUBLE_BONDS = 0
     BICYCLIC_STRUCTURES = 1
@@ -40,6 +41,10 @@ CROSS_OVERLAP_RULES = {
         "group_prio": int(CrossOverlapGroup.CARBONYL_BOND_TYPES),
         "order": ("RC(=O)NH2", "Ar-C(=O)NH2", "RCOOR", "Ar-COOR", "RCOOH", "Ar-COOH", "C=O"),
     },
+    CrossOverlapGroup.Ar_N_BOND_TYPES: {
+        "group_prio": int(CrossOverlapGroup.Ar_N_BOND_TYPES),
+        "order": ("Ar-[N+]Ar3", "Ar-NR2"),
+    },
 }
 
 
@@ -54,6 +59,7 @@ class BondType:
     sdf_files: tuple[str, ...]
     description: Optional[str] = ""
     dummy_ring: Optional[bool] = False
+    dummy_bond_type: Optional[bool] = False
     seniority: int = SENIORITY_THRESHOLD
     cross_overlap_group: Optional[CrossOverlapGroup] = CrossOverlapGroup.DEFAULT
 
@@ -701,13 +707,12 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=-7.0,
         sdf_files=("thiophene.sdf",),
     ),
-    # TODO: what to do with this
-    # BondType(
-    #     id=66,
-    #     formula="Ar-[N+]Ar3",
-    #     SMARTS="[c]-[N]([c])([c])[c]",
-    #     constitutive_corr=0,
-    #     sdf_files=("Ar-NR2.sdf",),
-    #     description="Dummy bond type",
-    # ),
+    BondType(
+        id=66,
+        formula="Ar-[N+]Ar3",
+        SMARTS="[c]-[N]([#6;!$([C]=[O,S])])([#6;!$([C]=[O,S])])[#6;!$([C]=[O,S])]",
+        constitutive_corr=0,
+        sdf_files=("Ar-NR2.sdf",),
+        dummy_bond_type=True,
+    ),
 ]
