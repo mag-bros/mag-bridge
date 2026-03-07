@@ -185,7 +185,7 @@ class MBSubstructMatcher:
                 # SelfOverlapRule for DOUBLE_BONDS group
                 if bmc.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS:
                     for acc_cand in accepted_candidates:
-                        if len(set(acc_cand.atoms) & set(atoms)) >= 2:  # self overlap check
+                        if len(set(acc_cand.atoms) & set(atoms)) >= 1:  # self overlap check
                             approve_candidate = False
 
                 if approve_candidate:
@@ -220,7 +220,7 @@ class MBSubstructMatcher:
 
                 # CrossOverlapRule for DOUBLE_BONDS group
                 if bmc.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS and any(
-                    acc_can.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS and len(atom_set & set(acc_can.atoms)) >= 2
+                    acc_can.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS and len(atom_set & set(acc_can.atoms)) >= 1
                     for acc_can in accepted_candidates
                 ):
                     approve_candidate = False
