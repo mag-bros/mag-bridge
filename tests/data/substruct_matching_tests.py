@@ -189,7 +189,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
             Complex ring system with bicyclic fragment. Shows issue with saturated rings matching.
             Note that saturated rings are not matched when fused with aromatic rings via C=C edge.""",
     ),
-    # TODO Fragment C(=O)-NH-C(=O) should be counted as two amide groups, while NH-C(=O)-NH as one amide group!
     SubstructMatchTest(
         id=18,
         SMILES="CCCC(C)C1(C(=O)NC(=O)NC1=O)CC=C",
@@ -850,7 +849,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"piperidine": 1}),
         description="with N/O",
     ),
-    # TODO allow overlap of RC(=O)NH2 only through N but NOT via C=O
     SubstructMatchTest(
         id=118,
         SMILES="C1CC2COC1CC2",
@@ -1064,7 +1062,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"N=O": 1, "-NO2": 2}),
         description="One molecule having -NO and -NO2 groups. N-N=O allowed.",
     ),
-    # TODO: RCONH2 can overlap only by N atom but not carbonyl C=O fragment
     SubstructMatchTest(
         id=148,
         SMILES="C1CSCCN1NC(=O)N(CCCl)N=O",
@@ -1077,8 +1074,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"C=O": 1}),
         description="C=O assignement for HCO3- allowed.",
     ),
-    # TODO: 1. Resolve ester RC(=O)OR overlap through C=O
-    # TODO: 2. Exclude C=O overlap with ester groups!
     SubstructMatchTest(
         id=150,
         SMILES="CCOC1=NC2=CC=CC(=C2N1CC3=CC=C(C=C3)C4=CC=CC=C4C5=NNN=N5)C(=O)OC(C)OC(=O)OC6CCCCC6",
@@ -1095,8 +1090,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         ),
         description="Carbonate RCOC(=O)OR example.",
     ),
-    # TODO Ester and carbonyl overlap fix
-    # TODO Consider adding cyclohexadiene ring that is omitted currently? It will be more elegant to model 6-membered rings with C=C-C(=O)-C=C fragment.
     SubstructMatchTest(
         id=151,
         SMILES="CCC(=O)OCC(=O)[C@]1(CC[C@@H]2[C@@]1(C[C@@H]([C@H]3[C@H]2CCC4=CC(=O)C=C[C@]34C)O)C)OC(=O)OCC",

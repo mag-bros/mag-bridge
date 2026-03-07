@@ -195,13 +195,14 @@ class MBSubstructMatcher:
                     for acc_cand in accepted_candidates:
                         intersection = set(acc_cand.atoms) & set(atoms)
                         conflicts = len(intersection)
-                        if conflicts == 1:
-                            idx = next(iter(intersection))
-                            atom: MBAtom = mol.GetAtomInfoByIdx(idx=idx)
-                            if conflicts == 1 and atom.symbol in ["O", "N"]:
-                                approve_candidate = True
-                        elif conflicts > 1:
-                            approve_candidate = False
+                        if conflicts >= 2:
+                            it = iter(intersection)
+                            idx1, idx2 = next(it), next(it)
+                            # symbols: list[MBAtom] = (mol.GetAtomInfoByIdx(idx=idx1).symbol, mol.GetAtomInfoByIdx(idx=idx2).symbol)
+                            are_carbonyl_bond_atoms = all(idx in mol.GetDoubleBondAtomsIndexes() for idx in [idx1, idx2])
+                            if are_carbonyl_bond_atoms:
+                                approve_candidate = False
+                        # else: It is not chemically possible to have more than 2 conflicts in this case
 
                 if approve_candidate:
                     filtered[match].append(bmc)
