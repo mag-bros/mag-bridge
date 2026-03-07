@@ -701,4 +701,13 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=-7.0,
         sdf_files=("thiophene.sdf",),
     ),
+    # TODO: what to do with this
+    # BondType(
+    #     id=66,
+    #     formula="Ar-[N+]Ar3",
+    #     SMARTS="[c]-[N]([c])([c])[c]",
+    #     constitutive_corr=0,
+    #     sdf_files=("Ar-NR2.sdf",),
+    #     description="Dummy bond type",
+    # ),
 ]

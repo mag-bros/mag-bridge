@@ -155,7 +155,7 @@ class MBSubstructMatcher:
         filtered = defaultdict(list)
 
         for match, candidates in grouped_candidates.items():
-            accepted_candidates: list[BondMatchCandidate] = []
+            accepted_self_candidates: list[BondMatchCandidate] = []
 
             # TODO (NOT FOR NOW) - migrate seniority into self_overlap_prio isolated field
             max_seniority = max(c.seniority for c in candidates)  # each candidate has the same seniority
@@ -179,20 +179,20 @@ class MBSubstructMatcher:
 
                 # SelfOverlapRule for BICYCLIC_STRUCTURES group
                 if bmc.cross_overlap_group == CrossOverlapGroup.BICYCLIC_STRUCTURES:
-                    for acc_cand in accepted_candidates:
+                    for acc_cand in accepted_self_candidates:
                         if len(set(acc_cand.atoms) & set(atoms)) >= 3:  # self overlap check
-                            BicyclicOverlaps.InjectDerivedMatches(mol, bmc, accepted_candidates, filtered)
+                            BicyclicOverlaps.InjectDerivedMatches(mol, bmc, accepted_self_candidates, filtered)
                             approve_candidate = False
 
                 # SelfOverlapRule for DOUBLE_BONDS group
                 if bmc.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS:
-                    for acc_cand in accepted_candidates:
+                    for acc_cand in accepted_self_candidates:
                         if len(set(acc_cand.atoms) & set(atoms)) >= 1:  # self overlap check
                             approve_candidate = False
 
                 # SelfOverlapRule for CARBONYL_BOND_TYPES group
                 if bmc.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES:
-                    for acc_cand in accepted_candidates:
+                    for acc_cand in accepted_self_candidates:
                         intersection = set(acc_cand.atoms) & set(atoms)
                         conflicts = len(intersection)
                         if conflicts >= 2:
@@ -204,19 +204,30 @@ class MBSubstructMatcher:
                                 approve_candidate = False
                         # else: It is not chemically possible to have more than 2 conflicts in this case
 
-                # SelfOverlapRule - adding Ar-OR, Ar-NR2 bonds depending on number of aromatic C atoms
-                if bmc.formula == "Ar-OR" or bmc.formula == "Ar-NR2":
-                    aromatic_C_atoms = 0
+                def _duplicate_bond(mol):
+                    aromatic_C_atoms = 0  # Count Aromatic C Atoms for this Candidate
                     for idx in atoms:
                         candidate: MBAtom = mol.GetAtomInfoByIdx(idx)
                         if candidate.symbol == "C" and candidate.GetIsAromatic():
                             aromatic_C_atoms += 1
+
                     for _ in range(aromatic_C_atoms - 1):
-                        filtered[match].append(bmc)
+                        filtered[match].append(bmc)  # add duplicate identical copy
+
+                # SelfOverlapRule - adding Ar-OR, Ar-NR2 bonds depending on number of aromatic C atoms
+                if bmc.formula == "Ar-OR" or bmc.formula == "Ar-NR2":
+                    for acc_cand in accepted_self_candidates:
+                        intersection = set(acc_cand.atoms) & set(atoms)
+                        conflicts = len(intersection)
+
+                        if conflicts == 0:
+                            _duplicate_bond(mol)
+                    else:
+                        _duplicate_bond(mol)
 
                 if approve_candidate:
                     filtered[match].append(bmc)
-                    accepted_candidates.append(bmc)
+                    accepted_self_candidates.append(bmc)
 
         return dict(filtered)
 

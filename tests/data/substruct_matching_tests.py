@@ -1109,13 +1109,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"RCOOR": 2, "cyclohexane": 1}),
         description="Cyclic anhydride fused with bicyclic fragment.",
     ),
-    # TODO missing
-    # SubstructMatchTest(
-    #     id=153,
-    #     SMILES="C1=CC=C2C(=C1)C(=O)OC2=O",
-    #     expected_matches=Counter({"benzene": 1, "Ar-COOR": 2}),
-    #     description="Phthalic anhydride.",
-    # ),
+    # TODO
+    SubstructMatchTest(
+        id=153,
+        SMILES="C1(=CC=CC=C1)[N+](C2=CC=CC=C2)(C3=CC=CC=C3)C4=CC=CC=C4",
+        expected_matches=Counter({"benzene": 4, "Ar-NR2": 4}),
+        description="[N+]Ar4 Test",
+    ),
     SubstructMatchTest(
         id=154,
         SMILES="C1=CC=C2C(=C1)C(=O)OC(=O)N2",
