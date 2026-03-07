@@ -163,17 +163,17 @@ class MBSubstructMatcher:
                 approve_candidate = True
 
                 # optional: remove exact duplicates (RDKit symmetry/permutations)
-                if atoms in seen:  # In the provided code snippet, the lines `approve_candidate = False`
-                    # and `continue` are used together within a conditional block. Here
-                    # is an explanation of what these lines are doing:
-                    approve_candidate = False
-                    continue
-                seen.add(atoms)
+                # if atoms in seen:  # In the provided code snippet, the lines `approve_candidate = False`
+                #     # and `continue` are used together within a conditional block. Here
+                #     # is an explanation of what these lines are doing:
+                #     approve_candidate = False
+                #     continue
+                # seen.add(atoms)
 
-                has_used_atoms = len(used_local.intersection(atoms)) >= 3
-                should_skip = (not skip_removal_check) and has_used_atoms
-                if should_skip:
-                    continue
+                # has_used_atoms = len(used_local.intersection(atoms)) >= 3
+                # should_skip = (not skip_removal_check) and has_used_atoms
+                # if should_skip:
+                #     continue
 
                 # if bmc.cross_overlap_group == CrossOverlapGroup.BICYCLIC_STRUCTURES:
                 #     for group in seen:
@@ -183,7 +183,7 @@ class MBSubstructMatcher:
 
                 if approve_candidate or 1:
                     filtered[match].append(bmc)
-                    used_local.update(atoms)
+                    # used_local.update(atoms)
 
         return dict(filtered)
 
