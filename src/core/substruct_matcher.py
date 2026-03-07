@@ -151,7 +151,7 @@ class MBSubstructMatcher:
         mol: MBMolecule,
         grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[BondMatchCandidate]]:
-        # (A) Filter self-overlap within each formula (any shared atom => reject)
+        """Filter self overlaps, in complete isolation within Bond Match Candidate groups."""
         filtered = defaultdict(list)
 
         for match, candidates in grouped_candidates.items():
@@ -214,6 +214,7 @@ class MBSubstructMatcher:
         mol: MBMolecule,
         grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[BondMatchCandidate]]:
+        """Filter cross overlaps via specific rules, respecting relations between Bond Match Candidates."""
         filtered = defaultdict(list)
         accepted_candidates: list[BondMatchCandidate] = []
 
