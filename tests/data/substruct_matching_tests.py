@@ -39,7 +39,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="CC(=C)C1CC2=C(O1)C=CC3=C2OC4COC5=CC(=C(C=C5C4C3=O)OC)OC",
         expected_matches=Counter({"Ar-OR": 5, "benzene": 2, "C=C": 1, "Ar-C(=O)R": 1}),
     ),
-    # TODO Fix required - Ar-O-Ar should be matched twice as Ar-OR bond type.
     SubstructMatchTest(
         id=5,
         SMILES="CC1(C(C1C(=O)OC(C#N)C2=CC(=CC=C2)OC3=CC=CC=C3)C=C(Cl)Cl)C",
@@ -1159,7 +1158,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"RCOOR": 1, "N=N": 1}),
         description="Molecule with N=[N+]-[O-] group.",
     ),
-    # TODO Fix RC(=O)NH2 self-matching via C=O
     SubstructMatchTest(
         id=161,
         SMILES="CN(C(=O)N)N=O",

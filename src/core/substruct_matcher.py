@@ -204,6 +204,16 @@ class MBSubstructMatcher:
                                 approve_candidate = False
                         # else: It is not chemically possible to have more than 2 conflicts in this case
 
+                # SelfOverlapRule - adding Ar-OR, Ar-NR2 bonds depending on number of aromatic C atoms
+                if bmc.formula == "Ar-OR" or bmc.formula == "Ar-NR2":
+                    aromatic_C_atoms = 0
+                    for idx in atoms:
+                        candidate: MBAtom = mol.GetAtomInfoByIdx(idx)
+                        if candidate.symbol == "C" and candidate.GetIsAromatic():
+                            aromatic_C_atoms += 1
+                    for _ in range(aromatic_C_atoms - 1):
+                        filtered[match].append(bmc)
+
                 if approve_candidate:
                     filtered[match].append(bmc)
                     accepted_candidates.append(bmc)
