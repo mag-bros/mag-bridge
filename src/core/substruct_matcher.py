@@ -6,6 +6,8 @@ from dataclasses import asdict, dataclass
 from typing import Iterable
 from warnings import deprecated
 
+from backend import app
+from core.atom import MBAtom
 from src.constants.bond_types import (
     CROSS_OVERLAP_RULES,
     DOUBLE_BOND,
@@ -186,6 +188,19 @@ class MBSubstructMatcher:
                 if bmc.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS:
                     for acc_cand in accepted_candidates:
                         if len(set(acc_cand.atoms) & set(atoms)) >= 1:  # self overlap check
+                            approve_candidate = False
+
+                # SelfOverlapRule for CARBONYL_BOND_TYPES group
+                if bmc.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES:
+                    for acc_cand in accepted_candidates:
+                        intersection = set(acc_cand.atoms) & set(atoms)
+                        conflicts = len(intersection)
+                        if conflicts == 1:
+                            idx = next(iter(intersection))
+                            atom: MBAtom = mol.GetAtomInfoByIdx(idx=idx)
+                            if conflicts == 1 and atom.symbol in ["O", "N"]:
+                                approve_candidate = True
+                        elif conflicts > 1:
                             approve_candidate = False
 
                 if approve_candidate:

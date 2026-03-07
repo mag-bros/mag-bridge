@@ -108,6 +108,13 @@ class MBMolecule:
         """Return all substructure matches for the given SMARTS pattern."""
         return self._mol.GetSubstructMatches(MolFromSmarts(smarts, mergeHs=True))
 
+    def GetAtomInfoByIdx(self, idx: int) -> MBAtom | None:
+        """Get Atom Info By index"""
+        for atom in self._atoms:
+            if atom.idx == idx:
+                return atom
+        return None
+
     def GetDoubleBondAtomsIndexes(
         self,
         exclude_idx: set[int] | None = None,
