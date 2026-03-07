@@ -17,6 +17,7 @@ class CrossOverlapComparator:
             is_higher = hierarchy.index(formula1) < hierarchy.index(formula2)
             return is_higher
         except ValueError:
+            # handle IRRELEVANT
             return False
 
     @staticmethod
@@ -25,6 +26,7 @@ class CrossOverlapComparator:
         rules: dict[CrossOverlapGroup, dict],
     ) -> list[tuple[str, list]]:
         """Sort grouped candidates by group priority then intra-group order from rules."""
+
         def _sort_key(item: tuple[str, list]) -> tuple[int, int]:
             formula, candidates = item
             group = candidates[0].cross_overlap_group or CrossOverlapGroup.DEFAULT

@@ -6,19 +6,19 @@ from typing import Optional
 SENIORITY_THRESHOLD = 40
 
 
-class CrossOverlapGroup(str, Enum):
+class CrossOverlapGroup(int, Enum):
     DEFAULT = -1
     DOUBLE_BONDS = 0
-    BICYCLIC_STRUCTURES = 2
-    CARBONYL_BOND_TYPES = 3
+    BICYCLIC_STRUCTURES = 1
+    CARBONYL_BOND_TYPES = 2
 
 
 CROSS_OVERLAP_RULES = {
     ## Elements to the left have higher priority!
-    CrossOverlapGroup.DEFAULT: {"group_prio": -1, "order": "IRRELEVANT"},
-    CrossOverlapGroup.DOUBLE_BONDS: {"group_prio": 0, "order": ("CH2=CH-CH2-", "Ar-C=C", "C=C-C=C", "C=C")},
+    CrossOverlapGroup.DEFAULT: {"group_prio": int(CrossOverlapGroup.DEFAULT), "order": "IRRELEVANT"},
+    CrossOverlapGroup.DOUBLE_BONDS: {"group_prio": int(CrossOverlapGroup.DOUBLE_BONDS), "order": ("CH2=CH-CH2-", "Ar-C=C", "C=C-C=C", "C=C")},
     CrossOverlapGroup.BICYCLIC_STRUCTURES: {
-        "group_prio": 1,
+        "group_prio": int(CrossOverlapGroup.BICYCLIC_STRUCTURES),
         "order": (
             "cyclopropane",
             "cyclobutane",
@@ -37,7 +37,7 @@ CROSS_OVERLAP_RULES = {
         ),
     },
     CrossOverlapGroup.CARBONYL_BOND_TYPES: {
-        "group_prio": 2,
+        "group_prio": int(CrossOverlapGroup.CARBONYL_BOND_TYPES),
         "order": ("RC(=O)NH2", "Ar-C(=O)NH2", "RCOOR", "Ar-COOR", "RCOOH", "Ar-COOH", "C=O"),
     },
 }

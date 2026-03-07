@@ -111,7 +111,7 @@ class MBSubstructMatcher:
         )
 
     @staticmethod
-    def _FilterSelfOverlaps(
+    def _FilterSelfOverlapsV2(
         grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[BondMatchCandidate]]:
         # (A) Filter self-overlap within each formula (any shared atom => reject)
@@ -133,11 +133,58 @@ class MBSubstructMatcher:
                     continue
                 seen.add(atoms)
 
-                if (not skip_removal_check) and len(used_local.intersection(atoms)) >= 3:
-                    continue
+                # has_used_atoms = len(used_local.intersection(atoms)) >= 3
+                # should_skip = (not skip_removal_check) and has_used_atoms
+                # if should_skip:
+                #     continue
 
                 filtered[match].append(bmc)
-                used_local.update(atoms)
+                # used_local.update(atoms)
+
+        return dict(filtered)
+
+    @staticmethod
+    def _FilterSelfOverlaps(
+        grouped_candidates: dict[str, list[BondMatchCandidate]],
+    ) -> dict[str, list[BondMatchCandidate]]:
+        # (A) Filter self-overlap within each formula (any shared atom => reject)
+        filtered = defaultdict(list)
+
+        for match, candidates in grouped_candidates.items():
+            used_local: set[int] = set()
+            seen: set[tuple[int, ...]] = set()
+
+            # TODO (NOT FOR NOW) - migrate seniority into self_overlap_prio isolated field
+            max_seniority = max(c.seniority for c in candidates)  # each candidate has the same seniority
+            skip_removal_check = max_seniority >= SENIORITY_THRESHOLD
+
+            for bmc in candidates:
+                atoms = tuple(sorted(bmc.atoms))
+                approve_candidate = True
+
+                # optional: remove exact duplicates (RDKit symmetry/permutations)
+                if atoms in seen:  # In the provided code snippet, the lines `approve_candidate = False`
+                    # and `continue` are used together within a conditional block. Here
+                    # is an explanation of what these lines are doing:
+
+                    approve_candidate = False
+                    continue
+                seen.add(atoms)
+
+                has_used_atoms = len(used_local.intersection(atoms)) >= 3
+                should_skip = (not skip_removal_check) and has_used_atoms
+                if should_skip:
+                    continue
+
+                # if bmc.cross_overlap_group == CrossOverlapGroup.BICYCLIC_STRUCTURES:
+                #     for group in seen:
+                #         if len(set(group) & set(atoms)) >= 3:
+                #             approve_candidate = False
+                #             continue
+
+                if approve_candidate or 1:
+                    filtered[match].append(bmc)
+                    used_local.update(atoms)
 
         return dict(filtered)
 
