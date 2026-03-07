@@ -21,19 +21,15 @@ class CrossOverlapComparator:
             return False
 
     @staticmethod
-    def sort_matches(
-        grouped_candidates: dict[str, list],
-        rules: dict[CrossOverlapGroup, dict],
-    ) -> list[tuple[str, list]]:
-        """Sort grouped candidates by group priority then intra-group order from rules."""
+    def sort_matches(grouped_candidates: dict[str, list], rules: dict) -> list[tuple[str, list]]:
+        """Sort grouped candidates by group priority then intra-group order."""
 
         def _sort_key(item: tuple[str, list]) -> tuple[int, int]:
-            formula, candidates = item
-            group = candidates[0].cross_overlap_group or CrossOverlapGroup.DEFAULT
+            formula, cands = item
+            group = CrossOverlapGroup.DEFAULT if cands[0].cross_overlap_group is None else cands[0].cross_overlap_group
             rule = rules.get(group, rules[CrossOverlapGroup.DEFAULT])
-            group_prio = rule["group_prio"]
             order = rule["order"]
-            order_index = order.index(formula) if isinstance(order, tuple) and formula in order else len(order) if isinstance(order, tuple) else 0
-            return (-group_prio, order_index)
+            idx = order.index(formula) if isinstance(order, tuple) and formula in order else (len(order) if isinstance(order, tuple) else 0)
+            return (-rule["group_prio"], idx)
 
         return sorted(grouped_candidates.items(), key=_sort_key)

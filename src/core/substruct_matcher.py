@@ -166,7 +166,6 @@ class MBSubstructMatcher:
                 if atoms in seen:  # In the provided code snippet, the lines `approve_candidate = False`
                     # and `continue` are used together within a conditional block. Here
                     # is an explanation of what these lines are doing:
-
                     approve_candidate = False
                     continue
                 seen.add(atoms)
