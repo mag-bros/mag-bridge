@@ -1,5 +1,7 @@
 import json
+import os
 import subprocess
+import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -8,8 +10,15 @@ from typing import Any, Dict, List
 import click
 
 
-def run_cmd(cmd: List[str], cwd: Path | None = None, capture: bool = True) -> subprocess.CompletedProcess:
-    return subprocess.run(cmd, cwd=cwd, text=True, capture_output=capture, check=False)
+def run_cmd(cmd: List[str], cwd: Path | None = None, capture: bool = True, env: Dict[str, str] | None = None) -> subprocess.CompletedProcess:
+    try:
+        return subprocess.run(cmd, cwd=cwd, text=True, capture_output=capture, check=True, env=env)
+    except subprocess.CalledProcessError as e:
+        click.secho(f"\nCOMMAND FAILED: {' '.join(cmd)}", fg="red", bold=True)
+        if capture:
+            click.secho(f"STDOUT: {e.stdout}", fg="yellow")
+            click.secho(f"STDERR: {e.stderr}", fg="red")
+        raise click.Abort()
 
 
 def get_current_commit() -> str:
@@ -45,13 +54,9 @@ def generate_markdown(
     output_path: Path,
 ) -> None:
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
     all_nodes = set(baseline_res.keys()).union(current_res.keys())
 
-    regressions = []
-    fixes = []
-    consistent_fails = []
-
+    regressions, fixes, consistent_fails, new_fails = [], [], [], []
     b_pass = b_fail = b_skip = c_pass = c_fail = c_skip = 0
 
     for node in sorted(all_nodes):
@@ -77,7 +82,9 @@ def generate_markdown(
         elif b_out == "failed" and c_out == "passed":
             fixes.append(node)
         elif b_out == "failed" and c_out == "failed":
-            consistent_fails.append(node)
+            consistent_fails.append((node, current_res[node]["error"]))
+        elif b_out == "missing" and c_out == "failed":
+            new_fails.append((node, current_res[node]["error"]))
 
     md = [
         f"# TEST_DRIFT — `{target}`\n",
@@ -93,9 +100,15 @@ def generate_markdown(
     ]
 
     if regressions:
-        md.extend(["## Regressions (Passed → Failed)\n", "| Node ID | Error / Assertion | Severity |", "|---|---|---|"])
+        md.extend(["## Regressions (Passed → Failed)\n", "| Node ID | Error |", "|---|---|"])
         for node, err in regressions:
-            md.append(f"| `{node}` | `{err}` | HIGH |")
+            md.append(f"| `{node}` | `{err}` |")
+        md.append("\n")
+
+    if new_fails:
+        md.extend(["## New Failures (Not in Baseline)\n", "| Node ID | Error |", "|---|---|"])
+        for node, err in new_fails:
+            md.append(f"| `{node}` | `{err}` |")
         md.append("\n")
 
     if fixes:
@@ -105,9 +118,9 @@ def generate_markdown(
         md.append("\n")
 
     if consistent_fails:
-        md.extend([f"## Consistently Failing ({len(consistent_fails)} tests)\n", "| Node ID |", "|---|"])
-        for node in consistent_fails:
-            md.append(f"| `{node}` |")
+        md.extend([f"## Consistently Failing ({len(consistent_fails)} tests)\n", "| Node ID | Error |", "|---|---|"])
+        for node, err in consistent_fails:
+            md.append(f"| `{node}` | `{err}` |")
         md.append("\n")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -118,11 +131,17 @@ def generate_markdown(
 @click.command()
 @click.option("--baseline", default="master", help="Git branch or commit to use as baseline.")
 @click.option("--target", default=".", help="Directory or file to run pytest against.")
+@click.option("--baseline-target", default=None, help="Fallback path for baseline if file was moved.")
 @click.option("--report", default="tests/reports/TEST_DRIFT.md", help="Output MD report path.")
-def drift(baseline: str, target: str, report: str) -> None:
+def drift(baseline: str, target: str, baseline_target: str, report: str) -> None:
     cwd = Path.cwd()
     current_commit = get_current_commit()
     report_path = Path(report).resolve()
+
+    b_target = baseline_target if baseline_target else target
+
+    cmd_env = os.environ.copy()
+    cmd_env["PYTHONPATH"] = str(cwd)
 
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
@@ -134,11 +153,23 @@ def drift(baseline: str, target: str, report: str) -> None:
         run_cmd(["git", "worktree", "add", "--detach", str(worktree_path), baseline], cwd=cwd)
 
         try:
-            click.secho("\n--- Running Baseline Pytest ---", fg="yellow")
-            run_cmd(["pytest", target, "--json-report", f"--json-report-file={b_json}"], cwd=worktree_path, capture=False)
+            click.secho(f"\n--- Running Baseline Pytest ({b_target}) ---", fg="yellow")
+            subprocess.run(
+                [sys.executable, "-m", "pytest", b_target, "--json-report", f"--json-report-file={b_json}"],
+                cwd=worktree_path,
+                capture_output=False,
+                env=cmd_env,
+                check=False,
+            )
 
-            click.secho("\n--- Running Current Pytest ---", fg="yellow")
-            run_cmd(["pytest", target, "--json-report", f"--json-report-file={c_json}"], cwd=cwd, capture=False)
+            click.secho(f"\n--- Running Current Pytest ({target}) ---", fg="yellow")
+            subprocess.run(
+                [sys.executable, "-m", "pytest", target, "--json-report", f"--json-report-file={c_json}"],
+                cwd=cwd,
+                capture_output=False,
+                env=cmd_env,
+                check=False,
+            )
 
             click.secho("\nAggregating results...", fg="cyan")
             b_data = parse_report(b_json)
