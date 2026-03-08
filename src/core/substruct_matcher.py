@@ -400,19 +400,19 @@ class OverlapRules:
             ]
             for idx in free_Cl
         }
-        valid_C_neighbor_idxs = list(
-            {
-                cl_idx: len([n for n in neighbors if n[1] == "C" and n[2] == Chem.BondType.SINGLE]) == 1
-                for cl_idx, neighbors in free_Cl_neighbors.items()
-            }
-        )
+        valid_c_cl_bonds = [
+            (next(n[0] for n in neighbors if n[1] == "C" and n[2] == Chem.BondType.SINGLE), cl_idx) for cl_idx, neighbors in free_Cl_neighbors.items()
+        ]
 
-        if len(valid_C_neighbor_idxs) == 1:  # only one Cl is free here
-            new_bmc = BondMatchCandidate.from_bt(CARBON_HALOGEN_BOND, [valid_C_neighbor_idxs[0], free_Cl[0]])
-            for _ in range(2):  # Add two times
-                accepted_candidates.append(new_bmc)
-                final_hits_by_formula.setdefault(CARBON_HALOGEN_BOND.formula, []).append(new_bmc)
-            return True
+        if len(valid_c_cl_bonds) in [1, 2]:  # only one Cl is free here
+            for c_idx, cl_idx in valid_c_cl_bonds:
+                new_bmc = BondMatchCandidate.from_bt(CARBON_HALOGEN_BOND, [c_idx, cl_idx])
+                for _ in range(2):  # Add two times
+                    accepted_candidates.append(new_bmc)
+                    final_hits_by_formula.setdefault(CARBON_HALOGEN_BOND.formula, []).append(new_bmc)
+                return True
+        elif len(valid_c_cl_bonds) >= 2:
+            raise Exception("more than 2 valid neibhgors")
         return False
 
     @staticmethod
