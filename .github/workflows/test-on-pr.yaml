@@ -40,7 +40,7 @@ jobs:
         run: |
           git fetch origin bondtype-match-query-tool --depth=1
           python tests/scripts/test_drift.py \
-            --baseline bondtype-match-query-tool \
+            --baseline origin/bondtype-match-query-tool \
             --target tests/core/test_substruct_matching.py::test_substruct_matches \
             --report tests/reports/DRIFT_REPORT_substruct_matching_cicd.md
 
