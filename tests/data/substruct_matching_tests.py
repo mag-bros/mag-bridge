@@ -1110,13 +1110,10 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         description="Cyclic anhydride fused with bicyclic fragment.",
     ),
     # TODO - Test passes without additional OverlapRule logic.
-    #       1. It was supposed to be the fix.
-    #       2. 'Ar-[N+]Ar3' Bond Type was not needed
-    #       3. 'Ar-NR2' was failing with OverlapGroup.DEFAULT assigned
     SubstructMatchTest(
         id=153,
         SMILES="C1(=CC=CC=C1)[N+](C2=CC=CC=C2)(C3=CC=CC=C3)C4=CC=CC=C4",
-        expected_matches=Counter({"benzene": 4, "Ar-NR2": 4}),
+        expected_matches=Counter({"benzene": 4}),
         description="[N+]Ar4 Test",
     ),
     SubstructMatchTest(
@@ -2296,7 +2293,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=331,
         SMILES="[N+](C1=CC=CC=C1)(C2=CC=CC=C2)(C3=CC=CC=C3)C4=CC=CC=C4",
-        expected_matches=Counter({"benzene": 4, "Ar-NR2": 4}),
+        expected_matches=Counter({"benzene": 4}),
         description="For [N+]-Ar4 molecule, assignment of four Ar-NR2 bonds is assumed.",
     ),
     # TODO Fix Ar-NR-Ar assignment.

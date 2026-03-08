@@ -247,21 +247,18 @@ class MBSubstructMatcher:
                                     # candidate is lower prio -> reject candidate and skip to next
                                     approve_candidate = False
 
-                    # case OverlapGroup.Ar_N_BOND_TYPES:
-                    #     conflicting_ar_ns = []
-                    #     for acc_can in accepted_candidates:
-                    #         is_target_group = acc_can.cross_overlap_group == OverlapGroup.Ar_N_BOND_TYPES
-                    #         common_atoms = bmc_atoms & set(acc_can.atoms)
-                    #         intersection_size = len(common_atoms)
+                    case OverlapGroup.Ar_N_BOND_TYPES:
+                        conflicting_ar_ns = []
+                        for acc_can in accepted_candidates:
+                            is_target_group = acc_can.cross_overlap_group == OverlapGroup.Ar_N_BOND_TYPES
+                            common_atoms = bmc_atoms & set(acc_can.atoms)
+                            intersection_size = len(common_atoms)
 
-                    #         if is_target_group and intersection_size >= 3:
-                    #             conflicting_ar_ns.append(acc_can)
+                            if is_target_group and intersection_size >= 3:
+                                conflicting_ar_ns.append(acc_can)
 
-                    #     if conflicting_ar_ns:
-                    #         OverlapRules.InjectDerivedMatches(
-                    #             mol, OverlapGroup.Ar_N_BOND_TYPES, bmc, accepted_candidates, filtered, conflicting_ar_ns
-                    #         )
-                    # approve_candidate = False
+                        if conflicting_ar_ns:
+                            approve_candidate = False
 
                     case _:
                         pass
@@ -293,7 +290,7 @@ class OverlapRules:
         if cls._rules is None:
             cls._rules = {
                 "cyclohexene": cls._rule_cyclohexene,
-                # "Ar-NR2": cls._rule_Ar4_N,
+                "Ar-NR2": cls._rule_Ar4_N,
                 # "Ar-[N+]Ar3": cls._rule_Ar4_N,
             }
         return cls._rules

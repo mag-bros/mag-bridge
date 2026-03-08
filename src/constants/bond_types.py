@@ -692,13 +692,13 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=-7.0,
         sdf_files=("thiophene.sdf",),
     ),
-    # BondType(
-    #     id=66,
-    #     formula="Ar-[N+]Ar3",
-    #     SMARTS="[c]-[N]([#6;!$([C]=[O,S])])([#6;!$([C]=[O,S])])[#6;!$([C]=[O,S])]",
-    #     constitutive_corr=0,
-    #     sdf_files=(),
-    #     dummy_bond_type=True,
-    #     cross_overlap_group=OverlapGroup.Ar_N_BOND_TYPES,
-    # ),
+    BondType(
+        id=66,
+        formula="Ar-[N+]Ar3",
+        SMARTS="[c]-[N]([#6;!$([C]=[O,S])])([#6;!$([C]=[O,S])])[#6;!$([C]=[O,S])]",
+        constitutive_corr=0,
+        sdf_files=(),  # todo sdf
+        dummy_bond_type=True,
+        cross_overlap_group=OverlapGroup.Ar_N_BOND_TYPES,
+    ),
 ]
