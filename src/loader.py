@@ -17,10 +17,10 @@ from rdkit.Chem import (
 )
 from rdkit.Chem import rdMolDescriptors as rdmd
 
-from core.compound import MBCompound
 from src import SDF_DIR
 from src.constants.provider import COMMON_DIAMAG_NOT_MATCHED, ConstDB
 from src.core.atom import MBAtom
+from src.core.compound import MBCompound
 from src.core.molecule import MBMolecule
 from src.utils.exceptions import (
     MBLoaderError,

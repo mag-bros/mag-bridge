@@ -5,13 +5,13 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from typing import Iterable
 
-from loader import MBMolecule
 from src.constants.bond_types import (
     DOUBLE_BOND,
     RELEVANT_BOND_TYPES,
     SENIORITY_THRESHOLD,
     BondType,
 )
+from src.loader import MBMolecule
 
 
 class BondMatchCandidate(BondType):
