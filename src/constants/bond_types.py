@@ -87,6 +87,15 @@ AR_NR2 = BondType(
     description="This bond can be duplicated when cross-overlapping within its group.",
 )
 
+CARBON_HALOGEN_BOND = BondType(
+    id=-1,
+    formula="C-Cl",
+    SMARTS="[C;!$([c]);!$([C]([C])([C])([Cl])[Cl]);!$([C;X4;H1]([C;!$(C=O);!$(C#N)])([Cl])[Cl])]-[Cl;X1]",
+    constitutive_corr=3.1,
+    sdf_files=("C-Cl.sdf",),
+    description="Excluded: R2CCl2, RCHCl2, Ar-Cl and Cl-CR2-CR2-Cl",
+)
+
 # Relevant bond type representation (see reference https://doi.org/10.1021/ed085p532)
 RELEVANT_BOND_TYPES: list[BondType] = [
     DOUBLE_BOND,

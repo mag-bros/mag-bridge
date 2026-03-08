@@ -1109,7 +1109,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"RCOOR": 2, "cyclohexane": 1}),
         description="Cyclic anhydride fused with bicyclic fragment.",
     ),
-    # TODO - Test passes without additional OverlapRule logic.
     SubstructMatchTest(
         id=153,
         SMILES="C1(=CC=CC=C1)[N+](C2=CC=CC=C2)(C3=CC=CC=C3)C4=CC=CC=C4",
@@ -1566,9 +1565,8 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="C1CC/2C(C(C(C(C3(/C(=C2/C=C1)/C4(CC4(C5(C3(C5)Cl)Cl)Cl)Cl)Cl)(Cl)Cl)(Cl)Cl)(Cl)Cl)Cl",
         expected_matches=Counter(
             {
-                "Cl-CR2-CR2-Cl": 2,
                 "R2CCl2": 3,
-                "C-Cl": 2,
+                "C-Cl": 12,
                 "C=C": 1,
                 "cyclohexene": 1,
                 "cyclohexane": 1,

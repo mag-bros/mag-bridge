@@ -1,8 +1,7 @@
 from typing import Any
 
-from rdkit.Chem import Atom, Bond, BondType
-
-from src.constants.provider import METAL_CATIONS, ConstDB
+from rdkit.Chem import Atom, BondType
+from src.constants.provider import ConstDB
 
 
 class MBAtom:
