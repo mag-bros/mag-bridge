@@ -147,17 +147,34 @@ def drift(baseline, target, baseline_target, report):
         try:
             b_env, c_env = os.environ.copy(), os.environ.copy()
             b_env["PYTHONPATH"], c_env["PYTHONPATH"] = str(wt), str(cwd)
-            # Use -q and --no-summary to leave only dots in terminal output
+
+            # Quiet flags: -q (minimal headers), --tb=no (no tracebacks), --no-summary (no footer stats)
             py_cmd = [sys.executable, "-m", "pytest", "-q", "--tb=no", "--no-summary", "--no-header", "--json-report"]
+
+            # --- Phase 1: Baseline ---
+            if os.getenv("GITHUB_ACTIONS") == "true":
+                print("::group::🔍 Running Baseline Pytest (Branch: " + baseline + ")")
 
             click.secho("\n--- Running Baseline Pytest ---", fg="yellow")
             subprocess.run(py_cmd + [bt, f"--json-report-file={bj}"], cwd=wt, env=b_env, check=False)
 
+            if os.getenv("GITHUB_ACTIONS") == "true":
+                print("::endgroup::")
+
+            # --- Phase 2: Current ---
+            if os.getenv("GITHUB_ACTIONS") == "true":
+                print("::group::🚀 Running Current Pytest (Local Changes)")
+
             click.secho("\n--- Running Current Pytest ---", fg="yellow")
             subprocess.run(py_cmd + [target, f"--json-report-file={cj}"], cwd=cwd, env=c_env, check=False)
 
+            if os.getenv("GITHUB_ACTIONS") == "true":
+                print("::endgroup::")
+
+            # --- Phase 3: Aggregation ---
             generate_markdown(target, f"branch `{baseline}` ({bh})", f"local changes ({ch})", parse_report(bj), parse_report(cj), report_path)
             click.secho(f"\nDrift report generated: {report_path.relative_to(cwd)}", fg="green", bold=True)
+
         finally:
             run_cmd(["git", "worktree", "remove", "--force", str(wt)], cwd=cwd)
 
