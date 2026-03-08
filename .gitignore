@@ -194,6 +194,7 @@ cython_debug/
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json
+!.vscode/tasks.json
 
 # --- Trunk configuration ---
 !.trunk/

@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Test Drift: Substruct Matching",
+      "type": "shell",
+      "command": "${command:python.interpreterPath}",
+      "args": [
+        "tests/scripts/test_drift.py",
+        "--baseline",
+        "bondtype-match-query-tool",
+        "--target",
+        "tests/core/test_substruct_matching.py::test_substruct_matches",
+        // Use this if the baseline branch has different path for this test
+        // "--baseline-target", "tests/test_substruct_matching.py::test_substruct_matches",
+        "--report",
+        "tests/reports/TEST_DRIFT_substruct_matching.md"
+      ],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}
