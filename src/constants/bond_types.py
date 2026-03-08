@@ -697,7 +697,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         formula="Ar-[N+]Ar3",
         SMARTS="[c]-[N]([#6;!$([C]=[O,S])])([#6;!$([C]=[O,S])])[#6;!$([C]=[O,S])]",
         constitutive_corr=0,
-        sdf_files=("Ar-NR2.sdf",),
+        sdf_files=(),
         dummy_bond_type=True,
         cross_overlap_group=CrossOverlapGroup.Ar_N_BOND_TYPES,
     ),

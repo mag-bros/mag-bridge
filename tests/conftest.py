@@ -20,9 +20,7 @@ BOND_COVERAGE_REPORT = pytest.StashKey[BondCoverageReport | None]()
 
 def pytest_configure(config: pytest.Config) -> None:
     """Register marker and initialize stash slot."""
-    config.addinivalue_line(
-        "markers", "bond_coverage_report: produces bond coverage report artifacts"
-    )
+    config.addinivalue_line("markers", "bond_coverage_report: produces bond coverage report artifacts")
     config.stash[BOND_COVERAGE_REPORT] = None
 
 

@@ -1,7 +1,6 @@
 import difflib
 
 import pytest
-
 from src import BOND_MATCH_SUBDIR
 from src.constants.bond_types import RELEVANT_BOND_TYPES, BondType
 from src.core.compound import MBCompound
@@ -27,14 +26,11 @@ def test_has_bond_type(bond_type: BondType) -> None:
         compound: MBCompound = MBLoader.FromSDF(sdf_file, subdir=BOND_MATCH_SUBDIR)
 
         mols_in_file = compound.GetMols(to_rdkit=False)
-        assert mols_in_file, (
-            f"Test <{bond_type.id}> failed. SDF file '{sdf_file}' contains no molecules."
-        )
+        assert mols_in_file, f"Test <{bond_type.id}> failed. SDF file '{sdf_file}' contains no molecules."
 
         # Each SDF file was designed to contain exactly one molecule.
         assert len(mols_in_file) == 1, (
-            f"Test <{bond_type.id}> failed. SDF file '{sdf_file}' was expected to contain "
-            f"exactly one molecule, but contains {len(mols_in_file)}."
+            f"Test <{bond_type.id}> failed. SDF file '{sdf_file}' was expected to contain exactly one molecule, but contains {len(mols_in_file)}."
         )
 
         mol: MBMolecule = mols_in_file[0]
@@ -92,9 +88,6 @@ def gather_bond_type_sdf_files() -> list[str]:
                 lineterm="",
             )
         )
-        raise AssertionError(
-            "SDF files are not unique across bond types (unified diff below):\n\n"
-            f"{diff}"
-        )
+        raise AssertionError(f"SDF files are not unique across bond types (unified diff below):\n\n{diff}")
 
     return bond_type_sdf_files
