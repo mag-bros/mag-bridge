@@ -73,7 +73,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=7,
         SMILES="C1=CN(C(=O)N=C1N)C2C(C(C(O2)CO)O)O",
-        expected_matches=Counter({"tetrahydrofuran": 1}),
+        expected_matches=Counter({"tetrahydrofuran": 1, "Ar-NR2": 1}),
         description="""
             Tests tricky case of pyrimidinone ring in the structure, which cannot be matched as pyrimidine ring.
             Pyrimidine ring is not matched when one of the carbons is a part of carbonyl group.""",
@@ -277,7 +277,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=29,
         SMILES="C=CC1=C(N2C(C(C2=O)NC(=O)C(=NOCC(=O)O)C3=CSC(=N3)N)SC1)C(=O)O",
-        expected_matches=Counter({"C=C-C=C": 1, "RCOOH": 2, "RC(=O)NH2": 2, "C=N": 1, "thiazole": 1}),
+        expected_matches=Counter({"C=C-C=C": 1, "RCOOH": 2, "RC(=O)NH2": 2, "C=N": 1, "thiazole": 1, "Ar-NR2": 1}),
         description="Thiazole derivative example. RCONR2 allowed.",
     ),
     SubstructMatchTest(
@@ -380,7 +380,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=41,
         SMILES="CC(C(C1=NN=C(O1)C2=CC=C(C=C2)F)NC3=C4C=CSC4=C(C=C3)[N+]#[C-])O",
-        expected_matches=Counter({"-N#C": 1, "Ar-Ar": 1, "benzene": 2, "thiophene": 1}),
+        expected_matches=Counter({"-N#C": 1, "Ar-Ar": 1, "benzene": 2, "thiophene": 1, "Ar-NR2": 1}),
         description="Example with Ar-N#C and benzothiophene.",
     ),
     SubstructMatchTest(
@@ -968,7 +968,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=138,
         SMILES="CC1=CC(=CC(=C1NC2=NC(=NC=C2)NC3=CC=C(C=C3)C#N)C)C=CC#N",
-        expected_matches=Counter({"-C#N": 2, "benzene": 2, "pyrimidine": 1, "Ar-C=C": 1}),
+        expected_matches=Counter({"-C#N": 2, "benzene": 2, "pyrimidine": 1, "Ar-C=C": 1, "Ar-NR2": 2}),
         description="pryimidine derivative with conjugated bond system having -C#N groups",
     ),
     SubstructMatchTest(
@@ -1349,17 +1349,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=193,
         SMILES="CN(C)C1=CC=C(C=C1)C2=C(N=CN=C2N)C#CC3=CN=C(C=C3)N4CCOCC4",
-        expected_matches=Counter(
-            {
-                "morpholine": 1,
-                "Ar-Ar": 1,
-                "Ar-C#C-Ar": 1,
-                "Ar-NR2": 2,
-                "benzene": 1,
-                "pyridine": 1,
-                "pyrimidine": 1,
-            }
-        ),
+        expected_matches=Counter({"morpholine": 1, "Ar-Ar": 1, "Ar-C#C-Ar": 1, "Ar-NR2": 3, "benzene": 1, "pyridine": 1, "pyrimidine": 1}),
     ),
     SubstructMatchTest(
         id=194,
@@ -1640,7 +1630,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=231,
         SMILES="CC1=CC(=C(C=C1N)C)C(=C2C(=C(C(=NC)C(C2(C)Cl)(C)Cl)C)C)C3=CC=C(C=C3)N",
-        expected_matches=Counter({"cyclohexene": 1, "benzene": 2, "Ar-C=C": 1, "C=N": 1, "Cl-CR2-CR2-Cl": 1}),
+        expected_matches=Counter({"cyclohexene": 1, "benzene": 2, "Ar-C=C": 1, "C=N": 1, "Cl-CR2-CR2-Cl": 1, "Ar-NR2": 2}),
         description="Cl-CR2-CR2-Cl assumed to match when one of R = C=N.",
     ),
     # TODO Fix self-overlap
@@ -2611,13 +2601,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=384,
         SMILES="C1=CC=C(C=C1)C2=NC3=C(N=C(N=C3N=C2N)N)N",
-        expected_matches=Counter({"Ar-Ar": 1, "benzene": 1, "pyrazine": 1, "pyrimidine": 1}),
+        expected_matches=Counter({"Ar-Ar": 1, "benzene": 1, "pyrazine": 1, "pyrimidine": 1, "Ar-NR2": 3}),
         description="Check for pyrazine and pyrimidine matching in one structure.",
     ),
     SubstructMatchTest(
         id=385,
         SMILES="C1(=C(N=C(C(=N1)Cl)N)N)C(=O)N=C(N)N",
-        expected_matches=Counter({"C=N": 1, "Ar-Cl": 1, "pyrazine": 1}),
+        expected_matches=Counter({"C=N": 1, "Ar-Cl": 1, "pyrazine": 1, "Ar-NR2": 2}),
     ),
     SubstructMatchTest(
         id=386,
@@ -2647,7 +2637,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=391,
         SMILES="CC(C)NC1=NC(=NC(=N1)SC)N=[N+]=[N-]",
-        expected_matches=Counter({"N=N": 2, "triazine": 1}),
+        expected_matches=Counter({"N=N": 2, "triazine": 1, "Ar-NR2": 1}),
     ),
     SubstructMatchTest(
         id=392,
@@ -2657,7 +2647,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=393,
         SMILES="C1=CC=C(C(=C1)NC2=NC(=NC=N2)N3C=CC=C3)Cl",
-        expected_matches=Counter({"pyrrole": 1, "triazine": 1, "benzene": 1, "Ar-Cl": 1}),
+        expected_matches=Counter({"pyrrole": 1, "triazine": 1, "benzene": 1, "Ar-Cl": 1, "Ar-NR2": 1}),
     ),
     # TODO Fix Ar-NR2 matching
     SubstructMatchTest(

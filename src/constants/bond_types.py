@@ -79,7 +79,8 @@ DOUBLE_BOND = BondType(
 AR_NR2 = BondType(
     id=40,
     formula="Ar-NR2",
-    SMARTS="[c]-[N]([#6;!$([C]=[O,S])])[#6;!$([C]=[O,S])]",
+    # SMARTS="[c]-[N]([#6;!$([C]=[O,S])])[#6;!$([C]=[O,S])]",
+    SMARTS="[c]-[N;H2,H1,H0]([$([H]),$([#6;!$([C]=[O,S])])])[$([H]),$([#6;!$([C]=[O,S])])]",
     constitutive_corr=1,
     sdf_files=("Ar-NR2.sdf",),
     cross_overlap_group=OverlapGroup.Ar_N_BOND_TYPES,
