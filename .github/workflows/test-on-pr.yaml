@@ -27,7 +27,10 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run tests
-        run: pytest -v -o "addopts=-v --tb=long"
+        run: |
+          echo "::group::🧪 Running Full Test Suite"
+          pytest -v -o "addopts=-v --tb=long"
+          echo "::endgroup::"
 
       - name: Run Test Drift Script
         id: run_drift
