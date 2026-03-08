@@ -33,7 +33,7 @@ def parse_report(json_path: Path) -> Dict[str, Dict[str, Any]]:
     results = {}
     for test in data.get("tests", []):
         raw_id = test.get("nodeid", "")
-        # Extract 'test_func[<ID>]' to handle path migrations
+        # Natural key for matching: extract 'test_func[<ID>]'
         match = re.search(r"(\w+\[<\d+>)", raw_id)
         nodeid = match.group(1) + "]" if match else raw_id.split("::")[-1]
 
@@ -46,9 +46,10 @@ def parse_report(json_path: Path) -> Dict[str, Dict[str, Any]]:
     return results
 
 
-def generate_markdown(target, b_ref, c_ref, b_res, c_res, out_path) -> None:
-    # Natural sort fix: sorts numerically by the ID inside the brackets
+def generate_markdown(target, b_label, c_label, b_res, c_res, out_path) -> None:
+    # Natural numeric sorting: <5> comes before <18>
     all_nodes = sorted(set(b_res.keys()).union(c_res.keys()), key=lambda x: [int(c) if c.isdigit() else c for c in re.split(r"(\d+)", x)])
+
     regressions, fixes, fails, news = [], [], [], []
     s = {"bp": 0, "bf": 0, "bs": 0, "cp": 0, "cf": 0, "cs": 0}
 
@@ -87,8 +88,8 @@ def generate_markdown(target, b_ref, c_ref, b_res, c_res, out_path) -> None:
         "# TEST_DRIFT Report\n",
         "## ⚙️ Configuration",
         f"- **Target:** `{target}`",
-        f"- **Baseline:** branch `{b_ref}`",
-        f"- **Current:** local changes ({c_ref})\n",
+        f"- **Baseline:** `{b_label}`",
+        f"- **Current:** `local changes ({c_label})`\n",
         "## 📊 Summary\n",
         "| Metric | Baseline | Current | Delta | Trend |",
         "|---|---|---|---|---|",
@@ -123,7 +124,6 @@ def generate_markdown(target, b_ref, c_ref, b_res, c_res, out_path) -> None:
         md.extend([f"| `{n}` | `{e}` |" for n, e in fails])
 
     md.append(f"\n\n*Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*")
-
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text("\n".join(md))
 
@@ -143,17 +143,24 @@ def drift(baseline, target, baseline_target, report):
         wt = Path(td) / "wt"
         bj, cj = Path(td) / "b.json", Path(td) / "c.json"
 
+        # Using --detach ensures we don't mess with local branch pointers
         run_cmd(["git", "worktree", "add", "--detach", str(wt), baseline], cwd=cwd)
         try:
-            b_env, c_env = os.environ.copy(), os.environ.copy()
-            b_env["PYTHONPATH"], c_env["PYTHONPATH"] = str(wt), str(cwd)
 
-            # Quiet flags: -q (minimal headers), --tb=no (no tracebacks), --no-summary (no footer stats)
+            def get_env(path: Path):
+                env = os.environ.copy()
+                # Replicate CI PYTHONPATH: root, src, and tests
+                new_paths = [str(path), str(path / "src"), str(path / "tests")]
+                existing = env.get("PYTHONPATH", "")
+                env["PYTHONPATH"] = os.pathsep.join(new_paths + ([existing] if existing else []))
+                return env
+
+            b_env, c_env = get_env(wt), get_env(cwd)
             py_cmd = [sys.executable, "-m", "pytest", "-q", "--tb=no", "--no-summary", "--no-header", "--json-report"]
 
             # --- Phase 1: Baseline ---
             if os.getenv("GITHUB_ACTIONS") == "true":
-                print("::group::🔍 Running Baseline Pytest (Branch: " + baseline + ")")
+                print(f"::group::🔍 Running Baseline Pytest ({baseline})")
 
             click.secho("\n--- Running Baseline Pytest ---", fg="yellow")
             subprocess.run(py_cmd + [bt, f"--json-report-file={bj}"], cwd=wt, env=b_env, check=False)
@@ -172,7 +179,7 @@ def drift(baseline, target, baseline_target, report):
                 print("::endgroup::")
 
             # --- Phase 3: Aggregation ---
-            generate_markdown(target, f"branch `{baseline}` ({bh})", f"local changes ({ch})", parse_report(bj), parse_report(cj), report_path)
+            generate_markdown(target, f"branch `{baseline}` ({bh})", ch, parse_report(bj), parse_report(cj), report_path)
             click.secho(f"\nDrift report generated: {report_path.relative_to(cwd)}", fg="green", bold=True)
 
         finally:
