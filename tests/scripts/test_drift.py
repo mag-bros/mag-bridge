@@ -10,7 +10,12 @@ from typing import Any, Dict, List
 import click
 
 
-def run_cmd(cmd: List[str], cwd: Path | None = None, capture: bool = True, env: Dict[str, str] | None = None) -> subprocess.CompletedProcess:
+def run_cmd(
+    cmd: List[str],
+    cwd: Path | None = None,
+    capture: bool = True,
+    env: Dict[str, str] | None = None,
+) -> subprocess.CompletedProcess:
     try:
         return subprocess.run(cmd, cwd=cwd, text=True, capture_output=capture, check=True, env=env)
     except subprocess.CalledProcessError as e:
@@ -21,9 +26,12 @@ def run_cmd(cmd: List[str], cwd: Path | None = None, capture: bool = True, env: 
         raise click.Abort()
 
 
-def get_current_commit() -> str:
-    res = run_cmd(["git", "rev-parse", "--short", "HEAD"])
-    return res.stdout.strip()
+def get_commit_hash(ref: str, cwd: Path) -> str:
+    try:
+        res = subprocess.run(["git", "rev-parse", "--short", ref], cwd=cwd, text=True, capture_output=True, check=True)
+        return res.stdout.strip()
+    except subprocess.CalledProcessError:
+        return ref
 
 
 def parse_report(json_path: Path) -> Dict[str, Dict[str, Any]]:
@@ -34,7 +42,10 @@ def parse_report(json_path: Path) -> Dict[str, Dict[str, Any]]:
 
     results = {}
     for test in data.get("tests", []):
-        nodeid = test.get("nodeid", "")
+        raw_nodeid = test.get("nodeid", "")
+        # Strip file path to make diffing immune to files moving between directories
+        nodeid = raw_nodeid.split("::")[-1] if "::" in raw_nodeid else raw_nodeid
+
         outcome = test.get("outcome", "unknown")
         err_msg = ""
         if outcome == "failed":
@@ -47,6 +58,7 @@ def parse_report(json_path: Path) -> Dict[str, Dict[str, Any]]:
 
 def generate_markdown(
     target: str,
+    baseline_target: str,
     baseline_ref: str,
     current_ref: str,
     baseline_res: Dict[str, Dict[str, Any]],
@@ -58,6 +70,8 @@ def generate_markdown(
 
     regressions, fixes, consistent_fails, new_fails = [], [], [], []
     b_pass = b_fail = b_skip = c_pass = c_fail = c_skip = 0
+    b_total = len(baseline_res)
+    c_total = len(current_res)
 
     for node in sorted(all_nodes):
         b_out = baseline_res.get(node, {}).get("outcome", "missing")
@@ -87,38 +101,57 @@ def generate_markdown(
             new_fails.append((node, current_res[node]["error"]))
 
     md = [
-        f"# TEST_DRIFT — `{target}`\n",
-        f"**Timestamp:** {timestamp}",
-        f"**Baseline:** `{baseline_ref}`",
-        f"**Current:** `{current_ref}`\n",
-        "## Summary\n",
-        "| Metric | Baseline | Current | Delta |",
-        "|---|---|---|---|",
-        f"| Passed | {b_pass} | {c_pass} | {c_pass - b_pass:+d} |",
-        f"| Failed | {b_fail} | {c_fail} | {c_fail - b_fail:+d} |",
-        f"| Skipped | {b_skip} | {c_skip} | {c_skip - b_skip:+d} |\n",
+        "# TEST_DRIFT Report\n",
+        "## Configuration\n",
+        "| Parameter | Value |",
+        "|---|---|",
+        f"| **Timestamp** | `{timestamp}` |",
+        f"| **Target** | `{target}` |",
     ]
 
+    if baseline_target and baseline_target != target:
+        md.append(f"| **Baseline Target** | `{baseline_target}` |")
+
+    md.extend(
+        [
+            f"| **Baseline Ref** | `{baseline_ref}` |",
+            f"| **Current Ref** | `{current_ref}` |\n",
+            "## Summary\n",
+            "| Metric | Baseline | Current | Delta |",
+            "|---|---|---|---|",
+            f"| **Total Tests** | {b_total} | {c_total} | {c_total - b_total:+d} |",
+            f"| **Passed** | {b_pass} | {c_pass} | {c_pass - b_pass:+d} |",
+            f"| **Failed** | {b_fail} | {c_fail} | {c_fail - b_fail:+d} |",
+            f"| **Skipped** | {b_skip} | {c_skip} | {c_skip - b_skip:+d} |\n",
+        ]
+    )
+
     if regressions:
-        md.extend(["## Regressions (Passed → Failed)\n", "| Node ID | Error |", "|---|---|"])
+        md.extend(["## Regressions (Passed → Failed)\n", "| Test Node | Error |", "|---|---|"])
         for node, err in regressions:
             md.append(f"| `{node}` | `{err}` |")
         md.append("\n")
 
     if new_fails:
-        md.extend(["## New Failures (Not in Baseline)\n", "| Node ID | Error |", "|---|---|"])
+        md.extend(["## New Failures (Not in Baseline)\n", "| Test Node | Error |", "|---|---|"])
         for node, err in new_fails:
             md.append(f"| `{node}` | `{err}` |")
         md.append("\n")
 
     if fixes:
-        md.extend(["## Fixes (Failed → Passed)\n", "| Node ID |", "|---|"])
+        md.extend(["## Fixes (Failed → Passed)\n", "| Test Node |", "|---|"])
         for node in fixes:
             md.append(f"| `{node}` |")
         md.append("\n")
 
     if consistent_fails:
-        md.extend([f"## Consistently Failing ({len(consistent_fails)} tests)\n", "| Node ID | Error |", "|---|---|"])
+        md.extend(
+            [
+                f"## Consistently Failing ({len(consistent_fails)} tests)\n",
+                "| Test Node | Error |",
+                "|---|---|",
+            ]
+        )
         for node, err in consistent_fails:
             md.append(f"| `{node}` | `{err}` |")
         md.append("\n")
@@ -135,13 +168,17 @@ def generate_markdown(
 @click.option("--report", default="tests/reports/TEST_DRIFT.md", help="Output MD report path.")
 def drift(baseline: str, target: str, baseline_target: str, report: str) -> None:
     cwd = Path.cwd()
-    current_commit = get_current_commit()
     report_path = Path(report).resolve()
-
     b_target = baseline_target if baseline_target else target
 
-    cmd_env = os.environ.copy()
-    cmd_env["PYTHONPATH"] = str(cwd)
+    current_commit = get_commit_hash("HEAD", cwd)
+    baseline_commit = get_commit_hash(baseline, cwd)
+
+    click.secho(f"Targeting Baseline Commit: {baseline_commit}", fg="magenta", bold=True)
+    click.secho(f"Targeting Current Commit: {current_commit}", fg="magenta", bold=True)
+
+    if baseline_commit == current_commit:
+        click.secho("WARNING: Baseline and Current resolve to the exact same git commit!", fg="yellow", bold=True)
 
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
@@ -149,7 +186,13 @@ def drift(baseline: str, target: str, baseline_target: str, report: str) -> None
         b_json = temp_path / "baseline.json"
         c_json = temp_path / "current.json"
 
-        click.secho(f"Creating isolated worktree for baseline '{baseline}'...", fg="cyan")
+        b_env = os.environ.copy()
+        b_env["PYTHONPATH"] = str(worktree_path)
+
+        c_env = os.environ.copy()
+        c_env["PYTHONPATH"] = str(cwd)
+
+        click.secho(f"\nCreating isolated worktree for baseline '{baseline}'...", fg="cyan")
         run_cmd(["git", "worktree", "add", "--detach", str(worktree_path), baseline], cwd=cwd)
 
         try:
@@ -158,7 +201,7 @@ def drift(baseline: str, target: str, baseline_target: str, report: str) -> None
                 [sys.executable, "-m", "pytest", b_target, "--json-report", f"--json-report-file={b_json}"],
                 cwd=worktree_path,
                 capture_output=False,
-                env=cmd_env,
+                env=b_env,
                 check=False,
             )
 
@@ -167,7 +210,7 @@ def drift(baseline: str, target: str, baseline_target: str, report: str) -> None
                 [sys.executable, "-m", "pytest", target, "--json-report", f"--json-report-file={c_json}"],
                 cwd=cwd,
                 capture_output=False,
-                env=cmd_env,
+                env=c_env,
                 check=False,
             )
 
@@ -175,7 +218,15 @@ def drift(baseline: str, target: str, baseline_target: str, report: str) -> None
             b_data = parse_report(b_json)
             c_data = parse_report(c_json)
 
-            generate_markdown(target, baseline, f"working tree ({current_commit})", b_data, c_data, report_path)
+            generate_markdown(
+                target,
+                b_target,
+                f"{baseline} ({baseline_commit})",
+                f"working tree ({current_commit})",
+                b_data,
+                c_data,
+                report_path,
+            )
             click.secho(f"Drift report generated at: {report_path.relative_to(cwd)}", fg="green", bold=True)
 
         finally:
