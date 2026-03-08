@@ -1654,7 +1654,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=233,
         SMILES="CC1(C2(C(C(C(C1(C2Cl)Cl)(C(Cl)Cl)Cl)Cl)Cl)Cl)C",
         expected_matches=Counter({"Cl-CR2-CR2-Cl": 1, "C-Cl": 4, "RCHCl2": 1, "cyclobutane": 1}),
-        description="RCHCl2 test. Note that Cl-CR2-CR2-Cl was assigned due to seniority of cyclobutane in bicycle which cancels cyclohexane assignment.",
+        description="RCHCl2 test. Note that Cl-CR2-CR2-Cl was assigned due to cyclobutane's seniority in bicycle which cancels cyclohexane assignment.",
     ),
     SubstructMatchTest(
         id=234,
@@ -2027,7 +2027,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"Ar-C(=O)R": 2, "benzene": 2, "Ar-OR": 1}),
         description="Ar-C(=O)R matching for acetylacetone derivative.",
     ),
-    # TODO missing ID
+    # TODO ID gap
     # SubstructMatchTest(
     #     id=293,
     #     SMILES="C1=CC=C2C(=C1)C3=CC=CC=C3C(=O)C2=O",
@@ -2081,7 +2081,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"benzene": 1}),
         description="Ar-COOR matching NOT allowed for Ar-C(=O)-SO2 fragment.",
     ),
-    # TODO missing ID
+    # TODO ID gap
     # SubstructMatchTest(
     #     id=302,
     #     SMILES="B(C1=CC(=C(C=C1)C)Cl)(C2=CC(=C(C=C2)C)Cl)OC(=O)C3=C(C=CC=N3)O",
@@ -2104,7 +2104,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="C1=CC=C(C=C1)S(=O)(=O)NC2=CC=CC(=C2)C#C/C=C/C(=O)NO",
         expected_matches=Counter({"benzene": 2, "Ar-C#C": 1, "C=C": 1, "RC(=O)NH2": 1}),
     ),
-    # TODO missing ID
+    # TODO ID gap
     # SubstructMatchTest(
     #     id=306,
     #     SMILES="C1=CC=C(C=C1)C#CI",

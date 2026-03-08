@@ -1,13 +1,30 @@
 {
+  "claudeCode.preferredLocation": "sidebar",
+  "python.terminal.useEnvFile": true,
+  "chat.useClaudeHooks": true,
+  "claudeCode.selectedModel": "default",
+  "chat.hookFilesLocations": {
+    "~/.claude/settings.json": false
+  },
+  "claudeCode.environmentVariables": [
+    {
+      "name": "PYTHONPATH",
+      "value": "${workspaceFolder}:${workspaceFolder}/src:${workspaceFolder}/tests"
+    }
+  ],
+  "terminal.integrated.env.osx": {
+    "PYTHONPATH": "${workspaceFolder}"
+  },
+  "terminal.integrated.environmentChangesRelaunch": true,
   "editor.largeFileOptimizations": false,
   "editor.unicodeHighlight.ambiguousCharacters": false,
   "editor.minimap.enabled": false,
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
-  "editor.detectIndentation": false,
+  "editor.detectIndentation": true,
   "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+  "ruff.configuration": "${workspaceFolder}/pyproject.toml",
   "python.languageServer": "Pylance",
-  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
   "python.analysis.indexing": true,
   "python.analysis.autoImportCompletions": true,
   "python.analysis.languageServerMode": "full",
@@ -15,7 +32,6 @@
   "python.testing.unittestEnabled": false,
   "[python]": {
     "editor.formatOnSave": true,
-    "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.tabSize": 4,
     "editor.formatOnType": true,
     "editor.defaultFormatter": "charliermarsh.ruff",
@@ -40,8 +56,8 @@
     "editor.defaultFormatter": "vscode.json-language-features"
   },
   "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
-    "editor.defaultFormatter": "vscode.json-language-features"
   },
   "[toml]": {
     "editor.formatOnSave": true,
@@ -49,6 +65,7 @@
     "editor.insertSpaces": true
   },
   "[markdown]": {
+    "editor.defaultFormatter": "vscode.markdown-language-features",
     "editor.formatOnSave": true,
     "editor.tabSize": 4,
     "editor.insertSpaces": true

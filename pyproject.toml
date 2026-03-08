@@ -11,13 +11,13 @@ reportUndefinedVariable = false
 typeCheckingMode = "standard"
 
 [tool.ruff]
-# Default line length is 88
-line-length = 150
+src = ["src", "backend"]
+line-length = 150        # default 88
 indent-width = 4
 
 [tool.ruff.lint]
-select = ["E501", "I"]
-fixable = ["I"]
+select = ["E501", "I", "F401"]
+fixable = ["I", "F401"]
 
 [tool.yamllint.rules]
 line-length = { max = 200 }

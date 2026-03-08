@@ -3,16 +3,13 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from typing import Iterable
-from warnings import deprecated
+from typing import Iterable, Optional
 
-from backend import app
-from core.atom import MBAtom
 from src.constants.bond_types import (
+    AR_NR2,
     CROSS_OVERLAP_RULES,
     DOUBLE_BOND,
     RELEVANT_BOND_TYPES,
-    SENIORITY_THRESHOLD,
     BondType,
     CrossOverlapGroup,
 )
@@ -132,7 +129,13 @@ class MBSubstructMatcher:
                     case CrossOverlapGroup.BICYCLIC_STRUCTURES:
                         for acc_cand in accepted_self_candidates:
                             if len(set(acc_cand.atoms) & set(atoms)) >= 3:  # self overlap check
-                                BicyclicOverlaps.InjectDerivedMatches(mol, bmc, accepted_self_candidates, filtered)
+                                OverlapRules.InjectDerivedMatches(
+                                    mol=mol,
+                                    rule_key=bmc.formula,
+                                    bmc=bmc,
+                                    accepted_candidates=accepted_self_candidates,
+                                    final_hits_by_formula=filtered,
+                                )
                                 approve_candidate = False
 
                     case CrossOverlapGroup.DOUBLE_BONDS:
@@ -173,9 +176,7 @@ class MBSubstructMatcher:
                             intersection = set(acc_cand.atoms) & set(atoms)
                             conflicts = len(intersection)
                             if conflicts >= 1:
-                                approve_candidate = False
                                 internal_conflict = True
-                                continue
 
                         if not internal_conflict and bmc.formula in ["Ar-OR", "Ar-NR2"]:
                             for acc_cand in accepted_self_candidates:
@@ -217,7 +218,9 @@ class MBSubstructMatcher:
                 if bmc.cross_overlap_group == CrossOverlapGroup.BICYCLIC_STRUCTURES and any(
                     len(atom_set & set(acc_can.atoms)) >= 3 for acc_can in accepted_candidates
                 ):
-                    BicyclicOverlaps.InjectDerivedMatches(mol, bmc, accepted_candidates, filtered)
+                    OverlapRules.InjectDerivedMatches(
+                        mol=mol, rule_key=bmc.formula, bmc=bmc, accepted_candidates=accepted_candidates, final_hits_by_formula=filtered
+                    )
                     approve_candidate = False
                     # continue
 
@@ -249,22 +252,47 @@ class MBSubstructMatcher:
                                 # candidate is lower prio -> reject candidate and skip to next
                                 approve_candidate = False
 
+                # # CrossOverlapRule for Ar_N_BOND_TYPES group
+                # if bmc.cross_overlap_group == CrossOverlapGroup.Ar_N_BOND_TYPES and any(
+                #     acc_can.cross_overlap_group == CrossOverlapGroup.Ar_N_BOND_TYPES and len(atom_set & set(acc_can.atoms)) == 3
+                #     for acc_can in accepted_candidates
+                # ):
+                #     OverlapRules.InjectDerivedMatches(mol, bmc, accepted_candidates, filtered)
+                #     approve_candidate = False
+
+                if bmc.cross_overlap_group == CrossOverlapGroup.Ar_N_BOND_TYPES:
+                    conflicting_ar_ns = []
+                    for acc_can in accepted_candidates:
+                        is_target_group = acc_can.cross_overlap_group == CrossOverlapGroup.Ar_N_BOND_TYPES
+                        common_atoms = atom_set & set(acc_can.atoms)
+                        intersection_size = len(common_atoms)
+
+                        if is_target_group and intersection_size >= 3:
+                            conflicting_ar_ns.append(acc_can)
+
+                    if conflicting_ar_ns:
+                        OverlapRules.InjectDerivedMatches(
+                            mol, CrossOverlapGroup.Ar_N_BOND_TYPES, bmc, accepted_candidates, filtered, conflicting_ar_ns
+                        )
+                        # approve_candidate = False
+
                 # Placeholder rings must be "invisible" for overlap bookkeeping + output
                 if approve_candidate:
                     filtered[cand_key].append(bmc)
                     accepted_candidates.append(bmc)
 
-        filtered_result = {k: [c for c in v if not c.dummy_ring] for k, v in dict(filtered).items()}
+        filtered_result = {k: [c for c in v if (not c.dummy_ring and not c.dummy_bond_type)] for k, v in dict(filtered).items()}
         return filtered_result
 
 
-class BicyclicOverlaps:
+class OverlapRules:
     _Rule = Callable[
         [
             MBMolecule,
             BondMatchCandidate,
             list[BondMatchCandidate],
             dict[str, list[BondMatchCandidate]],
+            list[BondMatchCandidate],
         ],
         None,
     ]
@@ -275,6 +303,8 @@ class BicyclicOverlaps:
         if cls._rules is None:
             cls._rules = {
                 "cyclohexene": cls._rule_cyclohexene,
+                # "Ar-NR2": cls._rule_Ar4_N,
+                # "Ar-[N+]Ar3": cls._rule_Ar4_N,
             }
         return cls._rules
 
@@ -282,14 +312,43 @@ class BicyclicOverlaps:
     def InjectDerivedMatches(
         cls,
         mol: MBMolecule,
+        rule_key,
         bmc: BondMatchCandidate,
         accepted_candidates: list[BondMatchCandidate],
         final_hits_by_formula: dict[str, list[BondMatchCandidate]],
+        conflicts: Optional[list[BondMatchCandidate]] = None,
     ) -> None:
+        conflicts = conflicts if conflicts else []
         rule = cls._get_rules().get(bmc.formula)
         if rule is None:
             return
-        rule(mol, bmc, accepted_candidates, final_hits_by_formula)
+        rule(mol, bmc, accepted_candidates, final_hits_by_formula, conflicts)
+
+    @staticmethod
+    def _rule_Ar4_N(
+        mol: MBMolecule,
+        bmc: BondMatchCandidate,
+        accepted_candidates: list[BondMatchCandidate],
+        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
+        conflicts: list[BondMatchCandidate],
+    ) -> None:
+        """Check Check how many Aromatic C Atoms, add this many Ar-NR2 bond types.
+        Exception for Ar-NR2 within dummy group of 'Ar-[N+]Ar3'"""
+
+        for conflict in conflicts:
+            if conflict.dummy_bond_type:
+                new_bmc = BondMatchCandidate.from_bt(AR_NR2, double_bond_atoms)
+                accepted_candidates.append(new_bmc)
+                accepted_candidates.append(new_bmc)
+                accepted_candidates.append(new_bmc)
+                accepted_candidates.append(new_bmc)
+                final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
+                final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
+                final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
+                final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
+
+                accepted_candidates.remove(conflict)
+                break  # only first
 
     @staticmethod
     def _rule_cyclohexene(
@@ -297,6 +356,7 @@ class BicyclicOverlaps:
         bmc: BondMatchCandidate,
         accepted_candidates: list[BondMatchCandidate],
         final_hits_by_formula: dict[str, list[BondMatchCandidate]],
+        conflicts: list[BondMatchCandidate],
     ) -> None:
         """If cyclohexene is rejected due to bicyclic overlap, add double bond matches instead."""
         exclude_idx = {i for acc in accepted_candidates for i in acc.atoms}

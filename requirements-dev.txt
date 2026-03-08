@@ -5,3 +5,6 @@ ipykernel
 pyinstaller
 pyright
 pubchempy
+ruff
+pytest-json-report
+click

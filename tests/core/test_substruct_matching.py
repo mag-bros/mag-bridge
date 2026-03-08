@@ -1,7 +1,6 @@
 from collections import Counter
 
 import pytest
-
 from src.constants.bond_types import RELEVANT_BOND_TYPES
 from src.core.substruct_matcher import MBSubstructMatcher
 from src.loader import MBLoader
@@ -21,9 +20,7 @@ def test_substruct_matches(substruct_match_test: SubstructMatchTest) -> None:
     """Test if a molecules matches all expected substructures - Bond Types."""
 
     if substruct_match_test.skip_test:
-        pytest.skip(
-            reason="skip this test due to underlying RDKit logical discrepancies"
-        )
+        pytest.skip(reason="skip this test due to underlying RDKit logical discrepancies")
 
     mol = MBLoader.MolFromSmiles(smiles=substruct_match_test.SMILES)
 
@@ -33,14 +30,10 @@ def test_substruct_matches(substruct_match_test: SubstructMatchTest) -> None:
     def normalize_counter_keys(c: Counter[str]) -> Counter[str]:
         return Counter({k.rstrip(":").strip(): v for k, v in c.items()})
 
-    assert normalize_counter_keys(
-        substruct_match_test.expected_matches
-    ) == normalize_counter_keys(result.matchesCounter)
+    assert normalize_counter_keys(substruct_match_test.expected_matches) == normalize_counter_keys(result.matchesCounter)
 
     # Internal consistency check: counter must match final hit lists
-    assert sum(result.matchesCounter.values()) == sum(
-        len(hits) for hits in result.final_hits_by_formula.values()
-    )
+    assert sum(result.matchesCounter.values()) == sum(len(hits) for hits in result.final_hits_by_formula.values())
 
 
 def test_smiles_uniqueness() -> None:
