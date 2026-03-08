@@ -1109,7 +1109,10 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"RCOOR": 2, "cyclohexane": 1}),
         description="Cyclic anhydride fused with bicyclic fragment.",
     ),
-    # TODO
+    # TODO - Test passes without additional OverlapRule logic.
+    #       1. It was supposed to be the fix.
+    #       2. 'Ar-[N+]Ar3' Bond Type was not needed
+    #       3. 'Ar-NR2' was failing with OverlapGroup.DEFAULT assigned
     SubstructMatchTest(
         id=153,
         SMILES="C1(=CC=CC=C1)[N+](C2=CC=CC=C2)(C3=CC=CC=C3)C4=CC=CC=C4",

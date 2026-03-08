@@ -1,5 +1,6 @@
 [tool.pytest.ini_options]
 pythonpath = ["."]
+addopts = "-q --tb=no --no-summary"
 
 [tool.pyright]
 include = ["backend", "src"]

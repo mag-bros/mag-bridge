@@ -1,12 +1,9 @@
 ## BondType Substruct Matching Tests Coverage
 
-- ❌ Status:  62/63
-## Missing Bond Types: 1
-`Ar-[N+]Ar3`
+- ✅ Status:  62/62
 
 | Bond Type Formula | Absolute Usages Count | Weight in usages [%] |
 |---|---:|---:|
-| `Ar-[N+]Ar3` | 0 | 0.00% |
 | `Ar-I` | 5 | 0.44% |
 | `Br-CR2-CR2-Br` | 5 | 0.44% |
 | `isoxazole` | 5 | 0.44% |

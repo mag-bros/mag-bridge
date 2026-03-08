@@ -11,7 +11,7 @@ from src.constants.bond_types import (
     DOUBLE_BOND,
     RELEVANT_BOND_TYPES,
     BondType,
-    CrossOverlapGroup,
+    OverlapGroup,
 )
 from src.core.cross_overlap_comparator import CrossOverlapComparator
 from src.loader import MBMolecule
@@ -118,17 +118,17 @@ class MBSubstructMatcher:
         """Filter self overlaps, in complete isolation within Bond Match Candidate groups."""
         filtered = defaultdict(list)
 
-        for cand_key, candidates in grouped_candidates.items():
+        for _iteration, (cand_key, candidates) in enumerate(grouped_candidates.items()):
             accepted_self_candidates: list[BondMatchCandidate] = []
 
-            for _iteration, bmc in enumerate(candidates):
-                atoms = tuple(sorted(bmc.atoms))
+            for bmc in candidates:
+                bmc_atoms = tuple(sorted(bmc.atoms))
                 approve_candidate = True
 
                 match bmc.cross_overlap_group:
-                    case CrossOverlapGroup.BICYCLIC_STRUCTURES:
+                    case OverlapGroup.BICYCLIC_STRUCTURES:
                         for acc_cand in accepted_self_candidates:
-                            if len(set(acc_cand.atoms) & set(atoms)) >= 3:  # self overlap check
+                            if len(set(acc_cand.atoms) & set(bmc_atoms)) >= 3:  # self overlap check
                                 OverlapRules.InjectDerivedMatches(
                                     mol=mol,
                                     rule_key=bmc.formula,
@@ -138,14 +138,14 @@ class MBSubstructMatcher:
                                 )
                                 approve_candidate = False
 
-                    case CrossOverlapGroup.DOUBLE_BONDS:
+                    case OverlapGroup.DOUBLE_BONDS:
                         for acc_cand in accepted_self_candidates:
-                            if len(set(acc_cand.atoms) & set(atoms)) >= 1:  # self overlap check
+                            if len(set(acc_cand.atoms) & set(bmc_atoms)) >= 1:  # self overlap check
                                 approve_candidate = False
 
-                    case CrossOverlapGroup.CARBONYL_BOND_TYPES:
+                    case OverlapGroup.CARBONYL_BOND_TYPES:
                         for acc_cand in accepted_self_candidates:
-                            intersection = set(acc_cand.atoms) & set(atoms)
+                            intersection = set(acc_cand.atoms) & set(bmc_atoms)
                             conflicts = len(intersection)
                             if conflicts >= 2:
                                 it = iter(intersection)
@@ -156,12 +156,12 @@ class MBSubstructMatcher:
                                     approve_candidate = False
                             # else: It is not chemically possible to have more than 2 conflicts in this case
 
-                    case CrossOverlapGroup.DEFAULT:
+                    case OverlapGroup.DEFAULT:
 
                         def _get_duplicate_bonds(mol) -> list:
                             additional = []
                             aromatic_C_atoms = 0  # Count Aromatic C Atoms for this Candidate
-                            for idx in atoms:
+                            for idx in bmc_atoms:
                                 candidate = mol.GetAtomInfoByIdx(idx)
                                 if candidate.symbol == "C" and candidate.GetIsAromatic():
                                     aromatic_C_atoms += 1
@@ -173,14 +173,14 @@ class MBSubstructMatcher:
                         # SelfOverlapRule - adding Ar-OR, Ar-NR2 bonds depending on number of aromatic C atoms
                         internal_conflict = False
                         for acc_cand in accepted_self_candidates:
-                            intersection = set(acc_cand.atoms) & set(atoms)
+                            intersection = set(acc_cand.atoms) & set(bmc_atoms)
                             conflicts = len(intersection)
                             if conflicts >= 1:
                                 internal_conflict = True
 
                         if not internal_conflict and bmc.formula in ["Ar-OR", "Ar-NR2"]:
                             for acc_cand in accepted_self_candidates:
-                                intersection = set(acc_cand.atoms) & set(atoms)
+                                intersection = set(acc_cand.atoms) & set(bmc_atoms)
                                 conflicts = len(intersection)
 
                                 if conflicts == 0:
@@ -189,11 +189,12 @@ class MBSubstructMatcher:
                             else:
                                 duplicates = _get_duplicate_bonds(mol)
                                 filtered[cand_key].extend(duplicates)
+                    case _:
+                        pass
 
                 if approve_candidate:
                     filtered[cand_key].append(bmc)
                     accepted_self_candidates.append(bmc)
-                    x = -1
 
         return dict(filtered)
 
@@ -205,82 +206,71 @@ class MBSubstructMatcher:
         """Filter cross overlaps via specific rules, respecting relations between Bond Match Candidates."""
         filtered = defaultdict(list)
         accepted_candidates: list[BondMatchCandidate] = []
-
         all_matches = CrossOverlapComparator.sort_matches(grouped_candidates, CROSS_OVERLAP_RULES)
 
-        for cand_key, candidates in all_matches:
+        for _iteration, (cand_key, candidates) in enumerate(all_matches):
             for bmc in candidates:
-                atom_set = set(tuple(sorted(bmc.atoms)))
+                bmc_atoms = set(tuple(sorted(bmc.atoms)))
                 approve_candidate = True
 
-                # CrossOverlapRule for BICYCLIC_STRUCTURES group
-                # Saturated rings in BICYCLIC_STRUCTURES overlaps with 3 or more shared atoms => reject
-                if bmc.cross_overlap_group == CrossOverlapGroup.BICYCLIC_STRUCTURES and any(
-                    len(atom_set & set(acc_can.atoms)) >= 3 for acc_can in accepted_candidates
-                ):
-                    OverlapRules.InjectDerivedMatches(
-                        mol=mol, rule_key=bmc.formula, bmc=bmc, accepted_candidates=accepted_candidates, final_hits_by_formula=filtered
-                    )
-                    approve_candidate = False
-                    # continue
+                match bmc.cross_overlap_group:
+                    case OverlapGroup.BICYCLIC_STRUCTURES:
+                        if any(len(bmc_atoms & set(acc_can.atoms)) >= 3 for acc_can in accepted_candidates):
+                            OverlapRules.InjectDerivedMatches(
+                                mol=mol, rule_key=bmc.formula, bmc=bmc, accepted_candidates=accepted_candidates, final_hits_by_formula=filtered
+                            )
+                            approve_candidate = False
 
-                # CrossOverlapRule for DOUBLE_BONDS group
-                if bmc.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS and any(
-                    acc_can.cross_overlap_group == CrossOverlapGroup.DOUBLE_BONDS and len(atom_set & set(acc_can.atoms)) >= 1
-                    for acc_can in accepted_candidates
-                ):
-                    approve_candidate = False
-                    # continue
+                    case OverlapGroup.DOUBLE_BONDS:
+                        if any(
+                            acc_can.cross_overlap_group == OverlapGroup.DOUBLE_BONDS and len(bmc_atoms & set(acc_can.atoms)) >= 1
+                            for acc_can in accepted_candidates
+                        ):
+                            approve_candidate = False
 
-                # CrossOverlapRule for CARBONYL_BOND_TYPES group
-                if bmc.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES:
-                    for acc_can in accepted_candidates:
-                        has_overlapping_2_atoms = len(atom_set & set(acc_can.atoms)) >= 2
-                        if acc_can.formula == bmc.formula:
-                            continue
+                    case OverlapGroup.CARBONYL_BOND_TYPES:
+                        for acc_can in accepted_candidates:
+                            has_overlapping_2_atoms = len(bmc_atoms & set(acc_can.atoms)) >= 2
+                            if acc_can.formula == bmc.formula:
+                                continue
 
-                        if has_overlapping_2_atoms and acc_can.cross_overlap_group == CrossOverlapGroup.CARBONYL_BOND_TYPES:
-                            if CrossOverlapComparator.is_higher_priority(
-                                formula1=bmc.formula,
-                                formula2=acc_can.formula,
-                                group=CrossOverlapGroup.CARBONYL_BOND_TYPES,
-                                rules=CROSS_OVERLAP_RULES,
-                            ):
-                                # candidate is higher prio -> add to result
-                                approve_candidate = True
-                            else:
-                                # candidate is lower prio -> reject candidate and skip to next
-                                approve_candidate = False
+                            if has_overlapping_2_atoms and acc_can.cross_overlap_group == OverlapGroup.CARBONYL_BOND_TYPES:
+                                if CrossOverlapComparator.is_higher_priority(
+                                    formula1=bmc.formula,
+                                    formula2=acc_can.formula,
+                                    group=OverlapGroup.CARBONYL_BOND_TYPES,
+                                    rules=CROSS_OVERLAP_RULES,
+                                ):
+                                    # candidate is higher prio -> add to result
+                                    approve_candidate = True
+                                else:
+                                    # candidate is lower prio -> reject candidate and skip to next
+                                    approve_candidate = False
 
-                # # CrossOverlapRule for Ar_N_BOND_TYPES group
-                # if bmc.cross_overlap_group == CrossOverlapGroup.Ar_N_BOND_TYPES and any(
-                #     acc_can.cross_overlap_group == CrossOverlapGroup.Ar_N_BOND_TYPES and len(atom_set & set(acc_can.atoms)) == 3
-                #     for acc_can in accepted_candidates
-                # ):
-                #     OverlapRules.InjectDerivedMatches(mol, bmc, accepted_candidates, filtered)
-                #     approve_candidate = False
+                    # case OverlapGroup.Ar_N_BOND_TYPES:
+                    #     conflicting_ar_ns = []
+                    #     for acc_can in accepted_candidates:
+                    #         is_target_group = acc_can.cross_overlap_group == OverlapGroup.Ar_N_BOND_TYPES
+                    #         common_atoms = bmc_atoms & set(acc_can.atoms)
+                    #         intersection_size = len(common_atoms)
 
-                if bmc.cross_overlap_group == CrossOverlapGroup.Ar_N_BOND_TYPES:
-                    conflicting_ar_ns = []
-                    for acc_can in accepted_candidates:
-                        is_target_group = acc_can.cross_overlap_group == CrossOverlapGroup.Ar_N_BOND_TYPES
-                        common_atoms = atom_set & set(acc_can.atoms)
-                        intersection_size = len(common_atoms)
+                    #         if is_target_group and intersection_size >= 3:
+                    #             conflicting_ar_ns.append(acc_can)
 
-                        if is_target_group and intersection_size >= 3:
-                            conflicting_ar_ns.append(acc_can)
+                    #     if conflicting_ar_ns:
+                    #         OverlapRules.InjectDerivedMatches(
+                    #             mol, OverlapGroup.Ar_N_BOND_TYPES, bmc, accepted_candidates, filtered, conflicting_ar_ns
+                    #         )
+                    # approve_candidate = False
 
-                    if conflicting_ar_ns:
-                        OverlapRules.InjectDerivedMatches(
-                            mol, CrossOverlapGroup.Ar_N_BOND_TYPES, bmc, accepted_candidates, filtered, conflicting_ar_ns
-                        )
-                        # approve_candidate = False
+                    case _:
+                        pass
 
-                # Placeholder rings must be "invisible" for overlap bookkeeping + output
                 if approve_candidate:
                     filtered[cand_key].append(bmc)
                     accepted_candidates.append(bmc)
 
+        # Placeholder "dummy" rings must be removed from output - they are temporary objects used only during processing
         filtered_result = {k: [c for c in v if (not c.dummy_ring and not c.dummy_bond_type)] for k, v in dict(filtered).items()}
         return filtered_result
 
@@ -338,16 +328,9 @@ class OverlapRules:
         for conflict in conflicts:
             if conflict.dummy_bond_type:
                 new_bmc = BondMatchCandidate.from_bt(AR_NR2, double_bond_atoms)
-                accepted_candidates.append(new_bmc)
-                accepted_candidates.append(new_bmc)
-                accepted_candidates.append(new_bmc)
-                accepted_candidates.append(new_bmc)
-                final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
-                final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
-                final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
-                final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
-
-                accepted_candidates.remove(conflict)
+                for _ in range(4):
+                    accepted_candidates.append(new_bmc)
+                    final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
                 break  # only first
 
     @staticmethod

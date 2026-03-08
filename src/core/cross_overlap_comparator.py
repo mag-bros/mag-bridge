@@ -1,4 +1,4 @@
-from src.constants.bond_types import CrossOverlapGroup
+from src.constants.bond_types import OverlapGroup
 
 
 class CrossOverlapComparator:
@@ -8,8 +8,8 @@ class CrossOverlapComparator:
     def is_higher_priority(
         formula1: str,
         formula2: str,
-        group: CrossOverlapGroup,
-        rules: dict[CrossOverlapGroup, dict],
+        group: OverlapGroup,
+        rules: dict[OverlapGroup, dict],
     ) -> bool:
         """Check if formula1 has higher priority than formula2 in the hierarchy."""
         hierarchy: tuple[str, ...] = rules[group]["order"]
@@ -26,8 +26,8 @@ class CrossOverlapComparator:
 
         def _sort_key(item: tuple[str, list]) -> tuple[int, int]:
             formula, cands = item
-            group = CrossOverlapGroup.DEFAULT if cands[0].cross_overlap_group is None else cands[0].cross_overlap_group
-            rule = rules.get(group, rules[CrossOverlapGroup.DEFAULT])
+            group = OverlapGroup.DEFAULT if cands[0].cross_overlap_group is None else cands[0].cross_overlap_group
+            rule = rules.get(group, rules[OverlapGroup.DEFAULT])
             order = rule["order"]
             idx = order.index(formula) if isinstance(order, tuple) and formula in order else (len(order) if isinstance(order, tuple) else 0)
             return (-rule["group_prio"], idx)
