@@ -22,7 +22,7 @@ jobs:
 
       - name: Install requirements
         run: |
-          echo "::group:: Installing Pip Requirements"
+          echo "::group::🧪 Installing Pip Requirements"
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
@@ -30,9 +30,7 @@ jobs:
 
       - name: Run tests
         run: |
-          echo "::group::🧪 Running Full Test Suite"
           pytest -v -o "addopts=-v --tb=long"
-          echo "::endgroup::"
 
       - name: Run Test Drift Script
         if: always()
