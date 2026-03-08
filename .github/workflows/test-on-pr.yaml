@@ -41,6 +41,7 @@ jobs:
           python tests/scripts/test_drift.py \
             --baseline master \
             --target tests/core/test_substruct_matching.py::test_substruct_matches \
+            --baseline-target tests/core/bond_match/test_bond_match_count.py::test_bond_match_count \
             --report tests/reports/DRIFT_REPORT_substruct_matching_cicd.md
 
       - name: Publish to GitHub Step Summary
