@@ -38,6 +38,7 @@ jobs:
         env:
           PYTEST_ADDOPTS: "-q --tb=no --no-summary"
         run: |
+          git fetch origin master:master || true
           python tests/scripts/test_drift.py \
             --baseline master \
             --target tests/core/test_substruct_matching.py::test_substruct_matches \
