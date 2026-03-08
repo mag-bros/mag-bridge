@@ -35,6 +35,7 @@ jobs:
           echo "::endgroup::"
 
       - name: Run Test Drift Script
+        if: always()
         id: run_drift
         env:
           PYTEST_ADDOPTS: "-q --tb=no --no-summary"
