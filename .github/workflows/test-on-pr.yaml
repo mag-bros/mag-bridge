@@ -38,7 +38,7 @@ jobs:
         env:
           PYTEST_ADDOPTS: "-q --tb=no --no-summary"
         run: |
-          git fetch origin bondtype-match-query-tool
+          git fetch origin bondtype-match-query-tool --depth=1
           python tests/scripts/test_drift.py \
             --baseline bondtype-match-query-tool \
             --target tests/core/test_substruct_matching.py::test_substruct_matches \
