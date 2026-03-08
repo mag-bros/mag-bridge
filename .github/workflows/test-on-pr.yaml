@@ -38,15 +38,13 @@ jobs:
         env:
           PYTEST_ADDOPTS: "-q --tb=no --no-summary"
         run: |
-          git fetch origin master:refs/remotes/origin/master --force
+          git fetch origin bondtype-match-query-tool
           python tests/scripts/test_drift.py \
-            --baseline origin/master \
+            --baseline bondtype-match-query-tool \
             --target tests/core/test_substruct_matching.py::test_substruct_matches \
-            --baseline-target tests/core/bond_match/test_bond_match_count.py::test_bond_match_count \
             --report tests/reports/DRIFT_REPORT_substruct_matching_cicd.md
 
       - name: Publish to GitHub Step Summary
         if: always()
         run: |
           cat tests/reports/DRIFT_REPORT_substruct_matching_cicd.md >> $GITHUB_STEP_SUMMARY
-
