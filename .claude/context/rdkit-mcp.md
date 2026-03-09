@@ -1,0 +1,1 @@
+TODO - implement rdkit MCP server to use FastMCP to work with `.venv/` site-packages - this is crucial for correctness, because we use RDKit as an ultimate foundation for any chemical analysis, it is complex and domain-specific (molecular chemistry).

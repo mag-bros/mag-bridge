@@ -1,0 +1,68 @@
+{
+  "extraKnownMarketplaces": {
+    "wshobson-agents": {
+      "source": {
+        "source": "github",
+        "repo": "wshobson/agents"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "python-development@claude-code-workflows": true,
+    "ui-design@claude-code-workflows": true,
+    "debugging-toolkit@claude-code-workflows": true,
+    "tdd-workflows@claude-code-workflows": true,
+    "code-refactoring@claude-code-workflows": true,
+    "comprehensive-review@claude-code-workflows": true
+  },
+  "deny": [
+    "Bash(git add *)",
+    "Bash(git commit *)",
+    "Bash(git push -f *)",
+    "Bash(git reset --hard *)",
+    "Bash(git clean *)",
+    "Read(**/.env*)",
+    "Edit(.env*)",
+    "Read(*.pem)",
+    "Bash(mkfs *)",
+    "Bash(sudo *)",
+    "Bash(rm -rf *)"
+  ],
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/lint.py"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay .claude/sounds/Glass.aiff"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay .claude/sounds/Basso.aiff"
+          }
+        ]
+      }
+    ]
+  },
+  "telemetry": {
+    "enabled": false,
+    "otlp": {
+      "endpoint": "http://localhost:4317",
+      "protocol": "grpc"
+    }
+  }
+}
