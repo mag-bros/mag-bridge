@@ -1,7 +1,6 @@
-from typing import TYPE_CHECKING, Literal, overload
+from typing import Literal, overload
 
 from rdkit.Chem import Mol
-
 from src.core.molecule import MBMolecule
 
 

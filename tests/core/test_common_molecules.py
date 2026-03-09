@@ -1,5 +1,4 @@
 import pytest
-
 from src import MOLECULE_MATCH_SUBDIR
 from src.constants.common_molecules import COMMON_MOLECULES, CommonMolecule
 from src.core.compound import MBCompound
@@ -11,15 +10,11 @@ def _run_test_common_mols(group: str, idx: int, cm: CommonMolecule) -> None:
 
     compound: MBCompound = MBLoader.FromSDF(cm.sdf_file, subdir=MOLECULE_MATCH_SUBDIR)
 
-    sdf_compound_smiles: set[str] = {
-        mol.smiles for mol in compound.GetMols(to_rdkit=False)
-    }
+    sdf_compound_smiles: set[str] = {mol.smiles for mol in compound.GetMols(to_rdkit=False)}
 
     # when comparing two sets with "==" the order of elements doesn't matter
     test_condition: bool = sdf_compound_smiles == expected_smiles
-    error_msg = (
-        f"[ERR]: group={group} found={sdf_compound_smiles}, expected={expected_smiles}"
-    )
+    error_msg = f"[ERR]: group={group} found={sdf_compound_smiles}, expected={expected_smiles}"
     assert test_condition, error_msg
 
 
