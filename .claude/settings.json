@@ -59,7 +59,7 @@
     ]
   },
   "telemetry": {
-    "enabled": false,
+    "enabled": true,
     "otlp": {
       "endpoint": "http://localhost:4317",
       "protocol": "grpc"

@@ -3,7 +3,7 @@ import subprocess
 
 def main():
     # The directories you want to ruthlessly format
-    targets = ["src", "tests"]
+    targets = ["src", "tests", "mcp"]
 
     # 1. Ruff natively understands directories
     subprocess.run(["ruff", "check", "--fix", *targets], capture_output=True)

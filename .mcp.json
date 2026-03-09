@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "rdkit-source": {
+      "command": ".venv/bin/python",
+      "args": ["mcp/rdkit_mcp.py"]
+    }
+  }
+}
