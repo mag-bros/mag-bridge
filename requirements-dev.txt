@@ -8,3 +8,6 @@ pubchempy
 ruff
 pytest-json-report
 click
+twine
+tox
+setuptools

@@ -1,0 +1,55 @@
+[tox]
+env_list = ["build", "test-py{312,313}", "nuitka-py{312,313}"]
+isolated_build = true
+min_version = "4.0"
+
+[labels]
+ci-all = ["build", "test-py312", "test-py313", "nuitka-py312", "nuitka-py313"]
+
+[env_run_base]
+set_env = { PYTHONPATH = "{toxinidir}" }
+pass_env = ["SETUPTOOLS_SCM_PRETEND_VERSION"]
+deps = ["setuptools_scm"]
+
+[env.py312]
+base_python = "python3.12"
+
+[env.py313]
+base_python = "python3.13"
+
+[env.test]
+deps = ["pytest"]
+commands = [["pytest", "tests/"]]
+
+[env."nuitka-py{312,313}"]
+deps = ["nuitka", "build", "wheel", "setuptools>=82.0"]
+commands = [
+    [
+        "python",
+        "-m",
+        "build",
+        "--wheel",
+        "--no-isolation",
+        "--outdir",
+        "dist",
+        "-C",
+        "build-backend=nuitka.distutils.Build",
+    ],
+]
+
+[env.build]
+deps = ["build"]
+commands = [
+    [
+        "python",
+        "-c",
+        "import shutil; shutil.rmtree('dist', ignore_errors=True)",
+    ],
+    [
+        "python",
+        "-m",
+        "build",
+    ],
+]
+set_env = { PYTHONPATH = "{toxinidir}" }
+pass_env = ["SETUPTOOLS_SCM_PRETEND_VERSION"]

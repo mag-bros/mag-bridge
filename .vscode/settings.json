@@ -99,6 +99,9 @@
   "git.defaultBranchName": "master",
   "latex-workshop.view.pdf.viewer": "tab",
   "gitlens.graph.layout": "editor",
+  "evenBetterToml.schema.associations": {
+    "tox.toml": "null"
+  },
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
   "terminal.integrated.enableMultiLinePasteWarning": "never",
