@@ -1,0 +1,4 @@
+{
+  "learn_dirs": ["src", "tests", "notebooks"],
+  "supported_languages": ["python", "cpp"]
+}

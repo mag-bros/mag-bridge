@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools", "setuptools_scm", "nuitka", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcpmenago"
+dynamic = ["version"]
+requires-python = ">=3.12"
+dependencies = ["mcp", "tree-sitter", "pydantic"]
+
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+
+[tool.setuptools]
+packages = ["mcpmenago"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = "-q --tb=no --no-summary"
+
+[tool.pyright]
+include = ["backend", "src"]
+venvPath = "."
+venv = ".venv"
+reportMissingImports = false
+reportMissingModuleSource = false
+reportUndefinedVariable = false
+typeCheckingMode = "standard"
+
+[tool.ruff]
+src = ["src", "backend", "tests"]
+line-length = 150                 # default 88
+indent-width = 4
+
+[tool.ruff.lint]
+select = ["E501", "I", "F401"]
+fixable = ["I", "F401"]
+
+[tool.yamllint.rules]
+line-length = { max = 200 }
+quoted-strings = "disable"
+
+# [tool.pytest.ini_options]
+# addopts = "--tb=long -vv"

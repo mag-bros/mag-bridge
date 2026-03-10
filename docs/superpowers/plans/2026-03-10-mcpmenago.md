@@ -1,5 +1,7 @@
 # mcpmenago Implementation Plan
 
+---
+
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a standalone CLI tool + central MCP server that manages source code indexes for any GitHub repository using tree-sitter.
@@ -40,7 +42,7 @@
 
 ## Chunk 1: Foundation
 
-### Task 1: Pydantic Schemas (`models.py`)
+### Task 1: Pydantic Schemas (`models.py`) ✅ DONE
 
 **Files:**
 - Create: `mcpmenago/__init__.py`
@@ -311,7 +313,7 @@ git commit -m "feat(mcpmenago): add Pydantic schemas and weight constants"
 
 ---
 
-### Task 2: Central Config (`mcpmenago.json`)
+### Task 2: Central Config (`mcpmenago.json`) ✅ DONE
 
 **Files:**
 - Create: `mcpmenago/mcpmenago.json`
@@ -336,7 +338,7 @@ git commit -m "feat(mcpmenago): add default central config"
 
 ---
 
-### Task 3: Venv Pre-Check (`venv_check.py`)
+### Task 3: Venv Pre-Check (`venv_check.py`) ✅ DONE
 
 **Files:**
 - Create: `mcpmenago/venv_check.py`
@@ -443,7 +445,7 @@ git commit -m "feat(mcpmenago): add venv pre-check utility"
 
 ## Chunk 2: Core Engine
 
-### Task 4: Index Builder — tree-sitter parsing (`index_builder.py`)
+### Task 4: Index Builder — tree-sitter parsing ✅ DONE(`index_builder.py`)
 
 **Files:**
 - Create: `mcpmenago/index_builder.py`
@@ -964,7 +966,7 @@ git commit -m "feat(mcpmenago): add tree-sitter index builder (Layer 1)"
 
 ---
 
-### Task 5: Learn — Dependency Scanning (`learn.py`)
+### Task 5: Learn — Dependency Scanning ✅ DONE(`learn.py`)
 
 **Files:**
 - Create: `mcpmenago/learn.py`
@@ -1215,7 +1217,7 @@ git commit -m "feat(mcpmenago): add dependency scanner (Layer 2)"
 
 ## Chunk 3: Server + CLI + Integration
 
-### Task 6: Central MCP Server (`server.py`)
+### Task 6: Central MCP Server (`server.py`) ✅ DONE
 
 **Files:**
 - Create: `mcpmenago/server.py`
@@ -1503,7 +1505,7 @@ git commit -m "feat(mcpmenago): add central MCP server with all tools"
 
 ---
 
-### Task 7: CLI (`cli.py`)
+### Task 7: CLI (`cli.py`) ✅ DONE
 
 **Files:**
 - Create: `mcpmenago/cli.py`
@@ -1960,7 +1962,7 @@ git commit -m "feat(mcpmenago): add Click CLI with all commands"
 
 ---
 
-### Task 8: Integration — `.mcp.json` + Smoke Test
+### Task 8: Integration — `.mcp.json` + Smoke Test ✅ DONE (with caveats — see ISSUE-1)
 
 **Files:**
 - Modify: `.mcp.json`

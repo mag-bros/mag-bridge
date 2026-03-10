@@ -11,3 +11,4 @@ click
 twine
 tox
 setuptools
+six
