@@ -1,15 +1,28 @@
 [build-system]
-requires = ["setuptools", "setuptools_scm", "nuitka", "wheel"]
+requires = ["setuptools", "nuitka", "wheel", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcpmenago"
 dynamic = ["version"]
 requires-python = ">=3.12"
-dependencies = ["mcp", "tree-sitter", "pydantic"]
+dependencies = [
+    "mcp",
+    "tree-sitter",
+    "tree-sitter-python",
+    "tree-sitter-cpp",
+    "pydantic",
+    "click",
+]
 
-[tool.setuptools_scm]
-local_scheme = "no-local-version"
+# [tool.setuptools_scm]
+# version_file = "mcpmenago/version.py"
+
+[project.scripts]
+mcpmenago = "mcpmenago.cli:cli"
+
+[project.optional-dependencies]
+dev = ["pytest"]
 
 [tool.setuptools]
 packages = ["mcpmenago"]
@@ -17,6 +30,7 @@ packages = ["mcpmenago"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 addopts = "-q --tb=no --no-summary"
+testpaths = ["tests"]
 
 [tool.pyright]
 include = ["backend", "src"]

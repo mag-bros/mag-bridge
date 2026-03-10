@@ -14,13 +14,13 @@ import click
 from mcpmenago.index_builder import build_index
 from mcpmenago.learn import load_weights, scan_imports, update_weights
 from mcpmenago.models import BookMeta, McpMenagoConfig
-from mcpmenago.venv_check import VenvCheckError, check_venv
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-ROOT = Path(__file__).parent
-LIBRARY = ROOT / "library"
-CONFIG_PATH = ROOT / "mcpmenago.json"
-PROJECT_ROOT = ROOT.parent
+ROOT = Path(__file__).parent          # mcpmenago/mcpmenago/
+MCPMENAGO_ROOT = ROOT.parent          # mcpmenago/ (project root)
+LIBRARY = MCPMENAGO_ROOT / "library"
+CONFIG_PATH = MCPMENAGO_ROOT / "mcpmenago.json"
+PROJECT_ROOT = MCPMENAGO_ROOT.parent  # host project root (mag-bridge/)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -69,13 +69,6 @@ def add(url: str, lang: tuple[str], head_ref: str | None, book_name: str | None)
         if l not in config.supported_languages:
             click.secho(f"Unsupported language: {l}. Supported: {config.supported_languages}", fg="red")
             sys.exit(1)
-
-    # Venv pre-check
-    try:
-        check_venv(project_root=PROJECT_ROOT)
-    except VenvCheckError as e:
-        click.secho(str(e), fg="red")
-        sys.exit(1)
 
     name = book_name or _extract_book_name(url)
     book_dir = LIBRARY / name

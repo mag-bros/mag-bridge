@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "mcpmenago": {
-      "command": ".venv/bin/python",
-      "args": ["mcpmenago/server.py"]
+      "command": "uv",
+      "args": ["run", "--project", "./mcpmenago", "python", "-m", "mcpmenago.server"]
     }
   }
 }

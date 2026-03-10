@@ -1,56 +1,51 @@
-## Project Status (2026-03-10)
+# mcpmenago Issues
 
-**Overall:** Chunks 1-3 implemented. 41/41 tests pass. All source files exist. **Not production-ready** — critical issues below must be resolved before first real use.
+## Critical
 
-### Critical Issues
+**ISSUE-2: Config and path constants duplicated across server.py and cli.py**
+`ROOT`, `MCPMENAGO_ROOT`, `LIBRARY`, `CONFIG_PATH`, `PROJECT_ROOT`, `_load_config()` are copy-pasted in both files. Extract to `mcpmenago/config.py`.
+Priority: Critical
 
-**ISSUE-2: `_load_config()` duplicated + `_config` unused in server**
-- `_load_config()` is copy-pasted identically in both `server.py:25` and `cli.py:26`.
-- `server.py:98` stores `_config = _load_config()` at module level but **never reads it** — no tool uses `_config.learn_dirs` or `_config.supported_languages`.
-- The same path constants (`ROOT`, `LIBRARY`, `CONFIG_PATH`, `PROJECT_ROOT`) are duplicated across both files.
-- **Fix:** Extract shared constants + `_load_config()` into a `mcpmenago/config.py` module. Both `server.py` and `cli.py` import from it.
+---
 
-### Medium Issues
+## Medium
 
-**ISSUE-3: Import regex duplicated between `server.py` and `learn.py`**
-- `server.py:70` inlines `re.compile(rf"(?:from|import)\s+...")` — the exact same regex that `learn.py:11` `_build_import_re()` already encapsulates.
-- `server.py._parse_context_imports()` and `learn.py.scan_imports()` share 80% logic (regex build, module normalization, `.ipynb` handling in `learn.py` only).
-- **Fix:** `server.py` should call `learn._build_import_re()` or better yet, extract a shared `parse_imports_from_text(text, package_name)` function in `learn.py`.
+**ISSUE-3: Import regex duplicated between server.py and learn.py**
+`server._parse_context_imports()` reimplements the same logic already in `learn.scan_imports()`. Consolidate into a shared function in `learn.py`.
+Priority: Medium
 
-**ISSUE-4: `build_index()` never populates `modules` — `get_module_index` is dead**
-- `index_builder.py:200` initializes `modules: list[ModuleEntry] = []` but never appends to it.
-- The `BookIndex.modules` field is always empty after indexing.
-- `server.py:get_module_index` tool iterates `book.index.modules` — will always return `{}`.
-- **Impact:** The `get_module_index` MCP tool is functionally useless. Any Claude agent calling it gets nothing.
-- **Fix:** Either populate `modules` during `build_index()` (group symbols by file → derive module entries), or mark `get_module_index` as not-yet-implemented in the tool description.
+**ISSUE-4: `get_module_index` tool always returns empty**
+`build_index()` never populates `BookIndex.modules`. The tool always returns `{}`. Either populate modules during indexing (group symbols by file path), or remove the tool.
+Priority: Medium
 
-**ISSUE-5: `search_code` `source` parameter is ignored**
-- `server.py:156` accepts `source: Literal["python", "cpp", "all"]` but the function body never reads it.
-- ripgrep runs against the entire repo regardless of `source` value.
-- **Impact:** Misleading to Claude — it thinks it can filter by language but actually can't.
-- **Fix:** Add `--glob` args to `_rg()` based on `source` (e.g., `--glob '*.py'` for python).
+**ISSUE-5: `search_code` `source` parameter is silently ignored**
+Ripgrep always searches the full repo regardless of `source="python"` or `source="cpp"`. Misleads Claude. Fix: pass `--glob '*.py'` / `--glob '*.{h,cpp}'` based on source value.
+Priority: Medium
 
-### Low Issues / Observations
+**ISSUE-7: No server.py tests**
+Server is the primary MCP interface with zero test coverage. Add tests for `LoadedBook`, `_get_book` error path, `_parse_context_imports`, and at least one tool (e.g. `get_symbol` with a fixture book).
+Priority: Medium
 
-**ISSUE-6: `server.py` `_config` loaded but unused**
-- Beyond duplication (ISSUE-2), the server never uses config at all. Neither `learn_dirs` nor `supported_languages` are consulted by any server tool. This is by design (server is read-only, `learn` is CLI-only) but the dead load adds confusion.
+**ISSUE-10: Silenced exceptions hide bugs**
+`learn.py` and `server._parse_context_imports()` use bare `except Exception: pass`. Log to stderr at minimum.
+Priority: Medium
 
-**ISSUE-7: No `server.py` tests**
-- `test_cli.py` has 5 tests. `server.py` has 0. The server is the primary MCP interface — it should have tests for `LoadedBook`, `_get_book` (error path), `_parse_context_imports`, and at least one tool integration test.
+**ISSUE-13: Drop site-packages support in favor of fully managed shallow clones**
+`BookMeta.python_path` stores a path to the host's site-packages, and `inspect_module` calls `importlib.import_module()` against it. This couples the server to the host's installed packages — inconsistent with the standalone clone-based philosophy. Proposal: remove `python_path` from `BookMeta`, remove `inspect_module` tool. All source access goes through the shallow clone in `library/<book>/repo/`. This simplifies the model, eliminates host env coupling, and aligns with the standalone plugin target.
+Priority: Medium
 
-**ISSUE-8: Plan's tree-sitter API drift was handled but not documented**
-- Plan specified `PY_LANGUAGE.query(...)` and `match[1]` dict access.
-- Actual implementation uses `Query(PY_LANGUAGE, ...)` and `QueryCursor(...).matches()` returning `(_, nodes)` tuples with list values (`nodes.get("def", [])`).
-- The implementing agent adapted correctly, but the plan's code blocks are now misleading for future reference.
+---
 
-**ISSUE-9: `venv_check.py` path separator is Unix-only**
-- `venv_check.py:24` checks `str(executable).startswith(str(venv_dir) + "/")` — hardcoded `/`. Won't work on Windows.
-- Per CLAUDE.md this is a localhost app. If Windows support matters, use `Path.is_relative_to()` (Python 3.9+).
-- Another venv issue: ```➜ python -m mcpmenago.cli add https://github.com/rdkit/rdkit --lang python
-Active Python (/opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/bin/python3.13) is not inside the project venv (/Users/mir/PycharmProjects/mag-bridge/.venv).
-Fix: python -m venv .venv && .venv/bin/pip install -r requirements.txt```
+## Low
 
-**ISSUE-10: Silenced exceptions in `learn.py` and `server.py`**
-- `learn.py:45` bare `except Exception: pass` swallows all parse errors (corrupt notebooks, encoding issues).
-- `server.py:77` same pattern for `_parse_context_imports`.
-- At minimum, log to stderr so debugging isn't blind.
+**ISSUE-8: Outdated tree-sitter API in plan documents**
+Planning docs reference old `PY_LANGUAGE.query(...)` API. Implementation uses `Query(PY_LANGUAGE, ...)` + `QueryCursor(...).matches()`. Update or remove plan docs.
+Priority: Low
+
+**ISSUE-11: tree-sitter language auto-detection**
+MVP always installs both grammars. Future: detect language needs from project, install minimal set, prompt via interactive CLI wizard.
+Priority: Low
+
+**ISSUE-12: Versioning — setuptools_scm blocked until extraction**
+`setuptools_scm` cannot detect a version for `mcpmenago/` because it is a subdirectory of `mag-bridge` with no own git tags. Current workaround: `SETUPTOOLS_SCM_PRETEND_VERSION=0.1.0`. Permanent fix: extract to own repo with own tags, then setuptools_scm works natively.
+Priority: Very Low

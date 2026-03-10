@@ -19,10 +19,11 @@ from mcpmenago.learn import load_weights
 from mcpmenago.models import NOT_USED, BookIndex, BookMeta, McpMenagoConfig
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-ROOT = Path(__file__).parent
-LIBRARY = ROOT / "library"
-CONFIG_PATH = ROOT / "mcpmenago.json"
-PROJECT_ROOT = ROOT.parent
+ROOT = Path(__file__).parent          # mcpmenago/mcpmenago/
+MCPMENAGO_ROOT = ROOT.parent          # mcpmenago/ (project root)
+LIBRARY = MCPMENAGO_ROOT / "library"
+CONFIG_PATH = MCPMENAGO_ROOT / "mcpmenago.json"
+PROJECT_ROOT = MCPMENAGO_ROOT.parent  # host project root (mag-bridge/)
 
 
 # ── Config ────────────────────────────────────────────────────────────────────
