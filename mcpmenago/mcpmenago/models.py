@@ -1,4 +1,5 @@
 """Pydantic schemas and weight constants for mcpmenago."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -11,9 +12,15 @@ DISCOVERED = 0.8
 
 
 # ── Central config ────────────────────────────────────────────────────────────
-class McpMenagoConfig(BaseModel):
+class Settings(BaseModel):
     learn_dirs: list[str] = ["src", "tests", "notebooks"]
     supported_languages: list[str] = ["python", "cpp"]
+
+
+def load_settings(path: Path) -> Settings:
+    if path.exists():
+        return Settings.model_validate_json(path.read_text())
+    return Settings()
 
 
 # ── Per-book metadata (auto-generated → book.json) ───────────────────────────

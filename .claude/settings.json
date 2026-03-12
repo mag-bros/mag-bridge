@@ -15,6 +15,30 @@
     "code-refactoring@claude-code-workflows": true,
     "comprehensive-review@claude-code-workflows": true
   },
+  "allow": [
+    "Agent",
+    "Bash(python -m pytest:*)",
+    "Bash(.venv/bin/pytest:*)",
+    "Bash(.venv/bin/python -c *)",
+    "Bash(.venv/bin/python -c:*)",
+    "Bash(.venv/bin/python -m pytest:*)",
+    "Bash(.venv/bin/python -c:*)",
+    "Bash(.venv/bin/python -c *)",
+    "Bash(python -c *)",
+    "Bash(python -c:*)",
+    "Bash(PYTHONPATH=* python -c *)",
+    "Bash(.venv/bin/python mcpmenago/cli.py:*)",
+    "Bash(.venv/bin/python mcpmenago/server.py *)",
+    "Bash(PYTHONPATH=* python -c *)",
+    "Bash(git log:*)",
+    "Bash(git rev-parse:*)",
+    "Bash(git log:*)",
+    "Bash(git status:*)",
+    "Bash(ls:*)",
+    "Bash(python -c *)",
+    "Bash(python -c:*)",
+    "Bash(python -m pytest:*)"
+  ],
   "deny": [
     "Bash(git add *)",
     "Bash(git commit *)",
@@ -22,11 +46,14 @@
     "Bash(git reset --hard *)",
     "Bash(git clean *)",
     "Read(**/.env*)",
-    "Edit(.env*)",
+    "Edit(**/.env*)",
     "Read(*.pem)",
     "Bash(mkfs *)",
     "Bash(sudo *)",
-    "Bash(rm -rf *)"
+    "Bash(rm -rf *)",
+    "Edit(**/.env*)",
+    "Read(**/.env*)",
+    "Read(*.pem)"
   ],
   "hooks": {
     "Stop": [
@@ -34,7 +61,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .claude/hooks/lint.py"
+            "command": "python /Users/mir/PycharmProjects/mag-bridge/.claude/hooks/lint.py"
           }
         ]
       },

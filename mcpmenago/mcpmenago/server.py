@@ -15,22 +15,9 @@ from typing import Literal
 
 from mcp.server.fastmcp import FastMCP
 
-from mcpmenago.learn import load_weights
-from mcpmenago.models import NOT_USED, BookIndex, BookMeta, McpMenagoConfig
-
-# ── Paths ─────────────────────────────────────────────────────────────────────
-ROOT = Path(__file__).parent          # mcpmenago/mcpmenago/
-MCPMENAGO_ROOT = ROOT.parent          # mcpmenago/ (project root)
-LIBRARY = MCPMENAGO_ROOT / "library"
-CONFIG_PATH = MCPMENAGO_ROOT / "mcpmenago.json"
-PROJECT_ROOT = MCPMENAGO_ROOT.parent  # host project root (mag-bridge/)
-
-
-# ── Config ────────────────────────────────────────────────────────────────────
-def _load_config() -> McpMenagoConfig:
-    if CONFIG_PATH.exists():
-        return McpMenagoConfig.model_validate_json(CONFIG_PATH.read_text())
-    return McpMenagoConfig()
+from mcpmenago.models import NOT_USED, BookIndex, BookMeta, load_settings
+from mcpmenago.paths import CONFIG_PATH, LIBRARY
+from mcpmenago.store import BookStore
 
 
 # ── Book loading ──────────────────────────────────────────────────────────────
@@ -39,10 +26,10 @@ class LoadedBook:
 
     def __init__(self, book_dir: Path):
         self.dir = book_dir
-        self.meta = BookMeta.model_validate_json((book_dir / "book.json").read_text())
-        self.index = BookIndex.model_validate_json((book_dir / "index.json").read_text())
-        self.weights = load_weights(book_dir / "weights.json")
-        self.repo_path = book_dir / "repo"
+        self.meta = BookMeta.model_validate_json(book_dir.joinpath("book.json").read_text())
+        self.index = BookIndex.model_validate_json(book_dir.joinpath("index.json").read_text())
+        self.weights = BookStore.load_weights(book_dir.name, book_dir.parent)
+        self.repo_path = book_dir.joinpath("repo")
 
     def get_weight(self, symbol_name: str) -> float:
         return self.weights.get(symbol_name, NOT_USED)
@@ -51,19 +38,15 @@ class LoadedBook:
 def _load_books() -> dict[str, LoadedBook]:
     """Scan library/ and load all books."""
     books: dict[str, LoadedBook] = {}
-    if not LIBRARY.exists():
-        return books
-    for book_dir in sorted(LIBRARY.iterdir()):
-        if not book_dir.is_dir():
+    for name in BookStore.list_books(LIBRARY):
+        book_dir = BookStore.book_dir(name, LIBRARY)
+        if not book_dir.joinpath("index.json").exists():
             continue
-        book_json = book_dir / "book.json"
-        index_json = book_dir / "index.json"
-        if book_json.exists() and index_json.exists():
-            try:
-                book = LoadedBook(book_dir)
-                books[book.meta.name] = book
-            except Exception as e:
-                print(f"Warning: failed to load book {book_dir.name}: {e}", file=sys.stderr)
+        try:
+            book = LoadedBook(book_dir)
+            books[book.meta.name] = book
+        except Exception as e:
+            print(f"Warning: failed to load book {name}: {e}", file=sys.stderr)
     return books
 
 
@@ -100,7 +83,7 @@ def _get_book(package: str) -> LoadedBook:
 
 
 # ── Startup ───────────────────────────────────────────────────────────────────
-_config = _load_config()
+_config = load_settings(CONFIG_PATH)
 _books = _load_books()
 mcp = FastMCP("mcpmenago")
 

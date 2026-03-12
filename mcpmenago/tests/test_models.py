@@ -13,17 +13,17 @@ def test_weight_constants():
 
 
 def test_mcpmenago_config_defaults():
-    from mcpmenago.models import McpMenagoConfig
+    from mcpmenago.models import Settings
 
-    config = McpMenagoConfig()
+    config = Settings()
     assert config.learn_dirs == ["src", "tests", "notebooks"]
     assert config.supported_languages == ["python", "cpp"]
 
 
 def test_mcpmenago_config_custom():
-    from mcpmenago.models import McpMenagoConfig
+    from mcpmenago.models import Settings
 
-    config = McpMenagoConfig(learn_dirs=["lib"], supported_languages=["python"])
+    config = Settings(learn_dirs=["lib"], supported_languages=["python"])
     assert config.learn_dirs == ["lib"]
     assert config.supported_languages == ["python"]
 
@@ -134,10 +134,10 @@ def test_book_meta_json_roundtrip(tmp_path):
 def test_mcpmenago_json_validates_against_schema():
     from pathlib import Path
 
-    from mcpmenago.models import McpMenagoConfig
+    from mcpmenago.models import Settings
 
     config_path = Path(__file__).parent.parent.parent / "mcpmenago" / "mcpmenago.json"
-    config = McpMenagoConfig.model_validate_json(config_path.read_text())
+    config = Settings.model_validate_json(config_path.read_text())
     assert "python" in config.supported_languages
 
 
