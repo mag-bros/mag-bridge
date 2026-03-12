@@ -1,0 +1,8 @@
+mcp
+
+click
+pydantic
+
+tree-sitter
+tree-sitter-python
+tree-sitter-cpp

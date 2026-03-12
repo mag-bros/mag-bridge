@@ -1,31 +1,35 @@
 [build-system]
-requires = ["setuptools", "nuitka", "wheel", "setuptools-scm"]
+requires = ["setuptools", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcpmenago"
-dynamic = ["version"]
-requires-python = ">=3.12"
-dependencies = [
-    "mcp",
-    "tree-sitter",
-    "tree-sitter-python",
-    "tree-sitter-cpp",
-    "pydantic",
-    "click",
+authors = [{ name = "MagBridge", email = "magbridge.dev@gmail.com" }]
+license = "Apache-2.0"
+keywords = [
+    "local mcp documentation server",
+    "local mcp server",
+    "mcp server",
+    "local mcp",
+    "documentation",
 ]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+]
+dynamic = ["version", "dependencies"]
+requires-python = ">=3.12"
 
-# [tool.setuptools_scm]
-# version_file = "mcpmenago/version.py"
-
-[project.scripts]
-mcpmenago = "mcpmenago.cli:cli"
-
-[project.optional-dependencies]
-dev = ["pytest"]
+[tool.setuptools_scm]
+version_scheme = "python-simplified-semver"
+local_scheme = "scm_version:get_dynamic_version"
 
 [tool.setuptools]
+package-dir = { "mcpmenago" = "mcpmenago" }
 packages = ["mcpmenago"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

@@ -1,0 +1,3 @@
+tox
+ruff
+pytest-html==4.2.0
