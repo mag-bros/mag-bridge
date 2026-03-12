@@ -88,7 +88,7 @@ def add(url: str, lang: tuple[str], head_ref: str | None, book_name: str | None)
 
     # Build index
     click.echo("Building index...")
-    index_path = book_dir.joinpath("index.json")
+    index_path = book_dir.joinpath("01_index.json")
     build_index(
         repo_path=repo_dir,
         languages=list(lang),
@@ -194,7 +194,7 @@ def rebuild(book: str | None, rebuild_all: bool):
             repo_path=book_dir.joinpath("repo"),
             languages=meta.languages,
             version=meta.head_ref or "HEAD",
-            output_path=book_dir.joinpath("index.json"),
+            output_path=book_dir.joinpath("01_index.json"),
         )
         meta.index_built_at = datetime.now(timezone.utc).isoformat()
         BookStore.save_meta(name, meta, LIBRARY)
@@ -241,7 +241,7 @@ def update(book: str, head_ref: str):
         repo_path=repo_dir,
         languages=meta.languages,
         version=head_ref,
-        output_path=book_dir.joinpath("index.json"),
+        output_path=book_dir.joinpath("01_index.json"),
     )
 
     # Update metadata (weights.json preserved)

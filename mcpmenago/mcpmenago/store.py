@@ -44,8 +44,8 @@ class BookStore:
 
     @staticmethod
     def load_index(name: str, library: Path) -> BookIndex:
-        """Load and return BookIndex from index.json."""
-        path = library.joinpath(name, "index.json")
+        """Load and return BookIndex from 01_index.json."""
+        path = library.joinpath(name, "01_index.json")
         return BookIndex.model_validate_json(path.read_text())
 
     @staticmethod

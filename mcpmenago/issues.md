@@ -1,5 +1,27 @@
 # mcpmenago Issues
 
+## Index Architecture & Quality (ISSUE-14)
+
+**Problem**: `index.json` is a 5.1MB / 177k-line monolithic JSON file mixing Python and C++ symbols in one flat dict. No schema documentation, no language separation, no analysis tooling. The `modules` list is always empty (→ ISSUE-4).
+
+**Two tracks:**
+
+### Track A — Data Contracts & Quality (prerequisite)
+- Document the `BookIndex` / `SymbolEntry` schema contracts in markdown
+- Write a **standalone Python analysis script** that produces a compact JSON metrics report (symbol counts by kind, by language, duplicate signatures, key distribution stats) — token-efficient, reusable
+- Investigate tree-sitter output format: is `signature = first_line()` the right abstraction? Check tree-sitter API stability, evaluate whether we need our own wrapper layer
+- Assess duplicate/redundant data (same `feq` signature appearing 15+ times across files)
+
+### Track B — Data Accessibility & Architecture (after Track A)
+- Evaluate whether 5MB JSON is actually the bottleneck (gather access-pattern metrics first)
+- Consider alternatives: split by language (`index.python.json` / `index.cpp.json`), BSON, or other formats
+- Evaluate if the current flat `dict[name → list[SymbolEntry]]` grouping is optimal vs. per-module or per-file grouping
+
+**Status**: Brainstorming — design phase
+Priority: Medium
+
+---
+
 ## Critical
 
 **ISSUE-2: Config and path constants duplicated across server.py and cli.py**

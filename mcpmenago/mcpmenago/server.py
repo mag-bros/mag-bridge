@@ -27,7 +27,7 @@ class LoadedBook:
     def __init__(self, book_dir: Path):
         self.dir = book_dir
         self.meta = BookMeta.model_validate_json(book_dir.joinpath("book.json").read_text())
-        self.index = BookIndex.model_validate_json(book_dir.joinpath("index.json").read_text())
+        self.index = BookIndex.model_validate_json(book_dir.joinpath("01_index.json").read_text())
         self.weights = BookStore.load_weights(book_dir.name, book_dir.parent)
         self.repo_path = book_dir.joinpath("repo")
 
@@ -40,7 +40,7 @@ def _load_books() -> dict[str, LoadedBook]:
     books: dict[str, LoadedBook] = {}
     for name in BookStore.list_books(LIBRARY):
         book_dir = BookStore.book_dir(name, LIBRARY)
-        if not book_dir.joinpath("index.json").exists():
+        if not book_dir.joinpath("01_index.json").exists():
             continue
         try:
             book = LoadedBook(book_dir)
