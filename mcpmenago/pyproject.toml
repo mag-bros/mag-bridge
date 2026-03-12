@@ -17,12 +17,16 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
 ]
-dynamic = ["version", "dependencies"]
+dynamic = ["version", "dependencies", "optional-dependencies"]
 requires-python = ">=3.12"
+
+[project.scripts]
+mcpmenago = "mcpmenago.cli:cli"
 
 [tool.setuptools_scm]
 version_scheme = "python-simplified-semver"
 local_scheme = "scm_version:get_dynamic_version"
+root = ".."
 
 [tool.setuptools]
 package-dir = { "mcpmenago" = "mcpmenago" }
@@ -30,6 +34,7 @@ packages = ["mcpmenago"]
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }
+optional-dependencies = { dev = { file = ["requirements-dev.txt"] } }
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
