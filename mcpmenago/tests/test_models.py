@@ -162,7 +162,7 @@ def test_book_index_json_roundtrip(tmp_path):
             ]
         },
     )
-    path = tmp_path / "index.json"
+    path = tmp_path / "01_index.json"
     path.write_text(index.model_dump_json(indent=2))
     loaded = BookIndex.model_validate_json(path.read_text())
     assert loaded.version == "2025.09.6"

@@ -106,7 +106,7 @@ def test_build_index_writes_json(sample_repo, tmp_path):
     from mcpmenago.index_builder import build_index
     from mcpmenago.models import BookIndex
 
-    output = tmp_path / "index.json"
+    output = tmp_path / "01_index.json"
     index = build_index(repo_path=sample_repo, languages=["python"], output_path=output)
     assert output.exists()
     loaded = BookIndex.model_validate_json(output.read_text())

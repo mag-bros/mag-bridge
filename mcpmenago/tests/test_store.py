@@ -44,7 +44,7 @@ def _make_book_dir(tmp_path: Path, name: str = "rdkit") -> Path:
             ]
         },
     )
-    book_dir.joinpath("index.json").write_text(index.model_dump_json(indent=2))
+    book_dir.joinpath("01_index.json").write_text(index.model_dump_json(indent=2))
 
     weights = {"MolFromSmiles": 0.8}
     book_dir.joinpath("weights.json").write_text(json.dumps(weights))

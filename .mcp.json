@@ -1,8 +1,12 @@
 {
   "mcpServers": {
-    "mcpmenago": {
-      "command": "uv",
-      "args": ["run", "--project", "./mcpmenago", "python", "-m", "mcpmenago.server"]
+    "jcodemunch": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["jcodemunch-mcp"],
+      "env": {
+        "CODE_INDEX_PATH": "./library"
+      }
     }
   }
 }

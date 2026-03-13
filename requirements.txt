@@ -4,8 +4,4 @@ uvicorn==0.38.0
 click==8.3.0
 numpy==2.3.4
 pandas
-mcp[cli]==1.26.0
 arize-phoenix==13.11.0
-tree-sitter
-tree-sitter-cpp
-tree-sitter-python

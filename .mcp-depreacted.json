@@ -1,0 +1,8 @@
+// {
+//   "mcpServers": {
+//     "mcpmenago": {
+//       "command": "uv",
+//       "args": ["run", "--project", "./mcpmenago", "python", "-m", "mcpmenago.server"]
+//     }
+//   }
+// }
