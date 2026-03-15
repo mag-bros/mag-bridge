@@ -1,0 +1,96 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python ./.claude/hooks/lint.py"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay .claude/sounds/Glass.aiff"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay .claude/sounds/Basso.aiff"
+          }
+        ]
+      }
+    ]
+  },
+  "extraKnownMarketplaces": {
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
+  },
+  "allow": [
+    "Read",
+    "LS",
+    "Grep",
+    "Glob",
+    "Bash(python -m pytest *)",
+    "Bash(.venv/bin/pytest *)",
+    "Bash(git log *)",
+    "Bash(git rev-parse *)",
+    "Bash(git status *)",
+    "Bash(ls *)",
+    "Bash(cat *)",
+    "Bash(find *)",
+    "Bash(echo *)",
+    "Bash(pwd)",
+    "mcp__jcodemunch__get_symbol",
+    "mcp__jcodemunch__search_symbols",
+    "mcp__jcodemunch__search_index"
+  ],
+  "deny": [
+    "Read(//**)",
+    "Read(~/**)",
+    "Edit(//**)",
+    "Edit(~/**)",
+    "Bash(git add *)",
+    "Bash(git commit *)",
+    "Bash(git push -f *)",
+    "Bash(git reset *)",
+    "Bash(git reset --hard *)",
+    "Bash(git clean *)",
+    "Bash(mkfs *)",
+    "Bash(sudo *)",
+    "Bash(rm -rf *)",
+    "Bash(chmod 777 *)",
+    "Bash(chown *)",
+    "Bash(wget *)",
+    "Bash(curl *)",
+    "Bash(dd *)",
+    "Read(**/.env*)",
+    "Read(**/*.pem)",
+    "Read(**/*.key)",
+    "Edit(**/.env*)",
+    "Edit(**/*.pem)",
+    "Edit(**/*.key)"
+  ],
+  "telemetry": {
+    "enabled": false,
+    "otlp": {
+      "endpoint": "http://0.0.0.0:4317",
+      "protocol": "grpc"
+    }
+  }
+}

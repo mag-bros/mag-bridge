@@ -1,5 +1,4 @@
 import pytest
-
 from src import (
     DIAMAG_COMPOUND_ATOMS_SUBDIR,
     DIAMAG_COMPOUND_CONSTITUTIVE_CORR_SUBDIR,
@@ -29,13 +28,9 @@ def _run_diamag_contr_test(
 
     try:
         assert round(diamag_contr, 2) == test_case.expected_contribution
-        print(
-            f'[INF] "{compound.loaded_from}": ✅ Diamag is as expected: {diamag_contr:.4f}'
-        )
+        print(f'[INF] "{compound.loaded_from}": ✅ Diamag is as expected: {diamag_contr:.4f}')
     except AssertionError as e:
-        print(
-            f'[ERR] "{compound.loaded_from}": ❌ result {round(diamag_contr, 2)} is not expected value: {test_case.expected_contribution}'
-        )
+        print(f'[ERR] "{compound.loaded_from}": ❌ result {round(diamag_contr, 2)} is not expected value: {test_case.expected_contribution}')
         raise e
 
 

@@ -4,7 +4,7 @@ import base64
 import colorsys
 import io
 from collections import Counter
-from typing import Dict, List, Optional, Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 from IPython.display import Image as IPyImage
@@ -12,7 +12,6 @@ from PIL import Image, ImageDraw, ImageFont
 from rdkit.Chem import Mol, MolToSmiles, RemoveAllHs
 from rdkit.Chem.Draw import MolsToGridImage, MolToImage
 from rdkit.Chem.rdDepictor import Compute2DCoords
-
 from src.utils.ui import Theme
 
 RGBf = Tuple[float, float, float]  # 0..1 floats

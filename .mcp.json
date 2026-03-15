@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "jcodemunch": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["jcodemunch-mcp"],
+      "env": {
+        "CODE_INDEX_PATH": "./.local-mcp/indexes",
+        "JCODEMUNCH_LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}

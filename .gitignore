@@ -222,3 +222,12 @@ test2
 docs/plans
 tests/reports/*.md
 tests/reports/*.json
+# MCP server
+mcp/.module_index.json
+rdkit/
+
+# Local MCP repos and indexes
+.local-mcp/
+
+# [mcpmenago] automatically generated content — do not edit
+.claude/settings.local.json

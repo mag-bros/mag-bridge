@@ -1,3 +1,4 @@
+uv
 pytest
 pytest-profiling
 snakeviz
@@ -8,3 +9,7 @@ pubchempy
 ruff
 pytest-json-report
 click
+twine
+tox
+setuptools
+six

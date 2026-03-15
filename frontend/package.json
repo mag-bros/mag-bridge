@@ -20,11 +20,13 @@
     "ng": "ng",
     "install-dependencies": "npm i",
     "format-code": "prettier --write \"src/**/*.{html,ts,js,scss}\"",
-    "serve-reloader": "ng serve --hmr --port 4200",
     "build:prod": "ng build --configuration production",
     "build:dev": "ng build --configuration development",
     "test-angular": "ng test",
-    "dev": "concurrently \"npm run serve-reloader\" \"wait-on http://localhost:4200 && NODE_ENV=development MANAGE_BACKEND=1 electron .\"",
+    "serve-reloader": "ng serve --host 0.0.0.0 --hmr --port 4200",
+    "dev:local": "concurrently \"npm run serve-reloader\" \"wait-on http://0.0.0.0:4200 && NODE_ENV=development MANAGE_BACKEND=1 electron .\"",
+    "start:electron": "export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/dev/null && xvfb-run -a -s '-screen 0 1024x768x24' electron . --remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 --no-sandbox --disable-gpu --disable-dev-shm-usage",
+    "dev:container": "concurrently \"npm run serve-reloader\" \"wait-on http://0.0.0.0:4200 && NODE_ENV=development MANAGE_BACKEND=1 npm run start:electron\"",
     "dev-backend": "cd ../ && .venv/bin/python -m uvicorn backend:app --reload"
   },
   "build": {
@@ -120,6 +122,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "npm-check-updates": "^19.1.2",
+    "playwright": "^1.58.2",
     "prettier": "^3.7.4",
     "typescript": "~5.9.3",
     "wait-on": "^9.0.3"

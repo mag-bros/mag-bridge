@@ -1,18 +1,25 @@
 {
   "recommendations": [
-    "redhat.vscode-yaml",
+    "angular.ng-template",
+    "anthropic.claude-code",
+    "bierner.github-markdown-preview",
     "charliermarsh.ruff",
+    "eamodio.gitlens",
+    "esbenp.prettier-vscode",
+    "tamasfe.even-better-toml",
+    "ionutvmi.path-autocomplete",
+    "james-yu.latex-workshop",
+    "mechatroner.rainbow-csv",
+    "ms-python.debugpy",
     "ms-python.python",
     "ms-python.vscode-pylance",
     "ms-toolsai.jupyter",
-    "eamodio.gitlens",
-    "james-yu.latex-workshop",
-    "oderwat.indent-rainbow",
-    "ionutvmi.path-autocomplete",
-    "mechatroner.rainbow-csv",
+    "ms-vscode.test-adapter-converter",
     "ms-vscode.vscode-typescript-next",
+    "mutantdino.resourcemonitor",
+    "oderwat.indent-rainbow",
     "postman.postman-for-vscode",
-    "angular.ng-template"
+    "redhat.vscode-yaml"
   ],
   "unwantedRecommendations": []
 }
