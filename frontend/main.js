@@ -32,7 +32,7 @@ function createWindow() {
       path.join(__dirname, 'build/frontend/browser/index.html'),
     );
   } else {
-    mainWindow.loadURL('http://localhost:4200');
+    mainWindow.loadURL('http://0.0.0.0:4200');
     mainWindow.webContents.openDevTools();
   }
 

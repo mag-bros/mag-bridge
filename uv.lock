@@ -1,3 +1,7 @@
 version = 1
 revision = 3
-requires-python = ">=3.13"
+requires-python = ">=3.12"
+
+[[package]]
+name = "magbridge"
+source = { editable = "." }

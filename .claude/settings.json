@@ -1,67 +1,11 @@
 {
-  "extraKnownMarketplaces": {
-    "wshobson-agents": {
-      "source": {
-        "source": "github",
-        "repo": "wshobson/agents"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "python-development@claude-code-workflows": true,
-    "ui-design@claude-code-workflows": true,
-    "debugging-toolkit@claude-code-workflows": true,
-    "tdd-workflows@claude-code-workflows": true,
-    "code-refactoring@claude-code-workflows": true,
-    "comprehensive-review@claude-code-workflows": true
-  },
-  "allow": [
-    "Agent",
-    "Bash(python -m pytest:*)",
-    "Bash(.venv/bin/pytest:*)",
-    "Bash(.venv/bin/python -c *)",
-    "Bash(.venv/bin/python -c:*)",
-    "Bash(.venv/bin/python -m pytest:*)",
-    "Bash(.venv/bin/python -c:*)",
-    "Bash(.venv/bin/python -c *)",
-    "Bash(python -c *)",
-    "Bash(python -c:*)",
-    "Bash(PYTHONPATH=* python -c *)",
-    "Bash(.venv/bin/python mcpmenago/cli.py:*)",
-    "Bash(.venv/bin/python mcpmenago/server.py *)",
-    "Bash(PYTHONPATH=* python -c *)",
-    "Bash(git log:*)",
-    "Bash(git rev-parse:*)",
-    "Bash(git log:*)",
-    "Bash(git status:*)",
-    "Bash(ls:*)",
-    "Bash(python -c *)",
-    "Bash(python -c:*)",
-    "Bash(python -m pytest:*)"
-  ],
-  "deny": [
-    "Bash(git add *)",
-    "Bash(git commit *)",
-    "Bash(git push -f *)",
-    "Bash(git reset --hard *)",
-    "Bash(git clean *)",
-    "Read(**/.env*)",
-    "Edit(**/.env*)",
-    "Read(*.pem)",
-    "Bash(mkfs *)",
-    "Bash(sudo *)",
-    "Bash(rm -rf *)",
-    "Edit(**/.env*)",
-    "Read(**/.env*)",
-    "Read(*.pem)"
-  ],
   "hooks": {
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "python /Users/mir/PycharmProjects/mag-bridge/.claude/hooks/lint.py"
+            "command": "python ./.claude/hooks/lint.py"
           }
         ]
       },
@@ -85,10 +29,64 @@
       }
     ]
   },
+  "extraKnownMarketplaces": {
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
+  },
+  "allow": [
+    "Read",
+    "LS",
+    "Grep",
+    "Glob",
+    "Bash(python -m pytest *)",
+    "Bash(.venv/bin/pytest *)",
+    "Bash(git log *)",
+    "Bash(git rev-parse *)",
+    "Bash(git status *)",
+    "Bash(ls *)",
+    "Bash(cat *)",
+    "Bash(find *)",
+    "Bash(echo *)",
+    "Bash(pwd)"
+  ],
+  "deny": [
+    "Read(//**)",
+    "Read(~/**)",
+    "Edit(//**)",
+    "Edit(~/**)",
+    "Bash(git add *)",
+    "Bash(git commit *)",
+    "Bash(git push -f *)",
+    "Bash(git reset *)",
+    "Bash(git reset --hard *)",
+    "Bash(git clean *)",
+    "Bash(mkfs *)",
+    "Bash(sudo *)",
+    "Bash(rm -rf *)",
+    "Bash(chmod 777 *)",
+    "Bash(chown *)",
+    "Bash(wget *)",
+    "Bash(curl *)",
+    "Bash(dd *)",
+    "Read(**/.env*)",
+    "Read(**/*.pem)",
+    "Read(**/*.key)",
+    "Edit(**/.env*)",
+    "Edit(**/*.pem)",
+    "Edit(**/*.key)"
+  ],
   "telemetry": {
     "enabled": false,
     "otlp": {
-      "endpoint": "http://localhost:4317",
+      "endpoint": "http://0.0.0.0:4317",
       "protocol": "grpc"
     }
   }

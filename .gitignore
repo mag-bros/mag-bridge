@@ -227,4 +227,4 @@ mcp/.module_index.json
 rdkit/
 
 # [mcpmenago] automatically generated content — do not edit
-mcpmenago/library/
+.claude/settings.local.json

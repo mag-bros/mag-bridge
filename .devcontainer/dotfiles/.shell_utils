@@ -1,0 +1,44 @@
+# --- ZSH THEME (Powerlevel10k) ---
+# Enable p10k instant prompt (Must be before other heavy initialization)
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# Load the theme engine (assumes it was cloned to ~/powerlevel10k)
+source ~/powerlevel10k/powerlevel10k.zsh-theme
+
+# Load your custom UI settings (if the file exists)
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# --- PIPES ---
+pbcp() {
+    local input
+    # If arguments are provided (e.g., 'pbcp ls'), run command and capture output
+    if [[ -n "$@" ]]; then
+        input=$("$@" 2>&1)
+        echo "$input" # Still print to terminal for UX
+    # If no arguments (e.g., 'echo test | pbcp'), capture piped input
+    else
+        input=$(cat)
+    fi
+    
+    # Use standard Linux base64 and OSC 52 to send safely to host OS clipboard
+    printf "\033]52;c;%s\a" "$(echo -n "$input" | base64 -w 0)"
+}
+
+# --- ALIASES ---
+alias ga="git add --all"
+alias gs="git status"
+alias gpl='git pull'
+alias gco='git commit -m'
+alias gch='git checkout'
+alias gchm='gch master && gpl'
+alias uvpipr='uv pip install -r requirements.txt -r requirements-dev.txt'
+alias uvpipur='uv pip uninstall -r requirements.txt -r requirements-dev.txt'
+alias gpu='git push' 
+alias wpp='which python pip'
+
+# Silently activate venv
+if [ -f "${PWD}/.venv/bin/activate" ];then
+    source "${PWD}/.venv/bin/activate" > /dev/null 2>&1
+fi

@@ -2,10 +2,11 @@
   "mcpServers": {
     "jcodemunch": {
       "type": "stdio",
-      "command": "uvx",
+      "command": "uv",
       "args": ["jcodemunch-mcp"],
       "env": {
-        "CODE_INDEX_PATH": "./library"
+        "CODE_INDEX_PATH": "./mcplib/indexes",
+        "JCODEMUNCH_LOG_LEVEL": "INFO"
       }
     }
   }

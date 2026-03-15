@@ -1,35 +1,95 @@
 {
-  "claudeCode.preferredLocation": "sidebar",
-  "python.terminal.useEnvFile": true,
-  "chat.useClaudeHooks": true,
-  "claudeCode.selectedModel": "default",
+  "python.terminal.activateEnvironment": false,
+  "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+  "editor.detectIndentation": true,
+  "editor.insertSpaces": true,
+  "editor.largeFileOptimizations": false,
+  "editor.minimap.enabled": false,
+  "editor.tabSize": 2,
+  "editor.unicodeHighlight.ambiguousCharacters": false,
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "launch": {
+    "justMyCode": false
+  },
+  "workbench.colorCustomizations": {},
+  "workbench.secondarySideBar.defaultVisibility": "hidden",
+  "workbench.startupEditor": "none",
+  "remote.autoForwardPorts": false,
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
+  "terminal.integrated.env.osx": {
+    "PYTHONPATH": "${workspaceFolder}"
+  },
+  "terminal.integrated.environmentChangesRelaunch": true,
+  "terminal.integrated.fontFamily": "'MesloLGS NF'",
+  "files.associations": {
+    "*.sh": "shellscript"
+  },
+  "files.autoSave": "onFocusChange",
+  "files.exclude": {},
+  "files.watcherExclude": {},
+  "git.defaultBranchName": "master",
+  "git.openRepositoryInParentFolders": "never",
+  "gitlens.graph.layout": "editor",
   "chat.hookFilesLocations": {
     "~/.claude/settings.json": false
   },
+  "chat.useClaudeHooks": true,
   "claudeCode.environmentVariables": [
     {
       "name": "PYTHONPATH",
       "value": "${workspaceFolder}:${workspaceFolder}/src:${workspaceFolder}/tests"
     }
   ],
-  "terminal.integrated.env.osx": {
-    "PYTHONPATH": "${workspaceFolder}"
-  },
-  "terminal.integrated.environmentChangesRelaunch": true,
-  "editor.largeFileOptimizations": false,
-  "editor.unicodeHighlight.ambiguousCharacters": false,
-  "editor.minimap.enabled": false,
-  "editor.tabSize": 2,
-  "editor.insertSpaces": true,
-  "editor.detectIndentation": true,
-  "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
-  "ruff.configuration": "${workspaceFolder}/pyproject.toml",
-  "python.languageServer": "Pylance",
-  "python.analysis.indexing": true,
+  "claudeCode.preferredLocation": "sidebar",
+  "claudeCode.selectedModel": "default",
+  "jupyter.askForKernelRestart": false,
+  "jupyter.notebookFileRoot": "${workspaceFolder}",
   "python.analysis.autoImportCompletions": true,
+  "python.analysis.indexing": true,
   "python.analysis.languageServerMode": "full",
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.languageServer": "Pylance",
+  "python.terminal.useEnvFile": true,
+  "python.testing.pytestArgs": [
+    "tests",
+    ".devcontainer/tests/test_ai_isolation.py"
+  ],
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
+  "ruff.configuration": "${workspaceFolder}/pyproject.toml",
+  "evenBetterToml.schema.associations": {
+    "tox.toml": "null"
+  },
+  "latex-workshop.view.pdf.viewer": "tab",
+  "resmon.show.battery": false,
+  "resmon.show.cpufreq": false,
+  "[css]": {
+    "editor.formatOnSave": true
+  },
+  "[dotenv]": {
+    "editor.formatOnSave": true
+  },
+  "[html]": {
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "vscode.markdown-language-features",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  },
   "[python]": {
     "editor.formatOnSave": true,
     "editor.tabSize": 4,
@@ -40,72 +100,22 @@
       "source.fixAll.ruff": "explicit"
     }
   },
-  "jupyter.notebookFileRoot": "${workspaceFolder}",
-  "jupyter.askForKernelRestart": false,
-  "[javascript]": {
+  "[scss]": {
     "editor.formatOnSave": true
   },
-  "[html]": {
+  "[shellscript]": {
     "editor.formatOnSave": true
-  },
-  "[css]": {
-    "editor.formatOnSave": true
-  },
-  "[jsonc]": {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "vscode.json-language-features"
-  },
-  "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true,
   },
   "[toml]": {
     "editor.formatOnSave": true,
     "editor.tabSize": 4,
     "editor.insertSpaces": true
   },
-  "[markdown]": {
-    "editor.defaultFormatter": "vscode.markdown-language-features",
-    "editor.formatOnSave": true,
-    "editor.tabSize": 4,
-    "editor.insertSpaces": true
-  },
-  "[shellscript]": {
+  "[typescript]": {
     "editor.formatOnSave": true
   },
   "[yaml]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "redhat.vscode-yaml"
-  },
-  "[typescript]": {
-    "editor.formatOnSave": true
-  },
-  "[scss]": {
-    "editor.formatOnSave": true
-  },
-  "[dotenv]": {
-    "editor.formatOnSave": true
-  },
-  "files.associations": {
-    "*.sh": "shellscript"
-  },
-  "launch": {
-    "justMyCode": false
-  },
-  "files.exclude": {},
-  "files.watcherExclude": {},
-  "files.autoSave": "onFocusChange",
-  "git.openRepositoryInParentFolders": "never",
-  "git.defaultBranchName": "master",
-  "latex-workshop.view.pdf.viewer": "tab",
-  "gitlens.graph.layout": "editor",
-  "evenBetterToml.schema.associations": {
-    "tox.toml": "null"
-  },
-  "explorer.confirmDelete": false,
-  "explorer.confirmDragAndDrop": false,
-  "terminal.integrated.enableMultiLinePasteWarning": "never",
-  "workbench.colorCustomizations": {},
-  "workbench.startupEditor": "none",
-  "workbench.secondarySideBar.defaultVisibility": "hidden"
+  }
 }
