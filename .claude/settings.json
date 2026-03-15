@@ -55,7 +55,10 @@
     "Bash(cat *)",
     "Bash(find *)",
     "Bash(echo *)",
-    "Bash(pwd)"
+    "Bash(pwd)",
+    "mcp__jcodemunch__get_symbol",
+    "mcp__jcodemunch__search_symbols",
+    "mcp__jcodemunch__search_index"
   ],
   "deny": [
     "Read(//**)",

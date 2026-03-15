@@ -226,5 +226,8 @@ tests/reports/*.json
 mcp/.module_index.json
 rdkit/
 
+# Local MCP repos and indexes
+.local-mcp/
+
 # [mcpmenago] automatically generated content — do not edit
 .claude/settings.local.json
