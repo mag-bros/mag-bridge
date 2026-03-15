@@ -8,11 +8,12 @@
   ],
   "mounts": [
     "source=${localWorkspaceFolderBasename}-history,target=/commandhistory,type=volume",
-    "source=${localWorkspaceFolder}/.devcontainer/dotfiles/.p10k.zsh,target=/home/vscode_server/.p10k.zsh,type=bind"
+    "source=${localWorkspaceFolder}/.devcontainer/dotfiles/.p10k.zsh,target=/home/vscode_server/.p10k.zsh,type=bind",
+    "source=${localWorkspaceFolderBasename}-claude-config,target=/home/vscode_server/.claude,type=volume"
   ],
   "overrideCommand": true,
   "hostRequirements": {
-    "memory": "6gb"
+    "memory": "3gb"
   },
   "forwardPorts": [
     4200,
