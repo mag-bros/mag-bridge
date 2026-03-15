@@ -1,31 +1,52 @@
-# Substruct Matcher Architecture Report
+# Substruct Matcher -- Architecture Report
 
-## Accuracy Self-Assessment
+> AI-generated analysis of `src/core/substruct_matcher.py` and its dependencies.
+> Cross-referenced against RDKit C++ source via jCodeMunch index.
 
-- **Structural understanding: 8/10** -- The two-phase overlap pipeline, five dispatch strategies, dummy ring mechanism, and injection-on-rejection pattern are all verified line-by-line against source; the architectural picture is reliable.
-- **Chemical knowledge: 5/10** -- I understand that Pascal's additivity scheme decomposes molecular diamagnetic susceptibility into atomic increments plus constitutive correction terms for specific bond types and ring systems, and I can read SMARTS notation well enough to see that e.g. `[C;X3,X2;!$([c])]=[C]` targets aliphatic sp2/sp carbon double bonds while excluding aromatics. However, I do not understand *why* specific constitutive correction values are what they are (e.g. why cyclohexene is 6.9 but cyclohexane is 3.0), I cannot independently verify whether the SMARTS exclusion clauses are chemically complete (e.g. whether the C=O pattern correctly excludes all carbonyl-containing functional groups that should be counted separately), and I have no intuition for when two overlap groups should share atoms vs. reject -- I only know the thresholds because the code says so, not because I understand the underlying magnetic susceptibility reasoning.
-- **Coverage gaps: not rated** -- Did not investigate `MBAtom` internals, oxidation state assignment, or how the ~400 test cases map to real chemical edge cases; a chemist reviewing the SMARTS patterns and overlap rules would be needed to validate correctness beyond what code structure alone can confirm.
+---
 
-## Section 1: What It Does (Domain Purpose)
+## Confidence Ratings
 
-- Implements **Pascal's additivity scheme** for molecular diamagnetic susceptibility -- each recognized bond type carries a `constitutive_corr` constant (e.g., C=C -> 5.5, benzene -> -1.4) that feeds into the final calculation in `MBMolecule.CalcDiamagContr()`
-- Defines **66 bond types** in `src/constants/bond_types.py` as `BondType` dataclasses, each with a hand-crafted SMARTS pattern encoding precise chemical exclusions (e.g., C=C excludes aromatic carbons, cyclohexene, and aryl-bound carbons)
-- The entry point `MBSubstructMatcher.GetMatches()` at `src/core/substruct_matcher.py:57` runs every SMARTS pattern against a molecule, producing renderer-ready highlight data and match counts
-- Wraps RDKit's `Mol.GetSubstructMatches()` (which calls the C++ `SubstructMatch` at `Code/GraphMol/Substruct/SubstructMatch.cpp:525`) but adds a critical post-processing layer that RDKit doesn't provide: **overlap resolution between competing bond type assignments**
-- The output `SubstructMatchResult` serves dual purposes -- analytical (which bond types matched where) and visual (atom highlight lists for the frontend renderer)
+| Dimension | Score | What I verified | What I can't verify |
+|-----------|-------|-----------------|---------------------|
+| **Code structure** | 8/10 | Overlap pipeline, dispatch strategies, dummy rings, injection pattern -- all read line-by-line | `MBAtom` internals, Boost.Python binding layer, test coverage mapping |
+| **Chemistry** | 5/10 | Pascal's additivity concept, SMARTS syntax (e.g. `[C;X3,X2;!$([c])]=[C]` = aliphatic C=C excluding aromatics) | Why correction constants have specific values (cyclohexene=6.9 vs cyclohexane=3.0), whether SMARTS exclusions are chemically complete, magnetic susceptibility reasoning behind overlap thresholds |
 
-## Section 2: How It Works (Architecture)
+**For the chemist:** I can read the SMARTS and trace the code logic, but I cannot judge whether the patterns are *chemically correct*. A domain expert should validate the exclusion clauses and constitutive correction values independently.
 
-- `MBMolecule` at `src/core/molecule.py:14` wraps RDKit's `Mol` with a `__getattr__` fallback, parsing SMARTS via `MolFromSmarts(smarts, mergeHs=True)` and delegating to RDKit's C++ substruct engine -- the thin wrapper keeps the domain logic decoupled from RDKit internals
-- A **two-phase overlap pipeline** is the core innovation: Phase 1 (`_FilterSelfOverlaps`, line 116) resolves conflicts *within* a single bond type; Phase 2 (`_FilterCrossOverlaps`, line 231) resolves conflicts *between* different bond types using priority-ordered processing
-- Overlap resolution uses **5 distinct strategies** dispatched via Python `match/case` on `OverlapGroup`: `BICYCLIC_STRUCTURES` (3+ shared atoms), `DOUBLE_BONDS` (1+ shared atoms), `CARBONYL_BOND_TYPES` (2+ shared atoms with double-bond check), `Ar_N_BOND_TYPES` (3+ shared atoms), and `DEFAULT` (complex per-formula rules for halogens and aromatics)
-- `CrossOverlapComparator` at `src/core/cross_overlap_comparator.py:4` sorts candidates by group priority then intra-group ordering (e.g., within carbonyls: RC(=O)NH2 > RCOOR > RCOOH > C=O), ensuring higher-specificity patterns claim atoms first
-- `OverlapRules.InjectDerivedMatches()` at line 329 handles **decomposition on rejection** -- when a complex pattern like cyclohexene is rejected due to bicyclic overlap, it injects simpler derived matches (e.g., C=C double bonds from the unclaimed atoms)
+---
 
-## Section 3: What's Tricky (Complexity & Risk)
+## 1. Purpose
 
-- The `DEFAULT` overlap group in `_FilterSelfOverlaps` (lines 161-220) contains the most intricate logic -- special-cased handling for `Cl-CR2-CR2-Cl`, `Br-CR2-CR2-Br` (C-C detection with bond-type checking) and `Ar-OR`/`Ar-NR2` (aromatic carbon counting for duplicate bond injection), with a nested `_get_duplicate_bonds` closure
-- The `rule_Cl_CR2_CR2_Cl` at line 364 performs atom-level graph traversal (finding free Cl atoms, checking their C neighbors for single bonds) to inject `C-Cl` replacements when the full `Cl-CR2-CR2-Cl` pattern is rejected -- this is essentially a **manual subgraph decomposition** that RDKit's built-in `SubstructMatch` knows nothing about
-- Dummy rings (`dummy_ring=True`) like thiacyclopropane/oxacyclopropane/azacyclopropane (ids 14-16) exist solely to force correct bicyclic overlap resolution for 5-membered rings in bicyclo[3.1.0] systems -- they're filtered out at the end of `_FilterCrossOverlaps` (line 300)
-- The SMARTS patterns themselves encode significant domain complexity -- e.g., `C=O` at bond id 19 has 5 nested exclusion clauses preventing overlap with amides, esters, acids, aryl ketones, and specific alkynyl ketones, all within a single SMARTS string
-- State mutation during iteration: both `accepted_candidates` and `filtered`/`final_hits_by_formula` are modified in-place by `InjectDerivedMatches`, meaning the overlap resolution is **order-dependent** -- the `CrossOverlapComparator.sort_matches()` ordering is load-bearing for correctness
+- Implements **Pascal's additivity scheme** -- each bond type carries a constitutive correction constant (C=C -> 5.5, benzene -> -1.4) for diamagnetic susceptibility
+- ~48 bond types defined in `bond_types.py`, each with a hand-crafted SMARTS pattern encoding chemical exclusions
+- Wraps RDKit's C++ `GetSubstructMatches()` but adds **overlap resolution** -- deciding which bond type "wins" when patterns claim the same atoms
+- Entry point: `MBSubstructMatcher.GetMatches()` at line 57
+- Output serves both analysis (which bond types matched where) and visualization (atom highlights for the frontend)
+
+## 2. Architecture
+
+- **`MBMolecule`** wraps RDKit's `Mol` with `__getattr__` fallback -- keeps domain logic decoupled from RDKit internals
+- **Two-phase overlap pipeline** (the core innovation):
+  - Phase 1 -- `_FilterSelfOverlaps` (line 116): conflicts *within* one bond type
+  - Phase 2 -- `_FilterCrossOverlaps` (line 231): conflicts *between* different bond types, priority-ordered
+- **5 overlap strategies** dispatched via `match/case` on `OverlapGroup`:
+
+  | Strategy | Shared atom threshold |
+  |----------|----------------------|
+  | `BICYCLIC_STRUCTURES` | 3+ atoms |
+  | `DOUBLE_BONDS` | 1+ atom |
+  | `CARBONYL_BOND_TYPES` | 2+ atoms + double-bond check |
+  | `Ar_N_BOND_TYPES` | 3+ atoms |
+  | `DEFAULT` | per-formula rules (halogens, aromatics) |
+
+- **`CrossOverlapComparator`** sorts candidates by group priority, then intra-group specificity (e.g. RC(=O)NH2 > RCOOR > RCOOH > C=O)
+- **`InjectDerivedMatches()`** (line 329): when a complex pattern is rejected, it decomposes into simpler matches (e.g. rejected cyclohexene -> injected C=C bonds)
+
+## 3. Complexity Hotspots
+
+- **`DEFAULT` self-overlap handler** (lines 161-220): special-cased Cl/Br dihalide C-C detection and aromatic Ar-OR/Ar-NR2 duplicate bond injection with nested `_get_duplicate_bonds` closure
+- **`rule_Cl_CR2_CR2_Cl`** (line 364): manual subgraph decomposition -- finds free Cl atoms, checks C neighbors for single bonds, injects `C-Cl` replacements. RDKit knows nothing about this logic.
+- **Dummy rings** (ids 14-16: thia/oxa/azacyclopropane): exist only to force correct bicyclic overlap resolution for 5-membered rings; filtered out at line 300
+- **SMARTS complexity**: e.g. `C=O` (bond id 19) has 5 nested exclusion clauses preventing overlap with amides, esters, acids, aryl ketones, alkynyl ketones -- all in one pattern
+- **Order-dependent state mutation**: `InjectDerivedMatches` modifies match lists in-place during iteration -- `CrossOverlapComparator.sort_matches()` ordering is load-bearing for correctness
