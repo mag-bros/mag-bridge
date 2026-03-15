@@ -13,7 +13,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     git \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    libxrender1 \
+    libxext6 \
+    libsm6 \
+    libice6 \
+    libfontconfig1 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Claude persistent isolated auth
 RUN mkdir -p /commandhistory /home/${USERNAME}/.claude \
