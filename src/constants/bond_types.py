@@ -31,6 +31,7 @@ DOUBLE_BOND = BondType(
     seniority=0,
 )
 
+
 # Relevant bond type representation (see reference https://doi.org/10.1021/ed085p532)
 RELEVANT_BOND_TYPES: list[BondType] = [
     DOUBLE_BOND,
@@ -369,7 +370,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=37,
         formula="Ar-NR2",
-        SMARTS="[c]-[N]([#6;!$([C]=[O,S])])[#6;!$([C]=[O,S])]",
+        SMARTS="[c]-[N;H2,H1,H0]([$([H]),$([#6;!$([C]=[O,S])])])[$([H]),$([#6;!$([C]=[O,S])])]",
         constitutive_corr=1,
         sdf_files=("Ar-NR2.sdf",),
     ),
@@ -636,5 +637,12 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="s1cccc1",
         constitutive_corr=-7.0,
         sdf_files=("thiophene.sdf",),
+    ),
+    BondType(
+        id=66,
+        formula="Ar-[N+]Ar3",
+        SMARTS="[c]-[N]([#6;!$([C]=[O,S])])([#6;!$([C]=[O,S])])[#6;!$([C]=[O,S])]",
+        constitutive_corr=0,
+        sdf_files=("Ar-NR2.sdf",),
     ),
 ]
