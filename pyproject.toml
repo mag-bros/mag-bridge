@@ -21,6 +21,7 @@ packages = [
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+testpaths = ["tests"]
 addopts = "-q --tb=no --no-summary"
 
 [tool.pyright]

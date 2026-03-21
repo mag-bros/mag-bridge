@@ -1,36 +1,21 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from collections.abc import Callable
-from dataclasses import asdict, dataclass
-from typing import Iterable, Optional
+from dataclasses import dataclass
 
-from rdkit import Chem
 from src.constants.bond_types import (
-    AR_NR2,
-    CARBON_HALOGEN_BOND,
-    CROSS_OVERLAP_RULES,
-    DOUBLE_BOND,
     RELEVANT_BOND_TYPES,
-    BondType,
     OverlapGroup,
 )
 from src.core.cross_overlap_comparator import CrossOverlapComparator
-from src.loader import MBMolecule
-
-
-class BondMatchCandidate(BondType):
-    """Merges RDKit Substruct Match context with our BondType datasets."""
-
-    __slots__ = ("atoms",)
-
-    def __init__(self, atoms: Iterable[int], **kwargs) -> None:
-        super().__init__(**kwargs)
-        object.__setattr__(self, "atoms", tuple(int(a) for a in atoms))
-
-    @classmethod
-    def from_bt(cls, bt: BondType, atoms: Iterable[int]) -> "BondMatchCandidate":
-        return cls(atoms=atoms, **asdict(bt))
+from src.core.molecule import MBMolecule
+from src.overlap_rules import (
+    CROSS_OVERLAP_RULES,
+    BondMatchCandidate,
+    DerivedInjectRules,
+    RejectedCandidate,
+    SelfOverlapRules,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -113,119 +98,62 @@ class MBSubstructMatcher:
         )
 
     @staticmethod
+    def _GetAromaticDuplicates(mol: MBMolecule, bmc: BondMatchCandidate) -> list[BondMatchCandidate]:
+        """Return (aromatic C count - 1) duplicate copies of bmc for Ar-OR / Ar-NR2 bond types."""
+        aromatic_C_atoms = sum(1 for idx in bmc.atoms if mol.GetAtomInfoByIdx(idx).symbol == "C" and mol.GetAtomInfoByIdx(idx).GetIsAromatic())
+        return [bmc] * (aromatic_C_atoms - 1)
+
+    @staticmethod
     def _FilterSelfOverlaps(
         mol: MBMolecule,
         grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[BondMatchCandidate]]:
-        """Filter self overlaps, in complete isolation within Bond Match Candidate groups."""
-        filtered = defaultdict(list)
+        """
+        Three-phase self-overlap filter, operating in isolation per bond type group.
 
-        for _iteration, (cand_key, candidates) in enumerate(grouped_candidates.items()):
-            accepted_self_candidates: list[BondMatchCandidate] = []
+        Phase 1 — Pure predicate: each candidate is appended to accepted or rejected.
+        Phase 2 — Derived injections: rejected candidates may produce new accepted matches.
+        Phase 3 — Duplication: Ar-OR / Ar-NR2 add copies based on aromatic C count.
+        """
+        accepted: dict[str, list[BondMatchCandidate]] = defaultdict(list)
+        rejected: dict[str, list[RejectedCandidate]] = defaultdict(list)
 
+        # --- Phase 1: Pure filter ---
+        for cand_key, candidates in grouped_candidates.items():
             for bmc in candidates:
-                bmc_atoms = tuple(sorted(bmc.atoms))
-                approve_candidate = True
+                bmc_atoms = set(bmc.atoms)
+                rejection = SelfOverlapRules.check_overlap(mol, bmc, bmc_atoms, accepted[cand_key])
+                if rejection is not None:
+                    rejected[cand_key].append(rejection)
+                else:
+                    accepted[cand_key].append(bmc)
 
-                match bmc.cross_overlap_group:
-                    case OverlapGroup.BICYCLIC_STRUCTURES:
-                        for acc_cand in accepted_self_candidates:
-                            if len(set(acc_cand.atoms) & set(bmc_atoms)) >= 3:  # self overlap check
-                                OverlapRules.InjectDerivedMatches(
-                                    mol=mol,
-                                    rule_key=bmc.formula,
-                                    bmc=bmc,
-                                    accepted_candidates=accepted_self_candidates,
-                                    final_hits_by_formula=filtered,
-                                )
-                                approve_candidate = False
+        # --- Phase 2: Derived injections ---
+        # working_accepted is a copy: injection rules may append to it (e.g. to compute exclude_idx
+        # for subsequent injections), but those foreign-type appends must not pollute accepted[cand_key].
+        for cand_key, rejects in rejected.items():
+            working_accepted: list[BondMatchCandidate] = list(accepted[cand_key])
+            for rc in rejects:
+                DerivedInjectRules.inject(
+                    mol=mol,
+                    bmc=rc.candidate,
+                    accepted_candidates=working_accepted,
+                    final_hits_by_formula=accepted,
+                )
 
-                    case OverlapGroup.DOUBLE_BONDS:
-                        for acc_cand in accepted_self_candidates:
-                            if len(set(acc_cand.atoms) & set(bmc_atoms)) >= 1:  # self overlap check
-                                approve_candidate = False
+        # --- Phase 3: Duplicate bond injection for Ar-OR, Ar-NR2 ---
+        for cand_key, cands in list(accepted.items()):
+            if cand_key not in ["Ar-OR", "Ar-NR2"]:
+                continue
+            extra: list[BondMatchCandidate] = []
+            for i, bmc in enumerate(cands):
+                bmc_atoms = set(bmc.atoms)
+                internal_conflict = any(len(set(cands[j].atoms) & bmc_atoms) >= 1 for j in range(i))
+                if not internal_conflict:
+                    extra.extend(MBSubstructMatcher._GetAromaticDuplicates(mol, bmc))
+            accepted[cand_key].extend(extra)
 
-                    case OverlapGroup.CARBONYL_BOND_TYPES:
-                        for acc_cand in accepted_self_candidates:
-                            intersection = set(acc_cand.atoms) & set(bmc_atoms)
-                            conflicts = len(intersection)
-                            if conflicts >= 2:
-                                it = iter(intersection)
-                                idx1, idx2 = next(it), next(it)
-                                # symbols: list[MBAtom] = (mol.GetAtomInfoByIdx(idx=idx1).symbol, mol.GetAtomInfoByIdx(idx=idx2).symbol)
-                                are_carbonyl_bond_atoms = all(idx in mol.GetDoubleBondAtomsIndexes() for idx in [idx1, idx2])
-                                if are_carbonyl_bond_atoms:
-                                    approve_candidate = False
-                            # else: It is not chemically possible to have more than 2 conflicts in this case
-
-                    case OverlapGroup.DEFAULT:
-
-                        def _get_duplicate_bonds(mol) -> list:
-                            additional = []
-                            aromatic_C_atoms = 0  # Count Aromatic C Atoms for this Candidate
-                            for idx in bmc_atoms:
-                                candidate = mol.GetAtomInfoByIdx(idx)
-                                if candidate.symbol == "C" and candidate.GetIsAromatic():
-                                    aromatic_C_atoms += 1
-
-                            for _ in range(aromatic_C_atoms - 1):
-                                additional.append(bmc)  # add duplicate identical copy
-                            return additional
-
-                        # internal_conflicts = []
-                        internal_conflict = False
-                        for acc_cand in accepted_self_candidates:
-                            intersection = list(set(acc_cand.atoms) & set(bmc_atoms))
-                            conflicts = len(intersection)
-                            if conflicts >= 1:
-                                internal_conflict = True
-
-                            # SelfOverlapRule - C-C detection
-                            if bmc.formula in ["Cl-CR2-CR2-Cl", "R2CCl2", "Br-CR2-CR2-Br"]:
-                                if conflicts == 1:
-                                    approve_candidate = True
-
-                                elif conflicts == 2:
-                                    # check if both these indexes are both "C" and are single bonded -> accept
-                                    a1, a2 = intersection[0], intersection[1]
-                                    if mol.GetBondBetweenAtoms(a1, a2) == Chem.BondType.SINGLE:
-                                        are_both_C = mol.GetAtomInfoByIdx(a1).symbol == "C" and mol.GetAtomInfoByIdx(a2).symbol == "C"
-                                        if are_both_C:
-                                            approve_candidate = True
-
-                                elif conflicts >= 3:
-                                    approve_candidate = False
-                                    if bmc.formula in ["Cl-CR2-CR2-Cl", "Br-CR2-CR2-Br"]:
-                                        is_injected = OverlapRules.InjectDerivedMatches(
-                                            mol=mol,
-                                            rule_key=bmc.formula,
-                                            bmc=bmc,
-                                            accepted_candidates=accepted_self_candidates,
-                                            final_hits_by_formula=filtered,
-                                        )
-                                        approve_candidate = is_injected
-                                        break
-
-                        # SelfOverlapRule - adding Ar-OR, Ar-NR2 bonds depending on number of aromatic C atoms
-                        if bmc.formula in ["Ar-OR", "Ar-NR2"] and not internal_conflict:
-                            for acc_cand in accepted_self_candidates:
-                                intersection = set(acc_cand.atoms) & set(bmc_atoms)
-                                conflicts = len(intersection)
-
-                                if conflicts == 0:
-                                    duplicates = _get_duplicate_bonds(mol)
-                                    filtered[cand_key].extend(duplicates)
-                            else:
-                                duplicates = _get_duplicate_bonds(mol)
-                                filtered[cand_key].extend(duplicates)
-                    case _:
-                        pass
-
-                if approve_candidate:
-                    filtered[cand_key].append(bmc)
-                    accepted_self_candidates.append(bmc)
-
-        return dict(filtered)
+        return dict(accepted)
 
     @staticmethod
     def _FilterCrossOverlaps(
@@ -245,9 +173,7 @@ class MBSubstructMatcher:
                 match bmc.cross_overlap_group:
                     case OverlapGroup.BICYCLIC_STRUCTURES:
                         if any(len(bmc_atoms & set(acc_can.atoms)) >= 3 for acc_can in accepted_candidates):
-                            OverlapRules.InjectDerivedMatches(
-                                mol=mol, rule_key=bmc.formula, bmc=bmc, accepted_candidates=accepted_candidates, final_hits_by_formula=filtered
-                            )
+                            DerivedInjectRules.inject(mol=mol, bmc=bmc, accepted_candidates=accepted_candidates, final_hits_by_formula=filtered)
                             approve_candidate = False
 
                     case OverlapGroup.DOUBLE_BONDS:
@@ -299,139 +225,3 @@ class MBSubstructMatcher:
         # Placeholder "dummy" rings must be removed from output - they are temporary objects used only during processing
         filtered_result = {k: [c for c in v if (not c.dummy_ring and not c.dummy_bond_type)] for k, v in dict(filtered).items()}
         return filtered_result
-
-
-class OverlapRules:
-    _Rule = Callable[
-        [
-            MBMolecule,
-            BondMatchCandidate,
-            list[BondMatchCandidate],
-            dict[str, list[BondMatchCandidate]],
-            list[BondMatchCandidate],
-        ],
-        bool,
-    ]
-    _rules: dict[str, _Rule] | None = None
-
-    @classmethod
-    def _get_rules(cls) -> dict[str, _Rule]:
-        if cls._rules is None:
-            cls._rules = {
-                "cyclohexene": cls._rule_cyclohexene,
-                "Cl-CR2-CR2-Cl": cls.rule_Cl_CR2_CR2_Cl,
-                # "Br-CR2-CR2-Br": cls.rule_Br_CR2_CR2_Br,
-                # "Ar-NR2": cls._rule_Ar4_N,
-            }
-        return cls._rules
-
-    @classmethod
-    def InjectDerivedMatches(
-        cls,
-        mol: MBMolecule,
-        rule_key,
-        bmc: BondMatchCandidate,
-        accepted_candidates: list[BondMatchCandidate],
-        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
-        conflicts: Optional[list[BondMatchCandidate]] = None,
-    ) -> None:
-        conflicts = conflicts if conflicts else []
-        rule = cls._get_rules().get(bmc.formula)
-        if rule is None:
-            return
-        rule(mol, bmc, accepted_candidates, final_hits_by_formula, conflicts)
-
-    @staticmethod
-    def _rule_cyclohexene(
-        mol: MBMolecule,
-        bmc: BondMatchCandidate,
-        accepted_candidates: list[BondMatchCandidate],
-        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
-        conflicts: list[BondMatchCandidate],
-    ) -> bool:
-        """If cyclohexene is rejected due to bicyclic overlap, add double bond matches instead."""
-        exclude_idx = {i for acc in accepted_candidates for i in acc.atoms}
-        double_bond_atoms = mol.GetDoubleBondAtomsIndexes(exclude_idx=exclude_idx)
-        if not double_bond_atoms:
-            return False
-
-        new_bmc = BondMatchCandidate.from_bt(DOUBLE_BOND, double_bond_atoms)
-        accepted_candidates.append(new_bmc)
-        final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
-        return True
-
-    @staticmethod
-    def rule_Cl_CR2_CR2_Cl(
-        mol: MBMolecule,
-        bmc: BondMatchCandidate,
-        accepted_candidates: list[BondMatchCandidate],
-        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
-        conflicts: list[BondMatchCandidate],
-    ) -> bool:
-        """If Cl_CR2_CR2_Cl is rejected due to self overlap, inject two C-Cl matches instead."""
-        exclude_idx = {i for acc in accepted_candidates for i in acc.atoms}
-        free_nodes = list(set(bmc.atoms) - (exclude_idx & set(bmc.atoms)))
-        # # debug variables
-        free_nodes_info = {
-            idx: {
-                "symbol": mol.GetAtomInfoByIdx(idx).symbol,
-                "neighbors": [
-                    (nbr.GetIdx(), nbr.GetSymbol(), mol.GetBondBetweenAtoms(idx, nbr.GetIdx()).GetBondType())
-                    for nbr in mol.GetAtomWithIdx(idx).GetNeighbors()
-                ],
-            }
-            for idx in free_nodes
-        }
-        # bmc_view = [(idx, mol.GetAtomInfoByIdx(idx).symbol) for idx in bmc.atoms]
-        # a1_neighbors = [(nbr.GetIdx(), nbr.GetSymbol()) for nbr in mol.GetAtomWithIdx(a1).GetNeighbors()]
-        # a2_neighbors = [(nbr.GetIdx(), nbr.GetSymbol()) for nbr in mol.GetAtomWithIdx(a2).GetNeighbors()]
-        # mol_Cl_atoms = {
-        #     a.GetIdx(): [(nbr.GetIdx(), nbr.GetSymbol(), mol.GetBondBetweenAtoms(a.GetIdx(), nbr.GetIdx()).GetBondType()) for nbr in a.GetNeighbors()]
-        #     for a in mol.GetAtoms()
-        #     if a.GetSymbol() == "Cl" and a.GetIdx() not in exclude_idx
-        # }
-
-        # Build Injection logic
-        free_Cl = [idx for idx in free_nodes if mol.GetAtomInfoByIdx(idx).symbol == "Cl"]
-        free_Cl_neighbors = {
-            idx: [
-                (nbr.GetIdx(), nbr.GetSymbol(), mol.GetBondBetweenAtoms(idx, nbr.GetIdx()).GetBondType())
-                for nbr in mol.GetAtomWithIdx(idx).GetNeighbors()
-            ]
-            for idx in free_Cl
-        }
-        valid_c_cl_bonds = [
-            (next(n[0] for n in neighbors if n[1] == "C" and n[2] == Chem.BondType.SINGLE), cl_idx) for cl_idx, neighbors in free_Cl_neighbors.items()
-        ]
-
-        if len(valid_c_cl_bonds) in [1, 2]:  # only one Cl is free here
-            for c_idx, cl_idx in valid_c_cl_bonds:
-                new_bmc = BondMatchCandidate.from_bt(CARBON_HALOGEN_BOND, [c_idx, cl_idx])
-                for _ in range(2):  # Add two times
-                    accepted_candidates.append(new_bmc)
-                    final_hits_by_formula.setdefault(CARBON_HALOGEN_BOND.formula, []).append(new_bmc)
-                return True
-        elif len(valid_c_cl_bonds) >= 2:
-            raise Exception("more than 2 valid neibhgors")
-        return False
-
-    @staticmethod
-    def _rule_Ar4_N(
-        mol: MBMolecule,
-        bmc: BondMatchCandidate,
-        accepted_candidates: list[BondMatchCandidate],
-        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
-        conflicts: list[BondMatchCandidate],
-    ) -> bool:
-        """NOTE: Rule not used. Might be useful in the future.
-        Check Check how many Aromatic C Atoms, add this many Ar-NR2 bond types.
-        Exception for Ar-NR2 within dummy group of 'Ar-[N+]Ar3'"""
-
-        for conflict in conflicts:
-            if conflict.dummy_bond_type:
-                new_bmc = BondMatchCandidate.from_bt(AR_NR2, double_bond_atoms)
-                for _ in range(4):
-                    accepted_candidates.append(new_bmc)
-                    final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
-                break  # only first
-        return False

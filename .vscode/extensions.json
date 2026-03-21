@@ -19,7 +19,8 @@
     "mutantdino.resourcemonitor",
     "oderwat.indent-rainbow",
     "postman.postman-for-vscode",
-    "redhat.vscode-yaml"
+    "redhat.vscode-yaml",
+    "hoovercj.vscode-settings-cycler",
   ],
   "unwantedRecommendations": []
 }

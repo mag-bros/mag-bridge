@@ -1,7 +1,8 @@
 from unittest.mock import MagicMock
 
-from src.constants.bond_types import CROSS_OVERLAP_RULES, OverlapGroup
+from src.constants.bond_types import OverlapGroup
 from src.core.cross_overlap_comparator import CrossOverlapComparator
+from src.overlap_rules import CROSS_OVERLAP_RULES
 
 
 def test_is_higher_priority():

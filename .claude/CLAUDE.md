@@ -9,8 +9,9 @@ This project is an innovative state-of-the-art cross-platform desktop app design
 5. `data/` - contains SDF files - Text format storing multiple chemical structures and their associated data.
 6. `notebooks/` - contains Jupyter Notebooks: (1) `notebooks/pubchem-tool.ipynb` used for generating new test cases. Custom API that outputs matching SMILES molecules given input SMARTS. Used manually by Magbridge Developers. (2) `notebooks/substruct-matching.ipynb` - Given `SubstructMatchTest` ID, allows to visualize given test case to highlight matched `BondType`s. Core Tool used by MagBridge Developers.
 
-## Git Policy
+## Global Rules
 - Never commit automatically. All commits are made manually by the developer.
+- When working with `*.py` files, always use already installed **pyright-lsp@claude-plugins-official** plugin
 
 ## Architecture & Key Concepts
 - Application's architecture was designed so it is a **localhost** application. There are no external resources required to run. The mindset behind this concept was to allow the users the peace of mind while working with their confidential experiments.

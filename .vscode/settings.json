@@ -117,5 +117,39 @@
   "[yaml]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "redhat.vscode-yaml"
-  }
+  },
+  "settings.cycle": [
+    {
+      "id": "CustomThemes",
+      "values": [
+        {
+          "note": "Cyber Punk",
+          "workbench.colorCustomizations": {
+            "statusBar.background": "#8700ff",
+            "statusBar.foreground": "#ffff00",
+            "diffEditor.insertedTextBackground": "#005fff33",
+            "diffEditor.removedTextBackground": "#ff00df33"
+          }
+        },
+        {
+          "note": "Forest Mist",
+          "workbench.colorCustomizations": {
+            "statusBar.background": "#005f00",
+            "statusBar.foreground": "#ffffff",
+            "diffEditor.insertedTextBackground": "#5f875f33",
+            "diffEditor.removedTextBackground": "#005f0033"
+          }
+        },
+        {
+          "note": "Slate Fire",
+          "workbench.colorCustomizations": {
+            "statusBar.background": "#1c1c1c",
+            "statusBar.foreground": "#ffaf00",
+            "diffEditor.insertedTextBackground": "#d7000033",
+            "diffEditor.removedTextBackground": "#1c1c1c33"
+          }
+        }
+      ]
+    }
+  ]
 }

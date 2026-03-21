@@ -11,43 +11,6 @@ class OverlapGroup(int, Enum):
     CARBONYL_BOND_TYPES = 2
 
 
-CROSS_OVERLAP_RULES = {
-    ## Elements to the left have higher priority!
-    OverlapGroup.DEFAULT: {"group_prio": int(OverlapGroup.DEFAULT), "order": "IRRELEVANT"},
-    OverlapGroup.DOUBLE_BONDS: {
-        "group_prio": int(OverlapGroup.DOUBLE_BONDS),
-        "order": ("CH2=CH-CH2-", "Ar-C=C", "C=C-C=C", "C=C"),
-    },
-    OverlapGroup.BICYCLIC_STRUCTURES: {
-        "group_prio": int(OverlapGroup.BICYCLIC_STRUCTURES),
-        "order": (
-            "cyclopropane",
-            "cyclobutane",
-            "azacyclopropane",
-            "oxacyclopropane",
-            "thiacyclopropane",
-            "piperazine",
-            "cyclohexene",
-            "morpholine",
-            "dioxane",
-            "piperidine",
-            "cyclohexane",
-            "pyrrolidine",
-            "tetrahydrofuran",
-            "cyclopentane",
-        ),
-    },
-    OverlapGroup.CARBONYL_BOND_TYPES: {
-        "group_prio": int(OverlapGroup.CARBONYL_BOND_TYPES),
-        "order": ("RC(=O)NH2", "Ar-C(=O)NH2", "RCOOR", "Ar-COOR", "RCOOH", "Ar-COOH", "C=O"),
-    },
-    OverlapGroup.Ar_N_BOND_TYPES: {
-        "group_prio": int(OverlapGroup.Ar_N_BOND_TYPES),
-        "order": ("Ar-[N+]Ar3", "Ar-NR2"),
-    },
-}
-
-
 @dataclass(frozen=True, slots=True)
 class BondType:
     """Class representing a relevant bond type, including its SMARTS notation, constitutive correction, and SDF file(s) of molecules containing the given bond type."""
