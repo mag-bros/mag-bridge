@@ -4,6 +4,8 @@ ARG USERNAME=vscode_server
 ARG USER_UID=6666
 ARG USER_GID=6666
 
+USER root
+
 # Setup User and Permissions
 RUN groupadd --gid ${USER_GID} ${USERNAME} \
     && useradd --uid ${USER_UID} --gid ${USER_GID} -m ${USERNAME}
