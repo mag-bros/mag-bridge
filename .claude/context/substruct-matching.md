@@ -7,6 +7,10 @@ In RDKit, substructure matching is a graph-based search operation used to locate
 ## Motivation
 RDKit creators clearly stated that they do not support Substruct Matching Overlaps. When querying molecules for SMARTS patterns, RDKit does the heavy-lifting to find ALL matches. Our use case requires domain-specific overlap rules, that are complex to implement.
 
+## Principles
+
+- **SMARTS patterns are frozen, chemist-owned contracts.** The SMARTS patterns in `bond_types.py` are the product of 3 months of iterative domain-expert design and must not be modified by code-side refactoring. The improvement boundary is strictly in the Python overlap resolution layer — SMARTS define *what* matches, Python decides *which matches survive* when they compete for the same atoms.
+
 ## Task status
 This task roughly estimated at 95% done in terms of effort. The last 5% is very challenging, that is the exact reason why we need you. The code has gone to a place where it is very difficult to extend new complex chemical logic.
 
@@ -22,6 +26,50 @@ This task roughly estimated at 95% done in terms of effort. The last 5% is very 
 
 ## Open Tasks
 1. [ ] Review **substruct matcher** code: `src/core/substruct_matcher.py`. Seek for: code smells, repetitions, broader context patterns, unused variables, contracts consistency / usage coverage in various places. As a part of this analysis, you should compare our implementation against RDKit native features. We have a feeling that we kind of reinvented the wheel in some places - it would be great if you were able to propose tradeoffs and identify hot spots were we could remove some of our custom **rdkit-wrapping** concepts/logic to favor native possibilities of the RDKit API.
+2. [ ] **POC: Replace `_FilterSelfOverlaps` with RDKit's `extraFinalCheck`.** RDKit's `SubstructMatchParameters.extraFinalCheck` is a Python-callable hook invoked *inside* the C++ VF2 engine after each complete match, receiving the full atom index mapping. By passing a stateful closure that tracks already-accepted atom sets per bond type, self-overlap rejection can happen *during* matching instead of in a separate Python post-processing phase. This would collapse ~110 lines of `match/case` dispatch (lines 116-228) into a per-`GetSubstructMatches` callback, pushing the hot loop into C++ and removing the entire `_FilterSelfOverlaps` method. The remaining challenges (#4 Cl/Br dihalides, #8 C=C=C, #9 RC#C-C(=O)R) would each become a small predicate inside this callback rather than new branches in the growing `DEFAULT` handler.
+
+## Remaining Substruct Matching Challenges
+Source: `docs/remaining_substruct_matching_challenges.pdf`
+
+### 1. [x] RCONH2 overlap restriction
+- RCONH2 can overlap only by N atom, not by carbonyl C=O fragment.
+- **Solution:** On self-overlap, recognize carbonyl C=O group. If C=O is matched twice, forbid self-overlap. Otherwise allow.
+
+### 2. [x] RC(=O)OR overlap restriction
+- RC(=O)OR can overlap only by O atom, not by carbonyl C=O fragment.
+- Analogous conditions as for #1, plus: C=O cannot match for RO-C(=O)-OR fragment.
+- **Solution:** Same as #1 — recognize carbonyl C=O in self-overlap; if C=O matched twice, forbid.
+
+### 3. [x] Seniority rule
+- Priority order: RCONH2 > Ar-CONH2 > RCOOR > Ar-COOR > COOH > Ar-COOH > C=O
+
+### 4. [ ] Fix Cl-CR2-CR2-Cl and R2CCl2
+- Self-overlap allowed via one C-C bond (same rule for R2CCl2).
+- Cl-CR2-CR2-Cl and R2CCl2 (cross-type) are allowed to match only via one C-C bond.
+- Ring and Cl-CR2-CR2-Cl overlap allowed only via two C-C bonds (same rule for R2CCl2).
+- **Solution:** On self-overlap, recognize C-C pair (two C connected by single bond). Allow only one such pair between two same bond types. Cross-type overlap (R2CCl2 vs Cl-CR2-CR2-Cl) resolved by SMARTS. Ring overlap resolved by checking how many atoms belong to the same ring — if more than 2, exclude matching.
+
+### 5. [ ] Fix Br-CR2-CR2-Br
+- Self-overlap allowed via one C-C bond only.
+- Ring and Br-CR2-CR2-Br overlap allowed only via two C-C bonds.
+- **Solution:** Reuse solutions from #4.
+
+### 6. [x] Fix Ar-NR2
+- If one R = Ar, assign two Ar-NR2 bond types; for two R = Ar, match three Ar-NR2.
+- For [N+]-Ar4, match four Ar-NR2.
+- **Solution:** When Ar-NR2 is matched, check how many carbon atoms are aromatic. The number of matched groups must equal the number of aromatic C atoms.
+
+### 7. [x] Fix Ar-OR
+- If Ar = R, match two Ar-OR bonds.
+- **Solution:** Analogous to #6.
+
+### 8. [ ] C=C=C issue
+- Current SMARTS logic excludes matching of two C=C bond types in C=C=C (allene).
+- **Solution:** Add additional condition — use SMARTS to convey the structural pattern to exclude from the rule, or: if one C atom forms two double bonds with other C atoms, allow C=C self-overlap.
+
+### 9. [ ] Fix self-overlap of RC#C-C(=O)R
+- Two possibilities of self-overlap: via C#C-C fragment, or via C(=O)C.
+- **Solution:** Allow self-overlap via C-C exclusively. Recognize single-bonded C atoms (C-C). Only this pair is allowed to overlap. Otherwise forbid self-overlap.
 
 ## Review Notes `src/core/substruct_matcher.py`
 todo

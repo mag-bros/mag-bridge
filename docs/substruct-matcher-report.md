@@ -50,3 +50,4 @@
 - **Dummy rings** (ids 14-16: thia/oxa/azacyclopropane): exist only to force correct bicyclic overlap resolution for 5-membered rings; filtered out at line 300
 - **SMARTS complexity**: e.g. `C=O` (bond id 19) has 5 nested exclusion clauses preventing overlap with amides, esters, acids, aryl ketones, alkynyl ketones -- all in one pattern
 - **Order-dependent state mutation**: `InjectDerivedMatches` modifies match lists in-place during iteration -- `CrossOverlapComparator.sort_matches()` ordering is load-bearing for correctness
+
