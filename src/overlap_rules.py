@@ -238,7 +238,6 @@ class DerivedInjectRules:
         valid_c_cl_bonds = [
             (next(n[0] for n in neighbors if n[1] == "C" and n[2] == Chem.BondType.SINGLE), cl_idx) for cl_idx, neighbors in free_Cl_neighbors.items()
         ]
-
         if len(valid_c_cl_bonds) in [1, 2]:  # only one Cl is free here
             for c_idx, cl_idx in valid_c_cl_bonds:
                 new_bmc = BondMatchCandidate.from_bt(CARBON_HALOGEN_BOND, [c_idx, cl_idx])
@@ -259,7 +258,7 @@ class DerivedInjectRules:
         trigger: str,
     ) -> bool:
         """If bmc shares no atom with already-seen candidates, append (aromatic C count − 1) duplicate copies into final_hits_by_formula."""
-        if bmc.dummy_bond_type:
+        if bmc.formula not in {"Ar-OR", "Ar-NR2"}:
             return False
         bmc_atoms = set(bmc.atoms)
         if any(len(set(acc.atoms) & bmc_atoms) >= 1 for acc in accepted_candidates):

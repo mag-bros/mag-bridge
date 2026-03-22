@@ -98,12 +98,6 @@ class MBSubstructMatcher:
         )
 
     @staticmethod
-    def _GetAromaticDuplicates(mol: MBMolecule, bmc: BondMatchCandidate) -> list[BondMatchCandidate]:
-        """Return (aromatic C count - 1) duplicate copies of bmc for Ar-OR / Ar-NR2 bond types."""
-        aromatic_C_atoms = sum(1 for idx in bmc.atoms if mol.GetAtomInfoByIdx(idx).symbol == "C" and mol.GetAtomInfoByIdx(idx).GetIsAromatic())
-        return [bmc] * (aromatic_C_atoms - 1)
-
-    @staticmethod
     def _FilterSelfOverlaps(
         mol: MBMolecule,
         grouped_candidates: dict[str, list[BondMatchCandidate]],
@@ -139,19 +133,21 @@ class MBSubstructMatcher:
                     bmc=rc.candidate,
                     accepted_candidates=working_accepted,
                     final_hits_by_formula=accepted,
+                    trigger="on_self_reject",
                 )
 
-        # --- Phase 3: Duplicate bond injection for Ar-OR, Ar-NR2 ---
+        # --- Phase 3: on_accept injection (e.g. Ar-OR / Ar-NR2 aromatic duplication) ---
         for cand_key, cands in list(accepted.items()):
-            if cand_key not in ["Ar-OR", "Ar-NR2"]:
-                continue
-            extra: list[BondMatchCandidate] = []
-            for i, bmc in enumerate(cands):
-                bmc_atoms = set(bmc.atoms)
-                internal_conflict = any(len(set(cands[j].atoms) & bmc_atoms) >= 1 for j in range(i))
-                if not internal_conflict:
-                    extra.extend(MBSubstructMatcher._GetAromaticDuplicates(mol, bmc))
-            accepted[cand_key].extend(extra)
+            seen: list[BondMatchCandidate] = []
+            for bmc in list(cands):
+                DerivedInjectRules.inject(
+                    mol=mol,
+                    bmc=bmc,
+                    accepted_candidates=seen,
+                    final_hits_by_formula=accepted,
+                    trigger="on_accept",
+                )
+                seen.append(bmc)
 
         return dict(accepted)
 
@@ -173,7 +169,9 @@ class MBSubstructMatcher:
                 match bmc.cross_overlap_group:
                     case OverlapGroup.BICYCLIC_STRUCTURES:
                         if any(len(bmc_atoms & set(acc_can.atoms)) >= 3 for acc_can in accepted_candidates):
-                            DerivedInjectRules.inject(mol=mol, bmc=bmc, accepted_candidates=accepted_candidates, final_hits_by_formula=filtered)
+                            DerivedInjectRules.inject(
+                                mol=mol, bmc=bmc, accepted_candidates=accepted_candidates, final_hits_by_formula=filtered, trigger="on_cross_reject"
+                            )
                             approve_candidate = False
 
                     case OverlapGroup.DOUBLE_BONDS:
