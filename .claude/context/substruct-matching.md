@@ -16,8 +16,10 @@ This task roughly estimated at 95% done in terms of effort. The last 5% is very 
 
 ## Core Files Map
 - `src/core/substruct_matcher.py` - most important file for the whole task. Contains very complex chemical project-tailored graph-based matching features.
+- `src/overlap_rules.py` - strategy tables: `SelfOverlapRules`, `DerivedInjectRules`, `CROSS_OVERLAP_RULES`.
 - `src/constants/bond_types.py` - a list of relevant bond types used for matching molecule substructures.
 - `tests/reports/TEST_DRIFT_substruct_matching.md` - **Test Drift Report**
+- `.claude/context/substruct-matcher-architecture.md` - **Logic flow and architecture reference** (3-phase pipeline, strategy tables, CROSS_OVERLAP_RULES structure)
 
 ## Tests
 - `tests/core/test_substruct_matching.py` - The ONLY test that matters for this task is defined inside this file: `def test_substruct_matches(...)`
@@ -25,7 +27,8 @@ This task roughly estimated at 95% done in terms of effort. The last 5% is very 
 - **Run Test Drift: Substruct Matching** - `.vscode/tasks.json` (script not extracted to a standalone form) - custom test automation test. It was introduced to streamline TDD, very handy, fast to use and delivers key benchmark that answers the question "where are we in comparison to the `bondtype-match-query-tool` branch (parent branch that we compare our new features against). The main reason why it was introduced was because when changing `src/core/substruct_matcher.py` or related files, there was a **test drift** - some tests started to fail, while others started to pass, so we were losing the track of what happened. This tool effectively fixes this issue and ultimately produces a minimized source of truth report: `tests/reports/TEST_DRIFT_substruct_matching.md`
 
 ## Open Tasks
-1. [ ] Review **substruct matcher** code: `src/core/substruct_matcher.py`. Seek for: code smells, repetitions, broader context patterns, unused variables, contracts consistency / usage coverage in various places. As a part of this analysis, you should compare our implementation against RDKit native features. We have a feeling that we kind of reinvented the wheel in some places - it would be great if you were able to propose tradeoffs and identify hot spots were we could remove some of our custom **rdkit-wrapping** concepts/logic to favor native possibilities of the RDKit API.
+1. [x] Review **substruct matcher** code: `src/core/substruct_matcher.py`.
+2. [ ] Apply strategy pattern to `_FilterCrossOverlaps`: extract a `CrossOverlapRules` class (analogous to `SelfOverlapRules`) to replace the current `match bmc.cross_overlap_group` branching. Per-group static methods dispatched via `CROSS_OVERLAP_RULES`, consistent naming convention with existing strategy tables.
 
 ## Remaining Substruct Matching Challenges
 Source: `docs/remaining_substruct_matching_challenges.pdf`
