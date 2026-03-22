@@ -12,6 +12,7 @@ prof/
 
 # Electron node modules
 frontend/node_modules
+node_modules/
 
 # Distribution / packaging
 .Python
@@ -228,6 +229,7 @@ rdkit/
 
 # Local MCP repos and indexes
 .local-mcp/
+!.local-mcp/manifest.json
 
 # [mcpmenago] automatically generated content — do not edit
 .claude/settings.local.json

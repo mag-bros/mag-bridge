@@ -4,7 +4,9 @@
     "dockerfile": "Dockerfile"
   },
   "runArgs": [
-    "--shm-size=1g"
+    "--shm-size=1g",
+    "--env-file",
+    "${localWorkspaceFolder}/.env"
   ],
   "mounts": [
     "source=${localWorkspaceFolderBasename}-history,target=/commandhistory,type=volume",
@@ -85,14 +87,19 @@
         "git.openRepositoryInParentFolders": "never",
         "gitlens.graph.layout": "editor",
         // --- AI (Claude & Chat) ---
-        "chat.hookFilesLocations": {
-          "~/.claude/settings.json": false
-        },
         "chat.useClaudeHooks": true,
         "claudeCode.environmentVariables": [
           {
             "name": "PYTHONPATH",
             "value": "${workspaceFolder}:${workspaceFolder}/src:${workspaceFolder}/tests"
+          },
+          {
+            "name": "CONTEXT7_API_KEY",
+            "value": "${containerEnv:CONTEXT7_API_KEY}"
+          },
+          {
+            "name": "GIT_READONLY",
+            "value": "${containerEnv:GIT_READONLY}"
           }
         ],
         "claudeCode.preferredLocation": "sidebar",
@@ -175,42 +182,7 @@
         "[yaml]": {
           "editor.formatOnSave": true,
           "editor.defaultFormatter": "redhat.vscode-yaml"
-        },
-        // --- Theme Cycling (Sync) ---
-        "settings.cycle": [
-          {
-            "id": "CustomThemes",
-            "values": [
-              {
-                "note": "Cyber Punk",
-                "workbench.colorCustomizations": {
-                  "statusBar.background": "#8700ff",
-                  "statusBar.foreground": "#ffff00",
-                  "diffEditor.insertedTextBackground": "#005fff33",
-                  "diffEditor.removedTextBackground": "#ff00df33"
-                }
-              },
-              {
-                "note": "Forest Mist",
-                "workbench.colorCustomizations": {
-                  "statusBar.background": "#005f00",
-                  "statusBar.foreground": "#ffffff",
-                  "diffEditor.insertedTextBackground": "#5f875f33",
-                  "diffEditor.removedTextBackground": "#005f0033"
-                }
-              },
-              {
-                "note": "Slate Fire",
-                "workbench.colorCustomizations": {
-                  "statusBar.background": "#1c1c1c",
-                  "statusBar.foreground": "#ffaf00",
-                  "diffEditor.insertedTextBackground": "#d7000033",
-                  "diffEditor.removedTextBackground": "#1c1c1c33"
-                }
-              }
-            ]
-          }
-        ]
+        }
       },
       "extensions": [
         "angular.ng-template",
@@ -232,8 +204,7 @@
         "mutantdino.resourcemonitor",
         "oderwat.indent-rainbow",
         "postman.postman-for-vscode",
-        "redhat.vscode-yaml",
-        "hoovercj.vscode-settings-cycler"
+        "redhat.vscode-yaml"
       ]
     }
   },
