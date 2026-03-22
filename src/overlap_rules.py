@@ -159,7 +159,7 @@ class OverlapInjector:
         mol: MBMolecule,
         bmc: BondMatchCandidate,
         accepted_candidates: list[BondMatchCandidate],
-        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
+        accepted: dict[str, list[BondMatchCandidate]],
         *,
         trigger: str,
     ) -> None:
@@ -172,7 +172,7 @@ class OverlapInjector:
             rule = group_entry.get("inject_rules", {}).get(bmc.formula)
         if rule is None:
             return
-        rule(mol, bmc, accepted_candidates, final_hits_by_formula, trigger)
+        rule(mol, bmc, accepted_candidates, accepted, trigger)
 
     @staticmethod
     def _inject_bicyclic(
@@ -206,49 +206,31 @@ class OverlapInjector:
         if bmc.formula != "Cl-CR2-CR2-Cl":
             return False
         exclude_idx = {i for acc in accepted_candidates for i in acc.atoms}
-        free_nodes = list(set(bmc.atoms) - (exclude_idx & set(bmc.atoms)))
-        # # debug variables
-        free_nodes_info = {
-            idx: {
-                "symbol": mol.GetAtomInfoByIdx(idx).symbol,
-                "neighbors": [
-                    (nbr.GetIdx(), nbr.GetSymbol(), mol.GetBondBetweenAtoms(idx, nbr.GetIdx()).GetBondType())
-                    for nbr in mol.GetAtomWithIdx(idx).GetNeighbors()
-                ],
-            }
-            for idx in free_nodes
-        }
-        # bmc_view = [(idx, mol.GetAtomInfoByIdx(idx).symbol) for idx in bmc.atoms]
-        # a1_neighbors = [(nbr.GetIdx(), nbr.GetSymbol()) for nbr in mol.GetAtomWithIdx(a1).GetNeighbors()]
-        # a2_neighbors = [(nbr.GetIdx(), nbr.GetSymbol()) for nbr in mol.GetAtomWithIdx(a2).GetNeighbors()]
-        # mol_Cl_atoms = {
-        #     a.GetIdx(): [(nbr.GetIdx(), nbr.GetSymbol(), mol.GetBondBetweenAtoms(a.GetIdx(), nbr.GetIdx()).GetBondType()) for nbr in a.GetNeighbors()]
-        #     for a in mol.GetAtoms()
-        #     if a.GetSymbol() == "Cl" and a.GetIdx() not in exclude_idx
-        # }
-
-        # Build Injection logic
+        free_nodes = list(set(bmc.atoms) - exclude_idx)
         free_Cl = [idx for idx in free_nodes if mol.GetAtomInfoByIdx(idx).symbol == "Cl"]
-        free_Cl_neighbors = {
-            idx: [
-                (nbr.GetIdx(), nbr.GetSymbol(), mol.GetBondBetweenAtoms(idx, nbr.GetIdx()).GetBondType())
-                for nbr in mol.GetAtomWithIdx(idx).GetNeighbors()
-            ]
-            for idx in free_Cl
-        }
-        valid_c_cl_bonds = [
-            (next(n[0] for n in neighbors if n[1] == "C" and n[2] == Chem.BondType.SINGLE), cl_idx) for cl_idx, neighbors in free_Cl_neighbors.items()
-        ]
-        if len(valid_c_cl_bonds) in [1, 2]:  # only one Cl is free here
-            for c_idx, cl_idx in valid_c_cl_bonds:
-                new_bmc = BondMatchCandidate.from_bt(CARBON_HALOGEN_BOND, [c_idx, cl_idx])
-                for _ in range(2):  # Add two times
-                    accepted_candidates.append(new_bmc)
-                    final_hits_by_formula.setdefault(CARBON_HALOGEN_BOND.formula, []).append(new_bmc)
-                return True
-        elif len(valid_c_cl_bonds) >= 2:
-            raise Exception("more than 2 valid neibhgors")
-        return False
+        valid_c_cl_bonds: list[tuple[int, int]] = []
+        for cl_idx in free_Cl:
+            for nbr in mol.GetAtomWithIdx(cl_idx).GetNeighbors():
+                is_carbon = nbr.GetSymbol() == "C"
+                is_single_bond = mol.GetBondBetweenAtoms(cl_idx, nbr.GetIdx()).GetBondType() == Chem.BondType.SINGLE
+                if is_carbon and is_single_bond:
+                    valid_c_cl_bonds.append((nbr.GetIdx(), cl_idx))
+
+        if not valid_c_cl_bonds:
+            # All Cl atoms in this fragment are already occupied by accepted candidates — nothing to inject.
+            return False
+        if len(valid_c_cl_bonds) >= 3:
+            raise ValueError(f"Expected at most 2 valid C-Cl bonds, got {len(valid_c_cl_bonds)}")
+
+        # Use [0] as representative — do NOT iterate. Invariant: one rejected Cl-CR2-CR2-Cl always
+        # contributes exactly 2 C-Cl bonds, encoded by injecting one bond twice via range(2).
+        # Iterating all bonds when len==2 doubles the count to 4, breaking test 201.
+        c_idx, cl_idx = valid_c_cl_bonds[0]
+        new_bmc = BondMatchCandidate.from_bt(CARBON_HALOGEN_BOND, [c_idx, cl_idx])
+        for _ in range(2):  # inject representative C-Cl bond twice (encodes the 2-bond invariant)
+            accepted_candidates.append(new_bmc)
+            final_hits_by_formula.setdefault(CARBON_HALOGEN_BOND.formula, []).append(new_bmc)
+        return True
 
     @staticmethod
     def _inject_aromatic(

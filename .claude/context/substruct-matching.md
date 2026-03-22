@@ -28,7 +28,7 @@ This task roughly estimated at 95% done in terms of effort. The last 5% is very 
 
 ## Open Tasks
 1. [x] Review **substruct matcher** code: `src/core/substruct_matcher.py`.
-2. [ ] Apply strategy pattern to `_FilterCrossOverlaps`: extract a `CrossOverlapRules` class (analogous to `SelfOverlapRules`) to replace the current `match bmc.cross_overlap_group` branching. Per-group static methods dispatched via `OVERLAP_RULES_CONFIG`, consistent naming convention with existing strategy tables.
+2. [x] Apply strategy pattern to `_FilterCrossOverlaps`: extract a `CrossOverlapRules` class (analogous to `SelfOverlapRules`) to replace the current `match bmc.cross_overlap_group` branching. Per-group static methods dispatched via `OVERLAP_RULES_CONFIG`, consistent naming convention with existing strategy tables.
 
 ## Remaining Substruct Matching Challenges
 Source: `docs/remaining_substruct_matching_challenges.pdf`
