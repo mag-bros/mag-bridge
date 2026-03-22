@@ -7,7 +7,7 @@ Reference document for `src/core/substruct_matcher.py` and `src/overlap_rules.py
 | File | Role |
 |---|---|
 | `src/core/substruct_matcher.py` | Orchestrator: `GetMatches → _Postprocess → _FilterSelfOverlaps → _FilterCrossOverlaps` |
-| `src/overlap_rules.py` | Strategy tables: `SelfOverlapRules`, `DerivedInjectRules`, `CROSS_OVERLAP_RULES` |
+| `src/overlap_rules.py` | Strategy tables: `SelfOverlapRules`, `DerivedInjectRules`, `OVERLAP_RULES_CONFIG` |
 | `src/constants/bond_types.py` | Bond type definitions, `OverlapGroup` enum — SMARTS patterns are frozen |
 | `src/core/cross_overlap_comparator.py` | Priority sorting used by `_FilterCrossOverlaps` |
 
@@ -94,15 +94,15 @@ Naming convention mirrors `SelfOverlapRules`: `_inject_{group}`. All rule method
 
 ```python
 trigger == "on_accept"
-    → CROSS_OVERLAP_RULES[group]["on_accept"]          # group-level callable
+    → OVERLAP_RULES_CONFIG[group]["on_accept"]          # group-level callable
 
 trigger == "on_self_reject" | "on_cross_reject"
-    → CROSS_OVERLAP_RULES[group]["inject_rules"][formula]  # formula-level dict
+    → OVERLAP_RULES_CONFIG[group]["inject_rules"][formula]  # formula-level dict
 ```
 
 ---
 
-## `CROSS_OVERLAP_RULES` Structure
+## `OVERLAP_RULES_CONFIG` Structure
 
 Defined in `overlap_rules.py` after all class definitions (method references resolve at module level).
 
@@ -141,7 +141,50 @@ OverlapGroup.Ar_N_BOND_TYPES: {
 
 ## `_FilterCrossOverlaps`
 
-Filters candidates across different formula groups using priority ordering from `CROSS_OVERLAP_RULES`. `CrossOverlapComparator.sort_matches()` determines processing order (higher priority groups resolved first). Calls `DerivedInjectRules.inject(trigger="on_cross_reject")` for BICYCLIC_STRUCTURES rejections.
+Filters candidates across different formula groups using priority ordering from `OVERLAP_RULES_CONFIG`. `CrossOverlapComparator.sort_matches()` determines processing order (higher priority groups resolved first). Calls `DerivedInjectRules.inject(trigger="on_cross_reject")` for BICYCLIC_STRUCTURES rejections.
+
+```
+grouped_candidates
+        │
+        ▼
+┌─────────────────────────────────────────────────────┐
+│  Sort all candidates by group priority              │
+│  CrossOverlapComparator.sort_matches()              │
+└──────────────────┬──────────────────────────────────┘
+                   │
+                   │  ↻ one bmc at a time, in sorted order
+                   ▼
+┌─────────────────────────────────────────────────────┐
+│  Check bmc against accepted_candidates              │
+│  → approve / reject                                 │
+└──────────────────┬──────────────────────────────────┘
+                   │
+        ┌──────────┴──────────┐
+        ▼                     ▼
+     approve               reject
+        │                     │
+        ▼                     ▼
+  append bmc to      DerivedInjectRules.inject()
+  filtered +         trigger="on_cross_reject"
+  accepted_candidates  → may append to filtered + accepted_candidates
+        │                     │
+        └──────────┬──────────┘
+                   │  (accepted_candidates updated before next bmc)
+                   ▼
+         (after all iterations)
+┌─────────────────────────────────────────────────────┐
+│  Strip dummy rings + dummy bond types               │
+└──────────────────┬──────────────────────────────────┘
+                   │
+                   ▼
+            dict(filtered)
+```
+
+### Cross Overlap Structural Requirements
+
+- **Candidates must be processed in group priority order** — each decision reads `accepted_candidates` built by all prior iterations; group priority determines which formulas "claim" atoms first.
+- **DerivedInjectRules must fire in the same iteration as the rejection** — injected candidates (e.g. a C=C from a rejected cyclohexene) compute free atoms from the current `accepted_candidates` snapshot; deferring it to after the loop would expand that snapshot and produce wrong or missing injections.
+- **Check-overlap methods only return a decision** — writing to `filtered` or `accepted_candidates` always happens at the caller level, keeping rule methods consistent with `SelfOverlapRules`.
 
 ---
 

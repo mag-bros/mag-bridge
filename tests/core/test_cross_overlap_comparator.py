@@ -2,19 +2,19 @@ from unittest.mock import MagicMock
 
 from src.constants.bond_types import OverlapGroup
 from src.core.cross_overlap_comparator import CrossOverlapComparator
-from src.overlap_rules import CROSS_OVERLAP_RULES
+from src.overlap_rules import OVERLAP_RULES_CONFIG
 
 
 def test_is_higher_priority():
     """Verify correct hierarchy comparison between two bond formulas."""
-    assert CrossOverlapComparator.is_higher_priority("Ar-C=C", "C=C", OverlapGroup.DOUBLE_BONDS, CROSS_OVERLAP_RULES)
-    assert not CrossOverlapComparator.is_higher_priority("C=C", "Ar-C=C", OverlapGroup.DOUBLE_BONDS, CROSS_OVERLAP_RULES)
-    assert CrossOverlapComparator.is_higher_priority("cyclopropane", "cyclopentane", OverlapGroup.BICYCLIC_STRUCTURES, CROSS_OVERLAP_RULES)
-    assert not CrossOverlapComparator.is_higher_priority("invalid", "C=C", OverlapGroup.DOUBLE_BONDS, CROSS_OVERLAP_RULES)
+    assert CrossOverlapComparator.is_higher_priority("Ar-C=C", "C=C", OverlapGroup.DOUBLE_BONDS, OVERLAP_RULES_CONFIG)
+    assert not CrossOverlapComparator.is_higher_priority("C=C", "Ar-C=C", OverlapGroup.DOUBLE_BONDS, OVERLAP_RULES_CONFIG)
+    assert CrossOverlapComparator.is_higher_priority("cyclopropane", "cyclopentane", OverlapGroup.BICYCLIC_STRUCTURES, OVERLAP_RULES_CONFIG)
+    assert not CrossOverlapComparator.is_higher_priority("invalid", "C=C", OverlapGroup.DOUBLE_BONDS, OVERLAP_RULES_CONFIG)
 
 
 def test_sort_matches():
-    """Verify group-level and intra-group ordering from CROSS_OVERLAP_RULES."""
+    """Verify group-level and intra-group ordering from OVERLAP_RULES_CONFIG."""
 
     def make_candidates(group):
         c = MagicMock()
@@ -27,7 +27,7 @@ def test_sort_matches():
         "C=O": make_candidates(OverlapGroup.CARBONYL_BOND_TYPES),
         "CH2=CH-CH2-": make_candidates(OverlapGroup.DOUBLE_BONDS),
     }
-    result = CrossOverlapComparator.sort_matches(grouped, CROSS_OVERLAP_RULES)
+    result = CrossOverlapComparator.sort_matches(grouped, OVERLAP_RULES_CONFIG)
     formulas = [f for f, _ in result]
 
     assert formulas[0] == "C=O"

@@ -10,7 +10,7 @@ from src.constants.bond_types import (
 from src.core.cross_overlap_comparator import CrossOverlapComparator
 from src.core.molecule import MBMolecule
 from src.overlap_rules import (
-    CROSS_OVERLAP_RULES,
+    OVERLAP_RULES_CONFIG,
     BondMatchCandidate,
     DerivedInjectRules,
     RejectedCandidate,
@@ -159,7 +159,7 @@ class MBSubstructMatcher:
         """Filter cross overlaps via specific rules, respecting relations between Bond Match Candidates."""
         filtered = defaultdict(list)
         accepted_candidates: list[BondMatchCandidate] = []
-        all_matches = CrossOverlapComparator.sort_matches(grouped_candidates, CROSS_OVERLAP_RULES)
+        all_matches = CrossOverlapComparator.sort_matches(grouped_candidates, OVERLAP_RULES_CONFIG)
 
         for _iteration, (cand_key, candidates) in enumerate(all_matches):
             for bmc in candidates:
@@ -192,7 +192,7 @@ class MBSubstructMatcher:
                                     formula1=bmc.formula,
                                     formula2=acc_can.formula,
                                     group=OverlapGroup.CARBONYL_BOND_TYPES,
-                                    rules=CROSS_OVERLAP_RULES,
+                                    rules=OVERLAP_RULES_CONFIG,
                                 ):
                                     # candidate is higher prio -> add to result
                                     approve_candidate = True

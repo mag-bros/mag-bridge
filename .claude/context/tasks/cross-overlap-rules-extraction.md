@@ -61,7 +61,7 @@ The `match/case` block is removed entirely.
 
 - Use `pyright-lsp` plugin for ALL Python file work (required by CLAUDE.md)
 - Change scope: `src/overlap_rules.py` and `src/core/substruct_matcher.py` only
-- Add `CrossOverlapRules` to `CROSS_OVERLAP_RULES` dispatch (add `cross_overlap_rule` key per group)
+- Add `CrossOverlapRules` to `OVERLAP_RULES_CONFIG` dispatch (add `cross_overlap_rule` key per group)
 - Docstrings must follow the one-liner style in `SelfOverlapRules` — action verb, condition, effect
 - Do NOT run pytest. When the implementation is complete, stop and ask the developer to run tests.
 - If you find any inconsistency between the existing code and this brief, stop and report it before proceeding.
@@ -75,6 +75,6 @@ Two known asymmetries to flag before implementing — do not silently resolve th
    Propose how to handle this asymmetry and wait for confirmation.
 
 2. **`CARBONYL_BOND_TYPES` branch** calls `CrossOverlapComparator.is_higher_priority()` —
-   it references `CROSS_OVERLAP_RULES` and compares `bmc.formula` vs `acc_can.formula` within
+   it references `OVERLAP_RULES_CONFIG` and compares `bmc.formula` vs `acc_can.formula` within
    the loop. Confirm whether this stays fully inline inside `_check_carbonyl` or needs
    further decomposition before proceeding.

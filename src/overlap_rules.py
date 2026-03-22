@@ -63,7 +63,7 @@ class SelfOverlapRules:
         """Check bmc against accepted_in_group using its group rule; returns RejectedCandidate on overlap, None to accept."""
         if bmc.cross_overlap_group is None:
             return None
-        group_rules = CROSS_OVERLAP_RULES.get(bmc.cross_overlap_group)
+        group_rules = OVERLAP_RULES_CONFIG.get(bmc.cross_overlap_group)
         if group_rules is None:
             return None
         rule = group_rules.get("self_overlap_rule")
@@ -164,7 +164,7 @@ class DerivedInjectRules:
     ) -> None:
         """Dispatch injection rule via trigger context: formula-level for rejections, group-level for on_accept; no-op if no rule is registered."""
         group = bmc.cross_overlap_group if bmc.cross_overlap_group is not None else OverlapGroup.DEFAULT
-        group_entry = CROSS_OVERLAP_RULES.get(group, {})
+        group_entry = OVERLAP_RULES_CONFIG.get(group, {})
         if trigger == "on_accept":
             rule = group_entry.get("on_accept")
         else:
@@ -292,7 +292,7 @@ class DerivedInjectRules:
         return False
 
 
-CROSS_OVERLAP_RULES: dict = {
+OVERLAP_RULES_CONFIG: dict = {
     ## Elements to the left have higher priority!
     OverlapGroup.DEFAULT: {
         "group_prio": int(OverlapGroup.DEFAULT),

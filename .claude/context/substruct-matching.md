@@ -16,10 +16,10 @@ This task roughly estimated at 95% done in terms of effort. The last 5% is very 
 
 ## Core Files Map
 - `src/core/substruct_matcher.py` - most important file for the whole task. Contains very complex chemical project-tailored graph-based matching features.
-- `src/overlap_rules.py` - strategy tables: `SelfOverlapRules`, `DerivedInjectRules`, `CROSS_OVERLAP_RULES`.
+- `src/overlap_rules.py` - strategy tables: `SelfOverlapRules`, `DerivedInjectRules`, `OVERLAP_RULES_CONFIG`.
 - `src/constants/bond_types.py` - a list of relevant bond types used for matching molecule substructures.
 - `tests/reports/TEST_DRIFT_substruct_matching.md` - **Test Drift Report**
-- `.claude/context/substruct-matcher-architecture.md` - **Logic flow and architecture reference** (3-phase pipeline, strategy tables, CROSS_OVERLAP_RULES structure)
+- `.claude/context/substruct-matcher-architecture.md` - **Logic flow and architecture reference** (3-phase pipeline, strategy tables, OVERLAP_RULES_CONFIG structure)
 
 ## Tests
 - `tests/core/test_substruct_matching.py` - The ONLY test that matters for this task is defined inside this file: `def test_substruct_matches(...)`
@@ -28,7 +28,7 @@ This task roughly estimated at 95% done in terms of effort. The last 5% is very 
 
 ## Open Tasks
 1. [x] Review **substruct matcher** code: `src/core/substruct_matcher.py`.
-2. [ ] Apply strategy pattern to `_FilterCrossOverlaps`: extract a `CrossOverlapRules` class (analogous to `SelfOverlapRules`) to replace the current `match bmc.cross_overlap_group` branching. Per-group static methods dispatched via `CROSS_OVERLAP_RULES`, consistent naming convention with existing strategy tables.
+2. [ ] Apply strategy pattern to `_FilterCrossOverlaps`: extract a `CrossOverlapRules` class (analogous to `SelfOverlapRules`) to replace the current `match bmc.cross_overlap_group` branching. Per-group static methods dispatched via `OVERLAP_RULES_CONFIG`, consistent naming convention with existing strategy tables.
 
 ## Remaining Substruct Matching Challenges
 Source: `docs/remaining_substruct_matching_challenges.pdf`
