@@ -158,7 +158,7 @@ class OverlapInjector:
         cls,
         mol: MBMolecule,
         bmc: BondMatchCandidate,
-        accepted_candidates: list[BondMatchCandidate],
+        occupied: list[BondMatchCandidate],
         accepted: dict[str, list[BondMatchCandidate]],
         *,
         trigger: str,
@@ -172,40 +172,40 @@ class OverlapInjector:
             rule = group_entry.get("inject_rules", {}).get(bmc.formula)
         if rule is None:
             return
-        rule(mol, bmc, accepted_candidates, accepted, trigger)
+        rule(mol, bmc, occupied, accepted, trigger)
 
     @staticmethod
     def _inject_bicyclic(
         mol: MBMolecule,
         bmc: BondMatchCandidate,
-        accepted_candidates: list[BondMatchCandidate],
-        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
+        occupied: list[BondMatchCandidate],
+        accepted: dict[str, list[BondMatchCandidate]],
         trigger: str,
     ) -> bool:
         """If cyclohexene is rejected due to bicyclic overlap, add double bond matches instead."""
         if bmc.formula != "cyclohexene":
             return False
-        exclude_idx = {i for acc in accepted_candidates for i in acc.atoms}
+        exclude_idx = {i for acc in occupied for i in acc.atoms}
         double_bond_atoms = mol.GetDoubleBondAtomsIndexes(exclude_idx=exclude_idx)
         if not double_bond_atoms:
             return False
         new_bmc = BondMatchCandidate.from_bt(DOUBLE_BOND, double_bond_atoms)
-        accepted_candidates.append(new_bmc)
-        final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
+        occupied.append(new_bmc)
+        accepted.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
         return True
 
     @staticmethod
     def _inject_default(
         mol: MBMolecule,
         bmc: BondMatchCandidate,
-        accepted_candidates: list[BondMatchCandidate],
-        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
+        occupied: list[BondMatchCandidate],
+        accepted: dict[str, list[BondMatchCandidate]],
         trigger: str,
     ) -> bool:
         """If Cl-CR2-CR2-Cl is rejected, inject free C-Cl bonds from atoms not yet occupied by accepted matches."""
         if bmc.formula != "Cl-CR2-CR2-Cl":
             return False
-        exclude_idx = {i for acc in accepted_candidates for i in acc.atoms}
+        exclude_idx = {i for acc in occupied for i in acc.atoms}
         free_nodes = list(set(bmc.atoms) - exclude_idx)
         free_Cl = [idx for idx in free_nodes if mol.GetAtomInfoByIdx(idx).symbol == "Cl"]
         valid_c_cl_bonds: list[tuple[int, int]] = []
@@ -228,37 +228,37 @@ class OverlapInjector:
         c_idx, cl_idx = valid_c_cl_bonds[0]
         new_bmc = BondMatchCandidate.from_bt(CARBON_HALOGEN_BOND, [c_idx, cl_idx])
         for _ in range(2):  # inject representative C-Cl bond twice (encodes the 2-bond invariant)
-            accepted_candidates.append(new_bmc)
-            final_hits_by_formula.setdefault(CARBON_HALOGEN_BOND.formula, []).append(new_bmc)
+            occupied.append(new_bmc)
+            accepted.setdefault(CARBON_HALOGEN_BOND.formula, []).append(new_bmc)
         return True
 
     @staticmethod
     def _inject_aromatic(
         mol: MBMolecule,
         bmc: BondMatchCandidate,
-        accepted_candidates: list[BondMatchCandidate],
-        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
+        occupied: list[BondMatchCandidate],
+        accepted: dict[str, list[BondMatchCandidate]],
         trigger: str,
     ) -> bool:
-        """If bmc shares no atom with already-seen candidates, append (aromatic C count − 1) duplicate copies into final_hits_by_formula."""
+        """If bmc shares no atom with already-seen candidates, append (aromatic C count - 1) duplicate copies into accepted."""
         if bmc.formula not in {"Ar-OR", "Ar-NR2"}:
             return False
         bmc_atoms = set(bmc.atoms)
-        if any(len(set(acc.atoms) & bmc_atoms) >= 1 for acc in accepted_candidates):
+        if any(len(set(acc.atoms) & bmc_atoms) >= 1 for acc in occupied):
             return False
         aromatic_C_atoms = sum(1 for idx in bmc.atoms if mol.GetAtomInfoByIdx(idx).symbol == "C" and mol.GetAtomInfoByIdx(idx).GetIsAromatic())
         extras = [bmc] * (aromatic_C_atoms - 1)
         if not extras:
             return False
-        final_hits_by_formula.setdefault(bmc.formula, []).extend(extras)
+        accepted.setdefault(bmc.formula, []).extend(extras)
         return True
 
     @staticmethod
     def _rule_Ar4_N(
         mol: MBMolecule,
         bmc: BondMatchCandidate,
-        accepted_candidates: list[BondMatchCandidate],
-        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
+        occupied: list[BondMatchCandidate],
+        accepted: dict[str, list[BondMatchCandidate]],
         conflicts: list[BondMatchCandidate],
     ) -> bool:
         """NOTE: Rule not used. Might be useful in the future.
@@ -269,8 +269,8 @@ class OverlapInjector:
             if conflict.dummy_bond_type:
                 new_bmc = BondMatchCandidate.from_bt(AR_NR2, double_bond_atoms)
                 for _ in range(4):
-                    accepted_candidates.append(new_bmc)
-                    final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
+                    occupied.append(new_bmc)
+                    accepted.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
                 break  # only first
         return False
 
@@ -285,7 +285,7 @@ class CrossOverlapRules:
         mol: MBMolecule,
         bmc: BondMatchCandidate,
         bmc_atoms: set[int],
-        accepted_candidates: list[BondMatchCandidate],
+        occupied: list[BondMatchCandidate],
     ) -> bool:
         """Dispatch to the group's cross-overlap rule; returns True (approve) if no rule registered."""
         group = bmc.cross_overlap_group
@@ -294,18 +294,18 @@ class CrossOverlapRules:
         rule = OVERLAP_RULES_CONFIG.get(group, {}).get("cross_overlap_rule")
         if rule is None:
             return True
-        return rule(mol, bmc, bmc_atoms, accepted_candidates)
+        return rule(mol, bmc, bmc_atoms, occupied)
 
     @staticmethod
     def _check_bicyclic(
         mol: MBMolecule,
         bmc: BondMatchCandidate,
         bmc_atoms: set[int],
-        accepted_candidates: list[BondMatchCandidate],
+        occupied: list[BondMatchCandidate],
     ) -> bool:
         """Reject if bmc shares 3+ atoms with any accepted candidate."""
         bicyclic_approved = True
-        for acc in accepted_candidates:
+        for acc in occupied:
             shared_atoms = bmc_atoms & set(acc.atoms)
             if len(shared_atoms) >= 3:
                 bicyclic_approved = False
@@ -316,11 +316,11 @@ class CrossOverlapRules:
         mol: MBMolecule,
         bmc: BondMatchCandidate,
         bmc_atoms: set[int],
-        accepted_candidates: list[BondMatchCandidate],
+        occupied: list[BondMatchCandidate],
     ) -> bool:
         """Reject if bmc shares 1+ atom with any accepted double-bond candidate."""
         double_bond_approved = True
-        for acc in accepted_candidates:
+        for acc in occupied:
             is_double_bond_group = acc.cross_overlap_group == OverlapGroup.DOUBLE_BONDS
             shared_atoms = bmc_atoms & set(acc.atoms)
             if is_double_bond_group and len(shared_atoms) >= 1:
@@ -332,7 +332,7 @@ class CrossOverlapRules:
         mol: MBMolecule,
         bmc: BondMatchCandidate,
         bmc_atoms: set[int],
-        accepted_candidates: list[BondMatchCandidate],
+        occupied: list[BondMatchCandidate],
     ) -> bool:
         """Approve unless a higher-priority accepted carbonyl overlaps by 2+ atoms.
 
@@ -344,7 +344,7 @@ class CrossOverlapRules:
         Potential fix if last-wins becomes unsafe:
             Collect all conflicts, then reject if ANY accepted carbonyl has higher
             priority than bmc. Replace the loop body with:
-                conflicts = [acc for acc in accepted_candidates if <conflict_condition>]
+                conflicts = [acc for acc in occupied if <conflict_condition>]
                 return not any(
                     not CrossOverlapComparator.is_higher_priority(bmc.formula, c.formula, ...)
                     for c in conflicts
@@ -352,7 +352,7 @@ class CrossOverlapRules:
             This changes semantics from 'last conflict decides' to 'any conflict can reject'.
         """
         carbonyl_approved = True
-        for acc in accepted_candidates:
+        for acc in occupied:
             if acc.formula == bmc.formula:
                 continue
             shared_atoms = bmc_atoms & set(acc.atoms)
@@ -370,11 +370,11 @@ class CrossOverlapRules:
         mol: MBMolecule,
         bmc: BondMatchCandidate,
         bmc_atoms: set[int],
-        accepted_candidates: list[BondMatchCandidate],
+        occupied: list[BondMatchCandidate],
     ) -> bool:
         """Reject if bmc shares 3+ atoms with any accepted Ar-N candidate."""
         ar_n_approved = True
-        for acc in accepted_candidates:
+        for acc in occupied:
             is_ar_n_group = acc.cross_overlap_group == OverlapGroup.Ar_N_BOND_TYPES
             shared_atoms = bmc_atoms & set(acc.atoms)
             if is_ar_n_group and len(shared_atoms) >= 3:

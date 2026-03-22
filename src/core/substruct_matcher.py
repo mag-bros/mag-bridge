@@ -18,7 +18,7 @@ from src.overlap_rules import (
 
 @dataclass(frozen=True, slots=True)
 class SubstructMatchResult:
-    final_hits_by_formula: dict[str, list[tuple[int, ...]]]
+    hits_by_formula: dict[str, list[tuple[int, ...]]]
 
     # Renderer-ready outputs
     matchesCounter: Counter[str]
@@ -28,7 +28,7 @@ class SubstructMatchResult:
     @staticmethod
     def empty() -> "SubstructMatchResult":
         return SubstructMatchResult(
-            final_hits_by_formula={},
+            hits_by_formula={},
             matchesCounter=Counter(),
             highlightAtomGroups={},
             highlightAtomList=[],
@@ -70,7 +70,7 @@ class MBSubstructMatcher:
 
         final_candidates_by_formula: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterCrossOverlaps(mol, filtered)
 
-        final_hits_by_formula: dict[str, list[tuple[int, ...]]] = {
+        hits_by_formula: dict[str, list[tuple[int, ...]]] = {
             f: [tuple(sorted(c.atoms)) for c in lst] for f, lst in final_candidates_by_formula.items()
         }
 
@@ -80,7 +80,7 @@ class MBSubstructMatcher:
         atoms_to_highlight: set[int] = set()
 
         # prepare data for renderer
-        for formula, hits in final_hits_by_formula.items():
+        for formula, hits in hits_by_formula.items():
             if not hits:
                 continue
             matches_counter[formula] += len(hits)
@@ -89,7 +89,7 @@ class MBSubstructMatcher:
                 atoms_to_highlight.update(hit)
 
         return SubstructMatchResult(
-            final_hits_by_formula=final_hits_by_formula,
+            hits_by_formula=hits_by_formula,
             matchesCounter=matches_counter,
             highlightAtomGroups={k: sorted(v) for k, v in groups_atoms.items()},
             highlightAtomList=sorted(atoms_to_highlight),
@@ -121,16 +121,15 @@ class MBSubstructMatcher:
                     accepted[cand_key].append(bmc)
 
         # --- Phase 2: Derived injections ---
-        # working_accepted is a copy: injection rules may append to it (e.g. to compute exclude_idx
-        # for subsequent injections), but those foreign-type appends must not pollute accepted[cand_key].
         for cand_key, rejects in rejected.items():
-            working_accepted: list[BondMatchCandidate] = list(accepted[cand_key])
+            # Snapshot of group's accepted — injectors may append but must not pollute accepted[cand_key]
+            occupied: list[BondMatchCandidate] = list(accepted[cand_key])
             for rc in rejects:
                 OverlapInjector.inject_on_reject(
                     mol=mol,
                     bmc=rc.candidate,
-                    accepted_candidates=working_accepted,
-                    final_hits_by_formula=accepted,
+                    occupied=occupied,
+                    accepted=accepted,
                     trigger="on_self_reject",
                 )
 
@@ -141,8 +140,8 @@ class MBSubstructMatcher:
                 OverlapInjector.inject_on_reject(
                     mol=mol,
                     bmc=bmc,
-                    accepted_candidates=seen,
-                    final_hits_by_formula=accepted,
+                    occupied=seen,
+                    accepted=accepted,
                     trigger="on_accept",
                 )
                 seen.append(bmc)
@@ -156,21 +155,20 @@ class MBSubstructMatcher:
     ) -> dict[str, list[BondMatchCandidate]]:
         """Filter cross overlaps via specific rules, respecting relations between Bond Match Candidates."""
         accepted: dict[str, list[BondMatchCandidate]] = defaultdict(list)
-        accepted_candidates: list[BondMatchCandidate] = []
+        # Flat list of all accepted candidates across all groups — tracks which atoms are occupied globally
+        occupied: list[BondMatchCandidate] = []
         all_matches = CrossOverlapComparator.sort_matches(grouped_candidates, OVERLAP_RULES_CONFIG)
 
         for _iteration, (cand_key, candidates) in enumerate(all_matches):
             for bmc in candidates:
                 bmc_atoms = set(tuple(sorted(bmc.atoms)))
 
-                approve_candidate = CrossOverlapRules.check_overlap(mol, bmc, bmc_atoms, accepted_candidates)
+                approve_candidate = CrossOverlapRules.check_overlap(mol, bmc, bmc_atoms, occupied)
                 if not approve_candidate:
-                    OverlapInjector.inject_on_reject(
-                        mol=mol, bmc=bmc, accepted_candidates=accepted_candidates, final_hits_by_formula=accepted, trigger="on_cross_reject"
-                    )
+                    OverlapInjector.inject_on_reject(mol=mol, bmc=bmc, occupied=occupied, accepted=accepted, trigger="on_cross_reject")
                 if approve_candidate:
                     accepted[cand_key].append(bmc)
-                    accepted_candidates.append(bmc)
+                    occupied.append(bmc)
 
         # Placeholder "dummy" rings must be removed from output - they are temporary objects used only during processing
         filtered_result = {k: [c for c in v if (not c.dummy_ring and not c.dummy_bond_type)] for k, v in dict(accepted).items()}

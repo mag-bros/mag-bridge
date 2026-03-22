@@ -32,8 +32,8 @@ def test_substruct_matches(substruct_match_test: SubstructMatchTest) -> None:
 
     assert normalize_counter_keys(substruct_match_test.expected_matches) == normalize_counter_keys(result.matchesCounter)
 
-    # Internal consistency check: counter must match final hit lists
-    assert sum(result.matchesCounter.values()) == sum(len(hits) for hits in result.final_hits_by_formula.values())
+    # Internal consistency check: counter must match hit lists
+    assert sum(result.matchesCounter.values()) == sum(len(hits) for hits in result.hits_by_formula.values())
 
 
 def test_smiles_uniqueness() -> None:

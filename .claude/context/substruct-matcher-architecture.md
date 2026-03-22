@@ -63,7 +63,7 @@ grouped_candidates
             dict(accepted)
 ```
 
-**Phase 2 isolation:** `working_accepted = list(accepted[cand_key])` — inject rules may append foreign-type entries to this copy (for `exclude_idx` computation), but those writes must not contaminate `accepted[cand_key]`.
+**Phase 2 isolation:** `occupied = list(accepted[cand_key])` — inject rules may append foreign-type entries to this copy (for `exclude_idx` computation), but those writes must not contaminate `accepted[cand_key]`.
 
 **Phase 3 `seen` list:** Each accepted candidate is processed against `seen` (candidates earlier in the same group). `seen` grows per iteration; extras are written directly to `accepted[formula]`.
 
@@ -98,7 +98,7 @@ grouped_candidates
                    │  ↻ one bmc at a time, in sorted order
                    ▼
 ┌─────────────────────────────────────────────────────┐
-│  Check bmc against accepted_candidates              │
+│  Check bmc against occupied                         │
 │  CrossOverlapRules.check_overlap()                  │
 │  → approve / reject                                 │
 └──────────────────┬──────────────────────────────────┘
@@ -109,14 +109,14 @@ grouped_candidates
 │  approve                      │  │  reject                          │
 │                               │  │                                  │
 │  bmc → accepted               │  │  OverlapInjector                 │
-│  bmc → accepted_candidates    │  │  .inject_on_reject(              │
+│  bmc → occupied               │  │  .inject_on_reject(              │
 │                               │  │    trigger="on_cross_reject")    │
 │                               │  │  → may append to accepted +      │
-│                               │  │    accepted_candidates           │
+│                               │  │    occupied                      │
 └──────────────┬────────────────┘  └────────────────┬─────────────────┘
                │                                    │
                └─────────────────┬──────────────────┘
-                                 │  (accepted_candidates updated
+                                 │  (occupied updated
                                  │   before next bmc) ↺
 
          (after all iterations)
@@ -130,9 +130,9 @@ grouped_candidates
 
 ### Cross-Overlap Structural Requirements
 
-- **Candidates must be processed in group priority order** — each decision reads `accepted_candidates` built by all prior iterations; group priority determines which formulas "claim" atoms first.
-- **OverlapInjector must fire in the same iteration as the rejection** — injected candidates (e.g. a C=C from a rejected cyclohexene) compute free atoms from the current `accepted_candidates` snapshot; deferring it to after the loop would expand that snapshot and produce wrong or missing injections.
-- **Check-overlap methods only return a decision** — writing to `accepted` or `accepted_candidates` always happens at the caller level, keeping rule methods consistent with `SelfOverlapRules`.
+- **Candidates must be processed in group priority order** — each decision reads `occupied` built by all prior iterations; group priority determines which formulas "claim" atoms first.
+- **OverlapInjector must fire in the same iteration as the rejection** — injected candidates (e.g. a C=C from a rejected cyclohexene) compute free atoms from the current `occupied` snapshot; deferring it to after the loop would expand that snapshot and produce wrong or missing injections.
+- **Check-overlap methods only return a decision** — writing to `accepted` or `occupied` always happens at the caller level, keeping rule methods consistent with `SelfOverlapRules`.
 
 ### `CrossOverlapRules` — classifier
 
