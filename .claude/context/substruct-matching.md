@@ -16,7 +16,7 @@ This task roughly estimated at 95% done in terms of effort. The last 5% is very 
 
 ## Core Files Map
 - `src/core/substruct_matcher.py` - most important file for the whole task. Contains very complex chemical project-tailored graph-based matching features.
-- `src/overlap_rules.py` - strategy tables: `SelfOverlapRules`, `DerivedInjectRules`, `OVERLAP_RULES_CONFIG`.
+- `src/overlap_rules.py` - strategy tables: `SelfOverlapRules`, `OverlapInjector`, `OVERLAP_RULES_CONFIG`.
 - `src/constants/bond_types.py` - a list of relevant bond types used for matching molecule substructures.
 - `tests/reports/TEST_DRIFT_substruct_matching.md` - **Test Drift Report**
 - `.claude/context/substruct-matcher-architecture.md` - **Logic flow and architecture reference** (3-phase pipeline, strategy tables, OVERLAP_RULES_CONFIG structure)

@@ -42,7 +42,7 @@ Static methods follow the naming convention `_check_{group}` — consistent with
 
 ### Key detail: BICYCLIC_STRUCTURES branch
 
-The BICYCLIC branch calls `DerivedInjectRules.inject(trigger="on_cross_reject")` before
+The BICYCLIC branch calls `OverlapInjector.inject(trigger="on_cross_reject")` before
 returning False. This call must be preserved inside `_check_bicyclic` — do not drop it.
 
 ### After extraction
@@ -71,7 +71,7 @@ The `match/case` block is removed entirely.
 Two known asymmetries to flag before implementing — do not silently resolve them:
 
 1. **`check_overlap` signature has an extra `filtered` param** vs `SelfOverlapRules.check_overlap`
-   (needed because `_check_bicyclic` must call `DerivedInjectRules.inject()` into it).
+   (needed because `_check_bicyclic` must call `OverlapInjector.inject()` into it).
    Propose how to handle this asymmetry and wait for confirmation.
 
 2. **`CARBONYL_BOND_TYPES` branch** calls `CrossOverlapComparator.is_higher_priority()` —

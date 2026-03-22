@@ -3,16 +3,14 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 
-from src.constants.bond_types import (
-    RELEVANT_BOND_TYPES,
-    OverlapGroup,
-)
+from src.constants.bond_types import RELEVANT_BOND_TYPES
 from src.core.cross_overlap_comparator import CrossOverlapComparator
 from src.core.molecule import MBMolecule
 from src.overlap_rules import (
     OVERLAP_RULES_CONFIG,
     BondMatchCandidate,
-    DerivedInjectRules,
+    CrossOverlapRules,
+    OverlapInjector,
     RejectedCandidate,
     SelfOverlapRules,
 )
@@ -128,7 +126,7 @@ class MBSubstructMatcher:
         for cand_key, rejects in rejected.items():
             working_accepted: list[BondMatchCandidate] = list(accepted[cand_key])
             for rc in rejects:
-                DerivedInjectRules.inject(
+                OverlapInjector.inject_on_reject(
                     mol=mol,
                     bmc=rc.candidate,
                     accepted_candidates=working_accepted,
@@ -140,7 +138,7 @@ class MBSubstructMatcher:
         for cand_key, cands in list(accepted.items()):
             seen: list[BondMatchCandidate] = []
             for bmc in list(cands):
-                DerivedInjectRules.inject(
+                OverlapInjector.inject_on_reject(
                     mol=mol,
                     bmc=bmc,
                     accepted_candidates=seen,
@@ -157,69 +155,23 @@ class MBSubstructMatcher:
         grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[BondMatchCandidate]]:
         """Filter cross overlaps via specific rules, respecting relations between Bond Match Candidates."""
-        filtered = defaultdict(list)
+        accepted: dict[str, list[BondMatchCandidate]] = defaultdict(list)
         accepted_candidates: list[BondMatchCandidate] = []
         all_matches = CrossOverlapComparator.sort_matches(grouped_candidates, OVERLAP_RULES_CONFIG)
 
         for _iteration, (cand_key, candidates) in enumerate(all_matches):
             for bmc in candidates:
                 bmc_atoms = set(tuple(sorted(bmc.atoms)))
-                approve_candidate = True
 
-                match bmc.cross_overlap_group:
-                    case OverlapGroup.BICYCLIC_STRUCTURES:
-                        if any(len(bmc_atoms & set(acc_can.atoms)) >= 3 for acc_can in accepted_candidates):
-                            DerivedInjectRules.inject(
-                                mol=mol, bmc=bmc, accepted_candidates=accepted_candidates, final_hits_by_formula=filtered, trigger="on_cross_reject"
-                            )
-                            approve_candidate = False
-
-                    case OverlapGroup.DOUBLE_BONDS:
-                        if any(
-                            acc_can.cross_overlap_group == OverlapGroup.DOUBLE_BONDS and len(bmc_atoms & set(acc_can.atoms)) >= 1
-                            for acc_can in accepted_candidates
-                        ):
-                            approve_candidate = False
-
-                    case OverlapGroup.CARBONYL_BOND_TYPES:
-                        for acc_can in accepted_candidates:
-                            has_overlapping_2_atoms = len(bmc_atoms & set(acc_can.atoms)) >= 2
-                            if acc_can.formula == bmc.formula:
-                                continue
-
-                            if has_overlapping_2_atoms and acc_can.cross_overlap_group == OverlapGroup.CARBONYL_BOND_TYPES:
-                                if CrossOverlapComparator.is_higher_priority(
-                                    formula1=bmc.formula,
-                                    formula2=acc_can.formula,
-                                    group=OverlapGroup.CARBONYL_BOND_TYPES,
-                                    rules=OVERLAP_RULES_CONFIG,
-                                ):
-                                    # candidate is higher prio -> add to result
-                                    approve_candidate = True
-                                else:
-                                    # candidate is lower prio -> reject candidate and skip to next
-                                    approve_candidate = False
-
-                    case OverlapGroup.Ar_N_BOND_TYPES:
-                        conflicting_ar_ns = []
-                        for acc_can in accepted_candidates:
-                            is_target_group = acc_can.cross_overlap_group == OverlapGroup.Ar_N_BOND_TYPES
-                            common_atoms = bmc_atoms & set(acc_can.atoms)
-                            intersection_size = len(common_atoms)
-
-                            if is_target_group and intersection_size >= 3:
-                                conflicting_ar_ns.append(acc_can)
-
-                        if conflicting_ar_ns:
-                            approve_candidate = False
-
-                    case _:
-                        pass
-
+                approve_candidate = CrossOverlapRules.check_overlap(mol, bmc, bmc_atoms, accepted_candidates)
+                if not approve_candidate:
+                    OverlapInjector.inject_on_reject(
+                        mol=mol, bmc=bmc, accepted_candidates=accepted_candidates, final_hits_by_formula=accepted, trigger="on_cross_reject"
+                    )
                 if approve_candidate:
-                    filtered[cand_key].append(bmc)
+                    accepted[cand_key].append(bmc)
                     accepted_candidates.append(bmc)
 
         # Placeholder "dummy" rings must be removed from output - they are temporary objects used only during processing
-        filtered_result = {k: [c for c in v if (not c.dummy_ring and not c.dummy_bond_type)] for k, v in dict(filtered).items()}
+        filtered_result = {k: [c for c in v if (not c.dummy_ring and not c.dummy_bond_type)] for k, v in dict(accepted).items()}
         return filtered_result
