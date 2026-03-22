@@ -66,32 +66,29 @@ class MBSubstructMatcher:
         for c in candidates:
             grouped_candidates[c.formula].append(c)
 
-        filtered: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterSelfOverlaps(mol, grouped_candidates)
+        self_filtered: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterSelfOverlaps(mol, grouped_candidates)
 
-        final_candidates_by_formula: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterCrossOverlaps(mol, filtered)
+        cross_filtered: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterCrossOverlaps(mol, self_filtered)
 
-        hits_by_formula: dict[str, list[tuple[int, ...]]] = {
-            f: [tuple(sorted(c.atoms)) for c in lst] for f, lst in final_candidates_by_formula.items()
-        }
+        hits_by_formula: dict[str, list[tuple[int, ...]]] = {f: [tuple(sorted(bmc.atoms)) for bmc in lst] for f, lst in cross_filtered.items()}
 
         # Build counters + highlight structures
         matches_counter: Counter[str] = Counter()
-        groups_atoms: dict[str, set[int]] = defaultdict(set)
+        highlight_groups: dict[str, set[int]] = defaultdict(set)
         atoms_to_highlight: set[int] = set()
 
-        # prepare data for renderer
         for formula, hits in hits_by_formula.items():
             if not hits:
                 continue
             matches_counter[formula] += len(hits)
             for hit in hits:
-                groups_atoms[formula].update(hit)
+                highlight_groups[formula].update(hit)
                 atoms_to_highlight.update(hit)
 
         return SubstructMatchResult(
             hits_by_formula=hits_by_formula,
             matchesCounter=matches_counter,
-            highlightAtomGroups={k: sorted(v) for k, v in groups_atoms.items()},
+            highlightAtomGroups={k: sorted(v) for k, v in highlight_groups.items()},
             highlightAtomList=sorted(atoms_to_highlight),
         )
 
