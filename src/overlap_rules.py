@@ -194,6 +194,12 @@ class OverlapInjector:
         accepted.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
         return True
 
+    # Maps each dihalide formula → (halogen symbol, C-X bond type to inject)
+    # Extend this table when adding new dihalide types (e.g. Br-CR2-CR2-Br).
+    _DIHALIDE_INJECT_MAP: dict[str, tuple[str, BondType]] = {
+        "Cl-CR2-CR2-Cl": ("Cl", CARBON_HALOGEN_BOND),
+    }
+
     @staticmethod
     def _inject_default(
         mol: MBMolecule,
@@ -202,59 +208,58 @@ class OverlapInjector:
         accepted: dict[str, list[BondMatchCandidate]],
         trigger: str,
     ) -> bool:
-        """If Cl-CR2-CR2-Cl is rejected, find the two C-Cl pairs within the fragment and inject each as a C-Cl BondType.
+        """When a dihalide (e.g. Cl-CR2-CR2-Cl) is rejected, inject one C-X BondType per halogen pair in the fragment.
 
+        Skips halogen atoms already claimed by an accepted dihalide or an already-injected C-X bond.
         Atom map of the rejected fragment (for debugging):
             {idx: mol.GetAtomInfoByIdx(idx).symbol for idx in bmc.atoms}
-
-        Strategy: scan all atoms of the rejected Cl-CR2-CR2-Cl for Cl atoms,
-        then find the unique C-Cl single bond for each Cl. Inject one C-Cl per pair.
         """
-        if bmc.formula != "Cl-CR2-CR2-Cl":
+        entry = OverlapInjector._DIHALIDE_INJECT_MAP.get(bmc.formula)
+        if entry is None:
             return False
+        halogen_symbol, injection_bond = entry
 
-        # Build atom_index → symbol map for the fragment (useful for debugging)
+        # atom_index → symbol map for the fragment
         atom_map: dict[int, str] = {idx: mol.GetAtomInfoByIdx(idx).symbol for idx in bmc.atoms}
 
-        # Find all Cl atoms within the fragment
-        fragment_cl_atoms = [idx for idx, sym in atom_map.items() if sym == "Cl"]
-
-        # For each Cl, find its bonded C neighbor (single bond) — this is the C-Cl pair
-        c_cl_pairs: list[tuple[int, int]] = []
-        for cl_idx in fragment_cl_atoms:
-            for nbr in mol.GetAtomWithIdx(cl_idx).GetNeighbors():
+        # For each halogen in the fragment, find its single-bond C neighbor — the C-X pair
+        c_x_pairs: list[tuple[int, int]] = []
+        for x_idx, sym in atom_map.items():
+            if sym != halogen_symbol:
+                continue
+            for nbr in mol.GetAtomWithIdx(x_idx).GetNeighbors():
                 if nbr.GetSymbol() != "C":
                     continue
-                bond = mol.GetBondBetweenAtoms(cl_idx, nbr.GetIdx())
+                bond = mol.GetBondBetweenAtoms(x_idx, nbr.GetIdx())
                 if bond.GetBondType() == Chem.BondType.SINGLE and nbr.GetIdx() in atom_map:
-                    c_cl_pairs.append((nbr.GetIdx(), cl_idx))
-                    break  # each Cl has exactly one C neighbor in the fragment
+                    c_x_pairs.append((nbr.GetIdx(), x_idx))
+                    break  # each halogen has exactly one C neighbor in the fragment
 
-        if not c_cl_pairs:
+        if not c_x_pairs:
             return False
 
-        # Cl atoms already accounted for — either by an injected C-Cl bond or by an accepted Cl-CR2-CR2-Cl
-        already_covered_cl: set[int] = set()
+        # Halogen atoms already accounted for — by an injected C-X bond or by an accepted dihalide
+        already_covered: set[int] = set()
         for acc in occupied:
-            if acc.formula == CARBON_HALOGEN_BOND.formula:
+            if acc.formula == injection_bond.formula:
                 for idx in acc.atoms:
-                    if mol.GetAtomInfoByIdx(idx).symbol == "Cl":
-                        already_covered_cl.add(idx)
+                    if mol.GetAtomInfoByIdx(idx).symbol == halogen_symbol:
+                        already_covered.add(idx)
         for acc_list in accepted.values():
             for acc in acc_list:
-                if acc.formula in ("Cl-CR2-CR2-Cl"):
+                if acc.formula == bmc.formula:
                     for idx in acc.atoms:
-                        if mol.GetAtomInfoByIdx(idx).symbol == "Cl":
-                            already_covered_cl.add(idx)
+                        if mol.GetAtomInfoByIdx(idx).symbol == halogen_symbol:
+                            already_covered.add(idx)
 
         injected = False
-        for c_idx, cl_idx in c_cl_pairs:
-            if cl_idx in already_covered_cl:
+        for c_idx, x_idx in c_x_pairs:
+            if x_idx in already_covered:
                 continue
-            new_bmc = BondMatchCandidate.from_bt(CARBON_HALOGEN_BOND, [c_idx, cl_idx])
+            new_bmc = BondMatchCandidate.from_bt(injection_bond, [c_idx, x_idx])
             occupied.append(new_bmc)
-            accepted.setdefault(CARBON_HALOGEN_BOND.formula, []).append(new_bmc)
-            already_covered_cl.add(cl_idx)
+            accepted.setdefault(injection_bond.formula, []).append(new_bmc)
+            already_covered.add(x_idx)
             injected = True
         return injected
 

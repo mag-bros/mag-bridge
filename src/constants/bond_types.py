@@ -59,6 +59,15 @@ CARBON_HALOGEN_BOND = BondType(
     description="Excluded: R2CCl2, RCHCl2, Ar-Cl and Cl-CR2-CR2-Cl",
 )
 
+CARBON_BROMINE_BOND = BondType(
+    id=-2,
+    formula="C-Br",
+    SMARTS="[C;!$([c]);!$([C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])([Br;X1])-[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])[Br;X1])]-[Br;X1]",
+    constitutive_corr=4.1,
+    sdf_files=("C-Br.sdf",),
+    description="Excluded: Ar-Br and Br-CR2-CR2-Br",
+)
+
 # Relevant bond type representation (see reference https://doi.org/10.1021/ed085p532)
 RELEVANT_BOND_TYPES: list[BondType] = [
     DOUBLE_BOND,
@@ -388,14 +397,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=6.43,
         sdf_files=("RCHCl2.sdf",),
     ),
-    BondType(
-        id=35,
-        formula="C-Br",
-        SMARTS="[C;!$([c]);!$([C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])([Br;X1])-[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])[Br;X1])]-[Br;X1]",
-        constitutive_corr=4.1,
-        sdf_files=("C-Br.sdf",),
-        description="Excluded: Ar-Br and Br-CR2-CR2-Br",
-    ),
+    CARBON_BROMINE_BOND,
     BondType(
         id=36,
         formula="Br-CR2-CR2-Br",
