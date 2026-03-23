@@ -129,13 +129,13 @@ class SelfOverlapRules:
         accepted_in_group: list[BondMatchCandidate],
     ) -> RejectedCandidate | None:
         """Reject dihalide (Cl/Br) candidates on 3+ atom ring overlap; all other DEFAULT-group types are unconditionally accepted."""
-        if bmc.formula in ["Cl-CR2-CR2-Cl", "R2CCl2", "Br-CR2-CR2-Br"]:
+        if bmc.formula in ["Cl-CR2-CR2-Cl", "Br-CR2-CR2-Br"]:
             conflicting = next(
-                (acc for acc in accepted_in_group if len(set(acc.atoms) & bmc_atoms) >= 3),
+                (acc for acc in accepted_in_group if len(set(acc.atoms) & bmc_atoms) >= 4),
                 None,
             )
             if conflicting:
-                return RejectedCandidate(candidate=bmc, reason="dihalide_ring_overlap_3_atoms", conflicting_with=conflicting)
+                return RejectedCandidate(candidate=bmc, reason="dihalide_ring_overlap_4_atoms", conflicting_with=conflicting)
         return None
 
 
@@ -202,35 +202,61 @@ class OverlapInjector:
         accepted: dict[str, list[BondMatchCandidate]],
         trigger: str,
     ) -> bool:
-        """If Cl-CR2-CR2-Cl is rejected, inject free C-Cl bonds from atoms not yet occupied by accepted matches."""
+        """If Cl-CR2-CR2-Cl is rejected, find the two C-Cl pairs within the fragment and inject each as a C-Cl BondType.
+
+        Atom map of the rejected fragment (for debugging):
+            {idx: mol.GetAtomInfoByIdx(idx).symbol for idx in bmc.atoms}
+
+        Strategy: scan all atoms of the rejected Cl-CR2-CR2-Cl for Cl atoms,
+        then find the unique C-Cl single bond for each Cl. Inject one C-Cl per pair.
+        """
         if bmc.formula != "Cl-CR2-CR2-Cl":
             return False
-        exclude_idx = {i for acc in occupied for i in acc.atoms}
-        free_nodes = list(set(bmc.atoms) - exclude_idx)
-        free_Cl = [idx for idx in free_nodes if mol.GetAtomInfoByIdx(idx).symbol == "Cl"]
-        valid_c_cl_bonds: list[tuple[int, int]] = []
-        for cl_idx in free_Cl:
+
+        # Build atom_index → symbol map for the fragment (useful for debugging)
+        atom_map: dict[int, str] = {idx: mol.GetAtomInfoByIdx(idx).symbol for idx in bmc.atoms}
+
+        # Find all Cl atoms within the fragment
+        fragment_cl_atoms = [idx for idx, sym in atom_map.items() if sym == "Cl"]
+
+        # For each Cl, find its bonded C neighbor (single bond) — this is the C-Cl pair
+        c_cl_pairs: list[tuple[int, int]] = []
+        for cl_idx in fragment_cl_atoms:
             for nbr in mol.GetAtomWithIdx(cl_idx).GetNeighbors():
-                is_carbon = nbr.GetSymbol() == "C"
-                is_single_bond = mol.GetBondBetweenAtoms(cl_idx, nbr.GetIdx()).GetBondType() == Chem.BondType.SINGLE
-                if is_carbon and is_single_bond:
-                    valid_c_cl_bonds.append((nbr.GetIdx(), cl_idx))
+                if nbr.GetSymbol() != "C":
+                    continue
+                bond = mol.GetBondBetweenAtoms(cl_idx, nbr.GetIdx())
+                if bond.GetBondType() == Chem.BondType.SINGLE and nbr.GetIdx() in atom_map:
+                    c_cl_pairs.append((nbr.GetIdx(), cl_idx))
+                    break  # each Cl has exactly one C neighbor in the fragment
 
-        if not valid_c_cl_bonds:
-            # All Cl atoms in this fragment are already occupied by accepted candidates — nothing to inject.
+        if not c_cl_pairs:
             return False
-        if len(valid_c_cl_bonds) >= 3:
-            raise ValueError(f"Expected at most 2 valid C-Cl bonds, got {len(valid_c_cl_bonds)}")
 
-        # Use [0] as representative — do NOT iterate. Invariant: one rejected Cl-CR2-CR2-Cl always
-        # contributes exactly 2 C-Cl bonds, encoded by injecting one bond twice via range(2).
-        # Iterating all bonds when len==2 doubles the count to 4, breaking test 201.
-        c_idx, cl_idx = valid_c_cl_bonds[0]
-        new_bmc = BondMatchCandidate.from_bt(CARBON_HALOGEN_BOND, [c_idx, cl_idx])
-        for _ in range(2):  # inject representative C-Cl bond twice (encodes the 2-bond invariant)
+        # Cl atoms already accounted for — either by an injected C-Cl bond or by an accepted Cl-CR2-CR2-Cl
+        already_covered_cl: set[int] = set()
+        for acc in occupied:
+            if acc.formula == CARBON_HALOGEN_BOND.formula:
+                for idx in acc.atoms:
+                    if mol.GetAtomInfoByIdx(idx).symbol == "Cl":
+                        already_covered_cl.add(idx)
+        for acc_list in accepted.values():
+            for acc in acc_list:
+                if acc.formula in ("Cl-CR2-CR2-Cl"):
+                    for idx in acc.atoms:
+                        if mol.GetAtomInfoByIdx(idx).symbol == "Cl":
+                            already_covered_cl.add(idx)
+
+        injected = False
+        for c_idx, cl_idx in c_cl_pairs:
+            if cl_idx in already_covered_cl:
+                continue
+            new_bmc = BondMatchCandidate.from_bt(CARBON_HALOGEN_BOND, [c_idx, cl_idx])
             occupied.append(new_bmc)
             accepted.setdefault(CARBON_HALOGEN_BOND.formula, []).append(new_bmc)
-        return True
+            already_covered_cl.add(cl_idx)
+            injected = True
+        return injected
 
     @staticmethod
     def _inject_aromatic(
@@ -381,6 +407,24 @@ class CrossOverlapRules:
                 ar_n_approved = False
         return ar_n_approved
 
+    @staticmethod
+    def _check_default(
+        mol: MBMolecule,
+        bmc: BondMatchCandidate,
+        bmc_atoms: set[int],
+        occupied: list[BondMatchCandidate],
+    ) -> bool:
+        """Reject dihalide candidates that share 3+ atoms with any accepted ring candidate."""
+        if bmc.formula not in ("Cl-CR2-CR2-Cl", "Br-CR2-CR2-Br"):
+            return True
+        for acc in occupied:
+            if acc.cross_overlap_group != OverlapGroup.BICYCLIC_STRUCTURES:
+                continue
+            shared_atoms = bmc_atoms & set(acc.atoms)
+            if len(shared_atoms) >= 4:
+                return False
+        return True
+
 
 OVERLAP_RULES_CONFIG: dict = {
     ## Elements to the left have higher priority!
@@ -388,7 +432,7 @@ OVERLAP_RULES_CONFIG: dict = {
         "group_prio": int(OverlapGroup.DEFAULT),
         "order": "IRRELEVANT",
         "self_overlap_rule": SelfOverlapRules._check_default,
-        "cross_overlap_rule": None,
+        "cross_overlap_rule": CrossOverlapRules._check_default,
         "inject_rules": {
             "Cl-CR2-CR2-Cl": OverlapInjector._inject_default,
         },

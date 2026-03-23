@@ -1396,8 +1396,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"Ar-C#C-Ar": 1, "Ar-C#C": 1, "RCOOH": 1, "benzene": 3}),
         description="Both Ar-C#C-Ar and Ar-C#C-R in one structure.",
     ),
-    # TODO Fix multiple Cl-CR2-CR2-Cl matching in endrin fragment (SELF-MATCHING).
-    # TODO Count number of expected bond types.
     SubstructMatchTest(
         id=199,
         SMILES="CCOC(=O)CCC(=O)CC1(C2(C3(C4(C1(C5(C2(C3(C(C45Cl)(Cl)Cl)Cl)Cl)Cl)Cl)Cl)Cl)Cl)O",
@@ -1413,12 +1411,10 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         ),
         description="",
     ),
-    # TODO Fix multiple Cl-CR2-CR2-Cl matching in endrin fragment (SELF-MATCHING).
-    # TODO Count number of expected bond types.
     SubstructMatchTest(
         id=200,
         SMILES="C1C2C3C4C1C5(C2C6(C3(C(C4(C56Cl)Cl)(Cl)Cl)Cl)Cl)O",
-        expected_matches=Counter({}),
+        expected_matches=Counter({"C-Cl": 4, "R2CCl2": 1, "cyclobutane": 1, "cyclohexane": 2}),
         description="Identifying the number of bond types is too difficult due to the complexity of the structure.",
     ),
     SubstructMatchTest(
@@ -1430,7 +1426,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=202,
         SMILES="C1C=CC2(C1C3(C(=C(C2(C3(Cl)Cl)Cl)Cl)Cl)Cl)Cl",
-        expected_matches=Counter({"C-Cl": 3, "cyclohexene": 1, "Cl-CR2-CR2-Cl": 1, "R2CCl2": 1, "C=C": 1}),
+        expected_matches=Counter({"C-Cl": 5, "cyclohexene": 1, "R2CCl2": 1, "C=C": 1}),
         description="Double C=C bond prevents self-matching of Cl–CR2–CR2–Cl.",
     ),
     # TODO Cl-CR2-CR2-Cl and R2CCl2 should overlap over one C-R bond (for C-C bond const. is 0.0 cm3 mol-1)
@@ -1454,7 +1450,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         ),
         description="Photodieldrin: a complex case involving saturated rings, R2CCl2 and Cl-CR2-CR2-Cl (correct result!).",
     ),
-    # TODO resolve ring and Cl-CR2-CR2-Cl overlap
     SubstructMatchTest(
         id=205,
         SMILES="C1C2C=CC1(C3(C2C4(CC3(C(=C4Cl)Cl)Cl)Cl)Cl)Cl",
@@ -1489,7 +1484,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"Cl-CR2-CR2-Cl": 1, "C=C": 1}),
         description="Cl-CR2-CR2-Cl matching allowed for uncommon rings.",
     ),
-    # TODO Fix overlay of Cl-CR2-CR2-Cl with cyclohexane.
     SubstructMatchTest(
         id=211,
         SMILES="CC1(C2(CC(C1(C3CC3(Cl)Cl)Cl)(C(C2)(Cl)Cl)Cl)Cl)C",
@@ -1503,14 +1497,12 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         ),
         description="Cl-CR2-CR2-Cl share three C-C bonds with cyclohexane ring within bicyclic structure, which excludes its assignment.",
     ),
-    # TODO Confirm number of bond types after fixes.
     SubstructMatchTest(
         id=212,
         SMILES="C1C2C3C4C1C5C2C6(C3(C4(C5(C6(Cl)Cl)Cl)Cl)Cl)Cl",
-        expected_matches=Counter({}),
+        expected_matches=Counter({"C-Cl": 4, "R2CCl2": 1, "cyclobutane": 1, "cyclohexane": 2}),
         description="Structure too complicated to analyse bond types.",
     ),
-    # TODO After fix Cl-CR2-CR2-Cl should not match because 3 C-C bonds (max 2 C-C) overlay with one cyclobutane ring.
     SubstructMatchTest(
         id=213,
         SMILES="C12(C3(C4(C1(C5(C2(C3(C45Cl)F)F)Cl)F)F)F)F",
@@ -1535,14 +1527,12 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"C-Cl": 2, "Ar-C(=O)R": 2, "Ar-Cl": 1, "Ar-OH": 2, "benzene": 1}),
         description="Cl-CR2-CR2-Cl is not matched because some R = C=O",
     ),
-    # TODO Fix ring/Cl-CR2-CR2-Cl overlap (3 C-C bond overlap)
     SubstructMatchTest(
         id=217,
         SMILES="C1C2(C1(C3(CC3(C4(C2=CC=CC4Cl)Cl)Cl)Cl)Cl)Cl",
         expected_matches=Counter(
             {
-                "C-Cl": 4,
-                "Cl-CR2-CR2-Cl": 1,
+                "C-Cl": 6,
                 "C=C-C=C": 1,
                 "cyclopropane": 2,
                 "cyclohexane": 1,
@@ -1556,11 +1546,10 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"Cl-CR2-CR2-Cl": 1, "C=C-C=C": 1}),
         description="Cl-CR2-CR2-Cl assignement for ucommon ring.",
     ),
-    # TODO Fix overlaping cyclohexene and Cl-CR2-CR2-Cl bond types
     SubstructMatchTest(
         id=219,
         SMILES="C1CC2(CC1=C3C2(C(C(C3(Cl)Cl)(Cl)Cl)(Cl)Cl)Cl)Cl",
-        expected_matches=Counter({"R2CCl2": 3, "C-Cl": 2, "cyclopentane": 1, "cyclohexane": 1}),
+        expected_matches=Counter({"R2CCl2": 3, "C-Cl": 2, "cyclopentane": 1, "cyclohexene": 1}),
         description="R2CCl2 are allowed to overlap with rings via 2 C-C bonds and with each other via 1 C-C bond.",
     ),
     SubstructMatchTest(
@@ -1575,7 +1564,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter(
             {
                 "R2CCl2": 3,
-                "C-Cl": 12,
+                "C-Cl": 6,
                 "C=C": 1,
                 "cyclohexene": 1,
                 "cyclohexane": 1,
@@ -1590,7 +1579,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"Cl-CR2-CR2-Cl": 1}),
         description="Cl-CR2-CR2-Cl matching when both R in CR2 fragment belong to the same ring.",
     ),
-    # TODO FIX ring/Cl-CR2-CR2-Cl overlap
     SubstructMatchTest(
         id=223,
         SMILES="C1C(C2CC(C3(C2C1C4C3(C4(Cl)Cl)Cl)Cl)(Cl)Cl)C=O",
@@ -1628,7 +1616,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"benzene": 20}),
         description="RDKit fails when drawing fullerene structure. 15 pentagons are not assigned because they are treated as uncommon rings.",
     ),
-    # TODO Cl-CR2-CR2-Cl must not match due to ring overlap
     SubstructMatchTest(
         id=230,
         SMILES="C12(C3(C4(C1(C5(C2(C3(C45Cl)Cl)Cl)Cl)Cl)Cl)Cl)Cl",
@@ -1637,14 +1624,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=231,
         SMILES="CC1=CC(=C(C=C1N)C)C(=C2C(=C(C(=NC)C(C2(C)Cl)(C)Cl)C)C)C3=CC=C(C=C3)N",
-        expected_matches=Counter({"cyclohexene": 1, "benzene": 2, "Ar-C=C": 1, "C=N": 1, "Cl-CR2-CR2-Cl": 1, "Ar-NR2": 2}),
+        expected_matches=Counter({"cyclohexene": 1, "benzene": 2, "Ar-C=C": 1, "C=N": 1, "C-Cl": 2, "Ar-NR2": 2}),
         description="Cl-CR2-CR2-Cl assumed to match when one of R = C=N.",
     ),
-    # TODO Fix self-overlap
     SubstructMatchTest(
         id=232,
         SMILES="ClC(C)(C)C(C)(Cl)C(C)(Cl)C(C)(Cl)C(C)(Cl)C",
-        expected_matches=Counter({"Cl-CR2-CR2-Cl": 2, "C-Cl": 2}),
+        expected_matches=Counter({"Cl-CR2-CR2-Cl": 2, "C-Cl": 1}),
         description="Checks matching of adjacent Cl-CR2-CR2-Cl. Self-overlap allowed only through one C-C bond.",
     ),
     SubstructMatchTest(
