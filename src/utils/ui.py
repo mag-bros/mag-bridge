@@ -42,6 +42,7 @@ class Colors(Enum):
     BROWN = "#8B4513"
     OLIVE = "#808000"
     DARK_PURPLE = "#380458"
+    LOFI_DARK = "#3D1A78"  # rich mid-dark purple — clearly visible, vibrant
 
     # === Extended functional ===
     ERROR = "#D32F2F"
@@ -102,24 +103,24 @@ class Theme:
     )
 
     LoFi = ThemeSettings(
-        Background=Colors.DARK_PURPLE.rgb(),  # Rich deep base
+        Background=Colors.LOFI_DARK.rgb(),  # Deep space purple base
         Surface=Colors.LOFI_SKY.rgb(),  # Raised surface under molecules
-        Primary=Colors.PURPLE.rgb(),  # Signature magenta-purple tone
-        Secondary=Colors.ACCENT_PURPLE.rgb(),  # Slightly darker version
+        Primary=Colors.VIOLET.rgb(),  # Richer violet accent
+        Secondary=Colors.ACCENT_PURPLE.rgb(),  # Slightly darker variant
         Highlight=Colors.MAGENTA.rgb(),  # Pink/magenta accents
         Text=Colors.WHITE_SMOKE.rgb(),  # High-contrast text
         SubtleText=Colors.SLATE.rgb(),  # Cool-gray subtext
-        GridLine=Colors.ACCENT_PURPLE.rgb(),  # Thin purple separators
-        Border=Colors.DARK_GRAY.rgb(),  # Minimal neutral frame
+        GridLine=Colors.VIOLET.rgb(),  # Vivid violet separators
+        Border=Colors.ACCENT_PURPLE.rgb(),  # Soft purple frame
     )
 
     Sea = ThemeSettings(
-        Background=Colors.NAVY.rgb(),  # Deep midnight base
-        Surface=Colors.SKY.rgb(),  # Slightly lighter blue-gray panels
+        Background=Colors.NAVY.rgb(),  # Deep sea footer/outer frame
+        Surface=Colors.WHITE_SMOKE.rgb(),  # Light neutral molecule panels
         Primary=Colors.TEAL.rgb(),  # Balanced teal
         Secondary=Colors.ACCENT_TEAL.rgb(),  # Stronger cyan-teal variant
         Highlight=Colors.CYAN.rgb(),  # Aqua focus accents
-        Text=Colors.WHITE_SMOKE.rgb(),  # Clear high-contrast text
+        Text=Colors.WHITE_SMOKE.rgb(),  # High-contrast text on dark footer
         SubtleText=Colors.LIGHT_GRAY.rgb(),  # Muted labels
         GridLine=Colors.ACCENT_TEAL.rgb(),  # Medium teal grid separators
         Border=Colors.SLATE.rgb(),  # Gentle card frame

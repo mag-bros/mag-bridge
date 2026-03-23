@@ -23,7 +23,6 @@ class HighlightScheme:
         cls,
         highlightAtomGroupsPerMol: list[dict[str, list[int]]],
         highlightAtomLists: list[list[int]],
-        dark_wins: bool = True,
     ) -> "HighlightScheme":
         """Main path: one stable color per formula, applied consistently across all molecules."""
         # Collect unique formulas in insertion order
@@ -43,15 +42,27 @@ class HighlightScheme:
         atom_colors: list[dict[int, RGBf]] = []
         for mol_i, atoms_union in enumerate(highlightAtomLists):
             groups = highlightAtomGroupsPerMol[mol_i] if mol_i < len(highlightAtomGroupsPerMol) else {}
-            atom_color_map: dict[int, RGBf] = {}
 
-            # Sort by luminance so dark_wins policy is applied via overwrite
-            group_items = [(_luminance(formula_color[f]), atoms, formula_color[f]) for f, atoms in (groups or {}).items() if f in formula_color]
-            group_items.sort(key=lambda t: t[0], reverse=dark_wins)
-
-            for _, atoms, col in group_items:
+            # Collect every group color per atom — shared atoms get multiple entries
+            per_atom: dict[int, list[RGBf]] = {}
+            for f, atoms in (groups or {}).items():
+                col = formula_color.get(f)
+                if col is None:
+                    continue
                 for a in atoms:
-                    atom_color_map[int(a)] = col
+                    per_atom.setdefault(int(a), []).append(col)
+
+            # Blend colors for shared atoms (average RGB); single-group atoms keep their color
+            atom_color_map: dict[int, RGBf] = {
+                a: cols[0]
+                if len(cols) == 1
+                else (
+                    sum(c[0] for c in cols) / len(cols),
+                    sum(c[1] for c in cols) / len(cols),
+                    sum(c[2] for c in cols) / len(cols),
+                )
+                for a, cols in per_atom.items()
+            }
 
             # Keep only atoms present in the union highlight list
             allowed = set(atoms_union or [])
@@ -83,8 +94,3 @@ def _contrasting_palette(n: int, s: float = 0.80, v: float = 0.95) -> list[RGBf]
         h = (h + step) % 1.0
         cols.append(colorsys.hsv_to_rgb(h, s, v))
     return cols
-
-
-def _luminance(rgb: RGBf) -> float:
-    r, g, b = rgb
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b

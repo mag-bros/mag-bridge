@@ -6,11 +6,14 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
+import matplotlib.patches as mpatches
 import numpy as np
 from IPython.display import Image as IPyImage
-from PIL import Image, ImageDraw, ImageFont
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
+from PIL import Image
 from rdkit.Chem import Mol, MolToSmiles, RemoveAllHs
-from rdkit.Chem.Draw import MolsToGridImage, MolToImage
+from rdkit.Chem.Draw import MolsToGridImage, MolToImage, rdMolDraw2D
 from rdkit.Chem.rdDepictor import Compute2DCoords
 
 from src.renderer.highlight import HighlightScheme, RGBf
@@ -18,15 +21,7 @@ from src.utils.ui import Theme, ThemeSettings
 
 RGBi = Tuple[int, int, int]  # 0..255 ints
 
-# Legend layout constants
-_LEGEND_PADDING_X = 10
-_LEGEND_PADDING_Y = 6
-_LEGEND_SWATCH = 10
-_LEGEND_GAP = 6
-_LEGEND_ITEM_GAP = 14
-_LEGEND_LINE_GAP = 4
-_LEGEND_SEPARATOR_W = 1
-_LEGEND_SEPARATOR_GAP = 22
+_DPI = 100
 
 
 @dataclass
@@ -37,8 +32,10 @@ class GridRenderConfig:
     molsPerRow: int = 4
     label: str | None = None
     showLegend: bool = False
+    showAtomIndexes: bool = False
+    highlightAlpha: float = 0.6
     sepWidth: int = 2
-    labelHeight: int = 28
+    labelHeight: int = 28  # kept for API compatibility
 
 
 class Renderer:
@@ -66,6 +63,8 @@ class Renderer:
         label_height=28,
         sep_width=2,
         showLegend: bool = False,
+        showAtomIndexes: bool = False,
+        highlightAlpha: float = 0.6,
     ) -> Image.Image:
         """Render a grid of molecules with optional highlight coloring and legend."""
         config = GridRenderConfig(
@@ -73,6 +72,8 @@ class Renderer:
             molsPerRow=mols_per_row,
             label=label,
             showLegend=showLegend,
+            showAtomIndexes=showAtomIndexes,
+            highlightAlpha=highlightAlpha,
             sepWidth=sep_width,
             labelHeight=label_height,
         )
@@ -94,10 +95,6 @@ class Renderer:
         matchesCountersPerMol,
         config: GridRenderConfig,
     ) -> Image.Image:
-        bg: RGBi = self.theme.Surface
-        text_color: RGBi = self.theme.Text
-        grid_color: RGBi = self.theme.GridLine
-
         mols, highlightAtomLists, highlightAtomGroupsPerMol, matchesCountersPerMol = self._align_inputs(
             mols, highlightAtomLists, highlightAtomGroupsPerMol, matchesCountersPerMol
         )
@@ -106,7 +103,6 @@ class Renderer:
             Compute2DCoords(m)
         legends = [f"Mol {m.GetProp('_MolIndex') if m.HasProp('_MolIndex') else '?'}: {MolToSmiles(m)}" for m in mols]
 
-        # Build highlight colors via HighlightScheme
         atom_colors: list[dict] = []
         bond_lists = None
         bond_colors = None
@@ -123,7 +119,16 @@ class Renderer:
                 scheme = HighlightScheme.fromAtomLists(highlightAtomLists)
                 atom_colors = scheme.atomColors
 
-        img = MolsToGridImage(
+        a = config.highlightAlpha
+        if atom_colors:
+            atom_colors = [{idx: (*rgb, a) for idx, rgb in ac.items()} for ac in atom_colors]
+        if bond_colors:
+            bond_colors = [{idx: (*rgb, a) for idx, rgb in bc.items()} for bc in bond_colors]
+
+        draw_opts = rdMolDraw2D.MolDrawOptions()
+        draw_opts.addAtomIndices = config.showAtomIndexes
+
+        rdkit_img = MolsToGridImage(
             mols,
             highlightAtomLists=highlightAtomLists,
             highlightAtomColors=atom_colors or None,
@@ -132,20 +137,11 @@ class Renderer:
             molsPerRow=config.molsPerRow,
             subImgSize=config.size,
             legends=legends,
+            drawOptions=draw_opts,
         )
 
-        img = ImageAdapter.to_pil(img).convert("RGB")
-        img = self._apply_theme_background(img, bg)
-        img = self._add_grid_lines(img, len(mols), config.molsPerRow, config.size, grid_color, config.sepWidth)
-
-        if config.label:
-            img = self._add_label(img, config.label, text_color, config.labelHeight, bg_color=self.theme.Background)
-
-        if config.showLegend and formula_color:
-            counts = self._aggregate_counts(matchesCountersPerMol)
-            img = self._add_legend(img, formula_color, counts, text_color, bg_color=self.theme.Background)
-
-        return img
+        mol_img = ImageAdapter.to_pil(rdkit_img).convert("RGB")
+        return self._compose_figure(mol_img, len(mols), config, formula_color, matchesCountersPerMol)
 
     # === Highlight — bond colors (requires RDKit mol traversal) ===
 
@@ -220,103 +216,69 @@ class Renderer:
                 agg.update(c)
         return dict(agg)
 
-    # === PIL post-processing ===
+    # === matplotlib figure composition ===
 
-    @staticmethod
-    def _apply_theme_background(img: Image.Image, bg_color: RGBi) -> Image.Image:
-        data = np.array(img.convert("RGB"))
-        data[(data > 230).all(axis=-1)] = bg_color
-        return Image.fromarray(data)
-
-    @staticmethod
-    def _add_grid_lines(img: Image.Image, n_mols: int, mols_per_row: int, cell_size: tuple, sep_color: RGBi, sep_width: int) -> Image.Image:
-        if n_mols <= 1:
-            return img
-        draw = ImageDraw.Draw(img)
-        rows = (n_mols + mols_per_row - 1) // mols_per_row
-        w, h = img.size
-        for i in range(1, mols_per_row):
-            x = i * cell_size[0]
-            draw.line([(x, 0), (x, h)], fill=sep_color, width=sep_width)
-        for j in range(1, rows):
-            y = j * cell_size[1]
-            draw.line([(0, y), (w, y)], fill=sep_color, width=sep_width)
-        return img
-
-    @staticmethod
-    def _add_label(img: Image.Image, label: str, text_color: RGBi, label_height: int, bg_color: RGBi) -> Image.Image:
-        W, H = img.size
-        out = Image.new("RGB", (W, H + label_height), bg_color)
-        out.paste(img, (0, 0))
-        draw = ImageDraw.Draw(out)
-        font = ImageFont.load_default()
-        bbox = draw.textbbox((0, 0), label, font=font)
-        x = (W - (bbox[2] - bbox[0])) // 2
-        y = H + (label_height - (bbox[3] - bbox[1])) // 2
-        draw.text((x, y), label, fill=text_color, font=font)
-        return out
-
-    @staticmethod
-    def _add_legend(
-        img: Image.Image,
+    def _compose_figure(
+        self,
+        mol_img: Image.Image,
+        n_mols: int,
+        config: GridRenderConfig,
         formula_color: dict[str, RGBf],
-        counts_by_formula: Optional[dict[str, int]],
-        text_color: RGBi,
-        bg_color: RGBi,
+        matchesCountersPerMol: Optional[list[Counter[str]]],
     ) -> Image.Image:
-        if not formula_color:
-            return img
+        def _norm(rgb: RGBi) -> tuple[float, float, float]:
+            return (rgb[0] / 255, rgb[1] / 255, rgb[2] / 255)
 
-        font = ImageFont.load_default()
-        W, H = img.size
+        bg_norm = _norm(self.theme.Background)
+        text_norm = _norm(self.theme.Text)
+        grid_norm = _norm(self.theme.GridLine)
 
-        items: list[tuple[RGBi, str]] = []
-        for formula, rgb in formula_color.items():
-            txt = f"{formula}:{counts_by_formula.get(formula, 0)}" if counts_by_formula else formula
-            items.append((tuple(int(255 * v) for v in rgb), txt))  # type: ignore[arg-type]
+        # Replace near-white molecule cell backgrounds with theme Surface color
+        data = np.array(mol_img)
+        data[(data > 230).all(axis=-1)] = self.theme.Surface
 
-        def item_width(text: str) -> int:
-            return _LEGEND_SWATCH + _LEGEND_GAP + int(font.getlength(text)) + _LEGEND_ITEM_GAP
+        W, H = mol_img.size
+        fig = Figure(figsize=(W / _DPI, H / _DPI), dpi=_DPI, facecolor=bg_norm)
+        FigureCanvasAgg(fig)
 
-        # Wrap items into lines
-        lines: list[list[tuple]] = []
-        cur: list[tuple] = []
-        cur_w = 0
-        for sw_rgb, txt in items:
-            w = item_width(txt)
-            extra = (_LEGEND_SEPARATOR_GAP * 2 + _LEGEND_SEPARATOR_W) if cur else 0
-            if cur and (_LEGEND_PADDING_X + cur_w + extra + w > W - _LEGEND_PADDING_X):
-                lines.append(cur)
-                cur, cur_w, extra = [], 0, 0
-            cur.append((sw_rgb, txt))
-            cur_w += extra + w
-        if cur:
-            lines.append(cur)
+        ax = fig.add_axes((0.0, 0.0, 1.0, 1.0))
+        ax.imshow(data, aspect="auto", interpolation="nearest")
+        ax.axis("off")
 
-        text_h = int(ImageDraw.Draw(Image.new("RGB", (1, 1))).textbbox((0, 0), "Ag", font=font)[3])
-        line_h = max(_LEGEND_SWATCH, text_h)
-        legend_h = _LEGEND_PADDING_Y + len(lines) * line_h + (len(lines) - 1) * _LEGEND_LINE_GAP + _LEGEND_PADDING_Y
+        # Grid lines at cell boundaries (data coordinates match pixel positions in imshow)
+        if n_mols > 1:
+            n_rows = (n_mols + config.molsPerRow - 1) // config.molsPerRow
+            for col in range(1, config.molsPerRow):
+                ax.axvline(config.size[0] * col - 0.5, color=grid_norm, linewidth=config.sepWidth)
+            for row in range(1, n_rows):
+                ax.axhline(config.size[1] * row - 0.5, color=grid_norm, linewidth=config.sepWidth)
 
-        out = Image.new("RGB", (W, H + legend_h), bg_color)
-        out.paste(img, (0, 0))
-        draw = ImageDraw.Draw(out)
+        # Label below axes (axes coordinates: y < 0 is below)
+        if config.label:
+            ax.text(0.5, -0.02, config.label, ha="center", va="top", color=text_norm, fontsize=10, transform=ax.transAxes)
 
-        y = H + _LEGEND_PADDING_Y
-        for line in lines:
-            lw = sum(item_width(txt) for _, txt in line) + (_LEGEND_SEPARATOR_GAP * 2 + _LEGEND_SEPARATOR_W) * (len(line) - 1)
-            x = max(_LEGEND_PADDING_X, (W - lw) // 2)
-            for i, (sw_rgb, txt) in enumerate(line):
-                y_s = y + (line_h - _LEGEND_SWATCH) // 2
-                draw.rectangle([x, y_s, x + _LEGEND_SWATCH, y_s + _LEGEND_SWATCH], fill=sw_rgb)
-                draw.text((x + _LEGEND_SWATCH + _LEGEND_GAP, y), txt, fill=text_color, font=font)
-                x += item_width(txt)
-                if i < len(line) - 1:
-                    x += _LEGEND_SEPARATOR_GAP
-                    draw.rectangle([x, y_s, x + _LEGEND_SEPARATOR_W, y_s + _LEGEND_SWATCH], fill=(0, 0, 0))
-                    x += _LEGEND_SEPARATOR_W + _LEGEND_SEPARATOR_GAP
-            y += line_h + _LEGEND_LINE_GAP
+        # Legend below label (or directly below axes when no label)
+        if config.showLegend and formula_color:
+            counts = self._aggregate_counts(matchesCountersPerMol)
+            patches = [mpatches.Patch(color=rgb_f, label=f"{f}:{(counts or {}).get(f, 0)}" if counts else f) for f, rgb_f in formula_color.items()]
+            y_anchor = -0.08 if config.label else -0.02
+            ax.legend(
+                handles=patches,
+                loc="upper center",
+                bbox_to_anchor=(0.5, y_anchor),
+                ncols=len(patches),
+                frameon=True,
+                facecolor=bg_norm,
+                edgecolor=grid_norm,
+                labelcolor=text_norm,
+            )
 
-        return out
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=_DPI, bbox_inches="tight", facecolor=bg_norm)
+        buf.seek(0)
+        # Round-trip through numpy: strips matplotlib PNG metadata (DPI stored as tuple)
+        # that breaks RDKit's IPython display hook, and normalizes to RGB mode.
+        return Image.fromarray(np.array(Image.open(buf).convert("RGB")))
 
 
 class ImageAdapter:
