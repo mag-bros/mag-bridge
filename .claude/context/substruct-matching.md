@@ -46,7 +46,7 @@ Source: `docs/remaining_substruct_matching_challenges.pdf`
 - Priority order: RCONH2 > Ar-CONH2 > RCOOR > Ar-COOR > COOH > Ar-COOH > C=O
 
 ### 4. [ ] Fix Cl-CR2-CR2-Cl and R2CCl2
-- Self-overlap allowed via one C-C bond (same rule for R2CCl2).
+- Self-overlap allowed via one C-C bond (same rule for R2CCl2) (probably already fixed)
 - Cl-CR2-CR2-Cl and R2CCl2 (cross-type) are allowed to match only via one C-C bond.
 - Ring and Cl-CR2-CR2-Cl overlap allowed only via two C-C bonds (same rule for R2CCl2).
 - **Solution:** On self-overlap, recognize C-C pair (two C connected by single bond). Allow only one such pair between two same bond types. Cross-type overlap (R2CCl2 vs Cl-CR2-CR2-Cl) resolved by SMARTS. Ring overlap resolved by checking how many atoms belong to the same ring — if more than 2, exclude matching.

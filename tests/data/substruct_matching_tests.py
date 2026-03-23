@@ -1401,7 +1401,16 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=199,
         SMILES="CCOC(=O)CCC(=O)CC1(C2(C3(C4(C1(C5(C2(C3(C(C45Cl)(Cl)Cl)Cl)Cl)Cl)Cl)Cl)Cl)Cl)O",
-        expected_matches=Counter({}),
+        expected_matches=Counter(
+            {
+                "C-Cl": 8,
+                "C=O": 1,
+                "R2CCl2": 1,
+                "cyclobutane": 2,
+                "cyclopentane": 2,
+                "RCOOR": 1,
+            }
+        ),
         description="",
     ),
     # TODO Fix multiple Cl-CR2-CR2-Cl matching in endrin fragment (SELF-MATCHING).
