@@ -19,8 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxext6 \
     libsm6 \
     libice6 \
-    sox \
-    libsox-fmt-all \
+    pulseaudio-utils \
     libfontconfig1 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 

@@ -13,7 +13,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "afplay .claude/sounds/Glass.aiff"
+            "command": "python .claude/hooks/play_sound.py .claude/sounds/Glass.wav"
           }
         ]
       }
@@ -23,7 +23,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "afplay .claude/sounds/Basso.aiff"
+            "command": "python .claude/hooks/play_sound.py .claude/sounds/Basso.wav"
           }
         ]
       }
