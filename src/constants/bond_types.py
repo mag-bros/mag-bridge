@@ -252,7 +252,9 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[C;X3;!$([C]-[c]);!$(C([O])[N])](=[O;X1])[O;X2;H0][#6,N,O,Si]",
         constitutive_corr=-5.0,
         sdf_files=("RCOOR.sdf",),
-        description="R = aliphatic group",
+        description="""
+        Condition: R group connected to C=O carbon must be aliphatic.
+        Assumption: Along with aliphatic R groups bonded to oxygen, aryl group and N, O, or Si atoms were also permitted.""",
         cross_overlap_group=OverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
@@ -265,10 +267,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "RCONHR.sdf",
             "RCONR2.sdf",
         ),
-        description="""
-            Note: Intentional extention for considering not only RCONH2, but also RCONHR.
-            Eexcluded: RNHC(=O)OR group - for this motif only C(=O)OR but not RNHC(=O) fragment will be assigned due to higher constitutive corr value of the former.
-            This must be noted in Software's MANUAL.""",
+        description="Assumption: RCONH2 constitutive correction is extended to RCONHR' and RCONR'R'', where R'/R'' = aliphatic or aryl group.",
         cross_overlap_group=OverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
@@ -277,6 +276,8 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[c]-[C;X3](=[O;X1])[O;X2;H0][#6,N,O,Si]",
         constitutive_corr=-1.5,
         sdf_files=("Ar-COOR.sdf",),
+        description="""
+            Assumption: Along with aliphatic R groups bonded to oxygen, aryl group and N, O, or Si atoms were also permitted.""",
         cross_overlap_group=OverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
@@ -303,9 +304,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "Ar-CONHR.sdf",
             "Ar-CONR2.sdf",
         ),
-        description="""
-            Note: Intentional extention for considering not only ArCONH2, but also Ar-CONHR and Ar-CONR2.
-            This must be noted in Software's MANUAL.""",
+        description="""Assumption: Ar-CONH2 constitutive correction is extended to Ar-CONHR and Ar-CONR2, where R = aliphatic or aryl group.""",
         cross_overlap_group=OverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
@@ -315,8 +314,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=0.8,
         sdf_files=("C2H2.sdf",),
         description="""
-            Condition: C#C atoms are not further connected to aryl group.
-            Also excluded: RC#C-C(=O)R""",
+            Condition: Any of C atoms in the C#C bond are not further connected to aryl group. Also excluded: RC#C-C(=O)R""",
     ),
     BondType(
         id=26,
@@ -327,9 +325,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "RCOOH.sdf",
             "RCOO-.sdf",
         ),
-        description="""
-            Note: Both RCOO- and RCOOH groups will be matched.
-            This must be noted in Software's MANUAL.""",
+        description="""Assumption: The RCOOH constitutive correction was extended to the deprotonated RCOO- group.""",
     ),
     BondType(
         id=27,
@@ -337,7 +333,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[N+;X2]#[C-;X1]",
         constitutive_corr=0.0,
         sdf_files=("-N#C.sdf",),
-        description="Condition: Isocyanide (isonitrile) group -N#C must be represented by the charged resonance structure",
+        description="Condition: Isocyanide (isonitrile) group -N#C must be represented by the charged resonance structure.",
     ),
     BondType(
         id=28,
@@ -345,7 +341,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[C;X2]#[N;X1]",
         constitutive_corr=0.8,
         sdf_files=("-C#N.sdf",),
-        description="Cyanide (nitrile) -C#N group",
+        description="Cyanide (nitrile) -C#N group.",
     ),
     BondType(
         id=29,
@@ -433,8 +429,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "Ar-O-.sdf",
         ),
         description="""
-            Note: Phenolate Ar-O- intentionally included.
-            This must be stated in the MANUAL.""",
+            Assumption: The constitutive correction for Ar–OH was extended to phenolate (Ar-O-) group.""",
     ),
     AR_NR2,
     BondType(
