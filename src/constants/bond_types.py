@@ -32,22 +32,21 @@ DOUBLE_BOND = BondType(
     SMARTS="[C;X3,X2;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]=[C;X3,X2;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]",
     constitutive_corr=5.5,
     sdf_files=("C2H4.sdf",),
-    description="""
-            Condition: C are NOT aromatic theirself and not bound to aryl group  - this rejects all aromatic rings that are not listed; 
-            Also excluded: cyclohexene, C=C-C=C and H2C=CH-CH2- (allyl group). The C atoms in C=C-C=C cannot be part of C=C-Ar bond type.
-            Note: All exclusions must be applied for both atoms""",
+    description="Condition: C atoms not bound to aryl group. Also excluded: cyclohexene, C=C-C=C and H2C=CH-CH2- (allyl group).",
     cross_overlap_group=OverlapGroup.DOUBLE_BONDS,
 )
 
 AR_NR2 = BondType(
     id=40,
     formula="Ar-NR2",
-    # SMARTS="[c]-[N]([#6;!$([C]=[O,S])])[#6;!$([C]=[O,S])]",
     SMARTS="[c]-[N;H2,H1,H0]([$([H]),$([#6;!$([C]=[O,S])])])[$([H]),$([#6;!$([C]=[O,S])])]",
     constitutive_corr=1,
     sdf_files=("Ar-NR2.sdf",),
     cross_overlap_group=OverlapGroup.Ar_N_BOND_TYPES,
-    description="This bond can be duplicated when cross-overlapping within its group.",
+    description="""
+        Assumption: The Ar3N and Ar2NR fragments are modeled by applying three or two Ar-NR2 corrections.
+        Ar-NR2 correction is also applied for Ar-NH2 Ar-NHR and Ar-NH-Ar fragments.
+        For Ar-NH-Ar two Ar-NR2 corrections are applied.""",
 )
 
 CARBON_HALOGEN_BOND = BondType(
@@ -110,7 +109,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="O1[C;!$([C]=O)][C][C][C;!$([C]=O)]1",
         constitutive_corr=0.0,
         sdf_files=("tetrahydrofuran.sdf",),
-        description="Tetrahydrofuran attached to aromatic ring via edge (polyheterocyclic system) is ignored.",
+        description="Tetrahydrofuran attached to aromatic ring via edge (polyheterocyclic system) is ignored. Analogously for all saturated rings.",
         cross_overlap_group=OverlapGroup.BICYCLIC_STRUCTURES,
     ),
     BondType(
@@ -123,9 +122,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "pyrrolidine-.sdf",
             "pyrrolidine+.sdf",
         ),
-        description="""
-            Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
-            This must be stated in MANUAL""",
+        description="Assumption: The same constitutive correction constant was assumed for different protonation states of the molecule.",
         cross_overlap_group=OverlapGroup.BICYCLIC_STRUCTURES,
     ),
     BondType(
@@ -146,9 +143,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "piperidine-.sdf",
             "piperidine+.sdf",
         ),
-        description="""
-            Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
-            This must be stated in MANUAL""",
+        description="Assumption: The same constitutive correction constant was assumed for different protonation states of the molecule.",
         cross_overlap_group=OverlapGroup.BICYCLIC_STRUCTURES,
     ),
     BondType(
@@ -185,9 +180,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "piperazine-.sdf",
             "piperazine+.sdf",
         ),
-        description="""
-            Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
-            This must be stated in MANUAL""",
+        description="Assumption: The same constitutive correction constant was assumed for different protonation states of the molecule.",
         cross_overlap_group=OverlapGroup.BICYCLIC_STRUCTURES,
     ),
     BondType(
@@ -243,7 +236,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[C;X3,X2;!$([C]-[c]);!$([C]([H])(=[O])[O*]);!$([C]([C])(=[O])[O*]);!$([C](=[O;X1])[N*]);!$([C]([C]#[C]-[!c])(=[O])[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]=[O;X1]",
         constitutive_corr=6.3,
         sdf_files=("C=O.sdf",),
-        description="Condition: C cannot be bound to aryl group. Omitted additional bond to O/N in any form. C=O can be assigned as part of thioester RC(=O)SR.",
+        description="Condition: C cannot be bound to aryl group. Omitted additional bond to O/N in any form.",
         cross_overlap_group=OverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
@@ -253,8 +246,8 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=-5.0,
         sdf_files=("RCOOR.sdf",),
         description="""
-        Condition: R group connected to C=O carbon must be aliphatic.
-        Assumption: Along with aliphatic R groups bonded to oxygen, aryl group and N, O, or Si atoms were also permitted.""",
+            Condition: R group connected to C=O carbon must be aliphatic.
+            Assumption: Along with aliphatic R groups bonded to oxygen, aryl group and N, O, or Si atoms were also permitted.""",
         cross_overlap_group=OverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
@@ -276,8 +269,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[c]-[C;X3](=[O;X1])[O;X2;H0][#6,N,O,Si]",
         constitutive_corr=-1.5,
         sdf_files=("Ar-COOR.sdf",),
-        description="""
-            Assumption: Along with aliphatic R groups bonded to oxygen, aryl group and N, O, or Si atoms were also permitted.""",
+        description="Assumption: Along with aliphatic R groups bonded to oxygen, aryl group and N, O, or Si atoms were also permitted.",
         cross_overlap_group=OverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
@@ -289,9 +281,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "Ar-COOH.sdf",
             "Ar-COO-.sdf",
         ),
-        description="""
-            Note: Aromatic carboxylate Ar-COO- intentionally included.
-            This must be stated in MANUAL.""",
+        description="Assumption: Aromatic carboxylate Ar-COO- intentionally included.",
         cross_overlap_group=OverlapGroup.CARBONYL_BOND_TYPES,
     ),
     BondType(
@@ -313,8 +303,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[C;!$([C]-[c]);!$([C]([!c])#[C]-[C](=[O])-[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]#[C;!$([C]-[c]);!$([C]([!c])#[C]-[C](=[O])-[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]",
         constitutive_corr=0.8,
         sdf_files=("C2H2.sdf",),
-        description="""
-            Condition: Any of C atoms in the C#C bond are not further connected to aryl group. Also excluded: RC#C-C(=O)R""",
+        description="Condition: Any of C atoms in the C#C bond are not further connected to aryl group. Also excluded: RC#C-C(=O)R",
     ),
     BondType(
         id=26,
@@ -325,7 +314,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "RCOOH.sdf",
             "RCOO-.sdf",
         ),
-        description="""Assumption: The RCOOH constitutive correction was extended to the deprotonated RCOO- group.""",
+        description="Assumption: The RCOOH constitutive correction was extended to the deprotonated RCOO- group.",
     ),
     BondType(
         id=27,
@@ -364,6 +353,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             Condition: N not bound to aromatic C atom.
             Excluded: Nitroso -N=O group""",
     ),
+    # TODO C-Cl occurs in two places in the file, is is expected?
     BondType(
         id=31,
         formula="C-Cl",
@@ -378,6 +368,9 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])([Cl])-[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])[Cl]",
         constitutive_corr=4.3,
         sdf_files=("Cl-CR2-CR2-Cl.sdf",),
+        description="""
+            Condition: Cl-CR2-CR2-Cl cannot share three C-C bonds with a saturated ring. 
+            If so, two C-Cl constitutive corrections are applied instead.""",
     ),
     BondType(
         id=33,
@@ -400,6 +393,9 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])([Br;X1])-[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])[Br;X1]",
         constitutive_corr=6.24,
         sdf_files=("Br-CR2-CR2-Br.sdf",),
+        description="""
+        Condition: Br-CR2-CR2-Br cannot share three C-C bonds with a saturated ring. 
+        If so, two C-Br constitutive corrections are applied instead.""",
     ),
     BondType(
         id=37,
@@ -428,8 +424,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "Ar-OH.sdf",
             "Ar-O-.sdf",
         ),
-        description="""
-            Assumption: The constitutive correction for Ar–OH was extended to phenolate (Ar-O-) group.""",
+        description="Assumption: The constitutive correction for Ar–OH was extended to phenolate (Ar-O-) group.",
     ),
     AR_NR2,
     BondType(
@@ -438,6 +433,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[c]-[C;X3](=[O;X1])[#6]",
         constitutive_corr=-1.5,
         sdf_files=("Ar-COR.sdf",),
+        description="Assumption: R = aliphatic or aryl group. For Ar-C(=O)-Ar fragment, the Ar-C(=O)R constant is taken only once.",
     ),
     BondType(
         id=42,
@@ -446,9 +442,8 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=1.85,
         sdf_files=("N=N.sdf",),
         description="""
-            Condition: N are NOT aromatic - this excludes aromatic rings that are not listed in the reference
-            Also excluded: Azides R-N=N(+)=N(-)
-            This should be noted in Software's MANUAL.""",
+            Condition: N are NOT aromatic - this excludes aromatic rings that are not listed in the reference.
+            Also excluded: Azides R-N=N(+)=N(-)""",
     ),
     BondType(
         id=43,
@@ -471,7 +466,9 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[c]-[O;X2]-[#6,N,O;!$([C]=[O])]",
         constitutive_corr=-1,
         sdf_files=("Ar-OR.sdf",),
-        description="Cyclic ethers bound to aromatic C atom are also considered",
+        description="""
+            Assumption: Cyclic ethers bound to aromatic C atom are also considered.
+            For Ar-O-Ar fragment, Ar-OR constant is considered and applied twice.""",
     ),
     BondType(
         id=46,
@@ -554,9 +551,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "imidazole-.sdf",
             "imidazole+.sdf",
         ),
-        description="""
-            Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
-            This must be stated in MANUAL""",
+        description="Assumption: The same constitutive correction constant was assumed for different protonation states of the molecule.",
     ),
     BondType(
         id=57,
@@ -574,9 +569,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "pyrazine.sdf",
             "pyrazine+.sdf",
         ),
-        description="""
-            Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
-            This must be stated in MANUAL""",
+        description="Assumption: The same constitutive correction constant was assumed for different protonation states of the molecule.",
     ),
     BondType(
         id=59,
@@ -589,8 +582,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         ),
         description="""
             Excluded: pyrimidinone rings (C atoms in pyrimidine ring cannot form C=O bond)
-            Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
-            This must be stated in MANUAL""",
+            Assumption: The same constitutive correction constant was assumed for different protonation states of the molecule.""",
     ),
     BondType(
         id=60,
@@ -603,8 +595,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         ),
         description="""
             Condition: Aromatic C atoms cannot be a part of C=O group.
-            Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
-            This must be stated in MANUAL""",
+            Assumption: The same constitutive correction constant was assumed for different protonation states of the molecule.""",
     ),
     BondType(
         formula="pyrones",
@@ -625,9 +616,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "pyrrole.sdf",
             "pyrrole-.sdf",
         ),
-        description="""
-            Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
-            This must be stated in MANUAL""",
+        description="Assumption: The same constitutive correction constant was assumed for different protonation states of the molecule.",
     ),
     BondType(
         id=63,
@@ -638,9 +627,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "1,3,5-triazine.sdf",
             "1,3,5-triazine+.sdf",
         ),
-        description="""
-            Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
-            This must be stated in MANUAL""",
+        description="Assumption: The same constitutive correction constant was assumed for different protonation states of the molecule.",
     ),
     BondType(
         id=64,
@@ -651,9 +638,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             "thiazole.sdf",
             "thiazole+.sdf",
         ),
-        description="""
-            Note: The same constitutive correction constant was assumed for different protonation states of the molecule.
-            This must be stated in MANUAL""",
+        description="Assumption: The same constitutive correction constant was assumed for different protonation states of the molecule.",
     ),
     BondType(
         id=65,
@@ -662,6 +647,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         constitutive_corr=-7.0,
         sdf_files=("thiophene.sdf",),
     ),
+    # TODO is this bondtype even used?
     BondType(
         id=66,
         formula="Ar-[N+]Ar3",
