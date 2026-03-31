@@ -6,7 +6,7 @@ on:
       - master
 
 concurrency:
-  group: merged-to-${{ github.ref_name }}
+  group: ${{ github.workflow }}-merged-to-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -21,7 +21,7 @@ jobs:
       - name: Short SHA
         id: short_sha
         run: echo "value=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
-      
+
       - name: Use it
         run: |
           echo "Commit: ${{ steps.commit_url.outputs.url }}"
@@ -47,7 +47,7 @@ jobs:
           else
             TEXT="📝 **Commit message:** ${{ github.event.head_commit.message }}"
           fi
-      
+
           {
             echo "text<<EOF"
             echo "$TEXT"
@@ -55,7 +55,8 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Notify Discord
-        uses: rjstone/discord-webhook-notify@v2
+        # https://github.com/rjstone/discord-webhook-notify/tree/v2.2.1
+        uses: rjstone/discord-webhook-notify@c2597273488aeda841dd1e891321952b51f7996f
         with:
           webhookUrl: ${{ secrets.DISCORD_PR_WEBHOOK }}
           username: "MagBridge CI"
