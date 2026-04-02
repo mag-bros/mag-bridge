@@ -1,3 +1,9 @@
+# Local binaries (Grype, etc.)
+bin/
+
+# Security scan reports
+security/
+
 # Byte-compiled / optimized / DLL files
 bondtype_coverage.json
 __pycache__/
