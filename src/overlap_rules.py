@@ -8,6 +8,7 @@ from rdkit import Chem
 
 from src.constants.bond_types import (
     AR_NR2,
+    CARBON_BROMINE_BOND,
     CARBON_HALOGEN_BOND,
     DOUBLE_BOND,
     BondType,
@@ -196,8 +197,10 @@ class OverlapInjector:
 
     # Maps each dihalide formula → (halogen symbol, C-X bond type to inject)
     # Extend this table when adding new dihalide types (e.g. Br-CR2-CR2-Br).
-    _DIHALIDE_INJECT_MAP: dict[str, tuple[str, BondType]] = {
+    # TODO move to global config
+    _DIHALOGEN_INJECT_MAP: dict[str, tuple[str, BondType]] = {
         "Cl-CR2-CR2-Cl": ("Cl", CARBON_HALOGEN_BOND),
+        "Br-CR2-CR2-Br": ("Br", CARBON_BROMINE_BOND),
     }
 
     @staticmethod
@@ -214,7 +217,7 @@ class OverlapInjector:
         Atom map of the rejected fragment (for debugging):
             {idx: mol.GetAtomInfoByIdx(idx).symbol for idx in bmc.atoms}
         """
-        entry = OverlapInjector._DIHALIDE_INJECT_MAP.get(bmc.formula)
+        entry = OverlapInjector._DIHALOGEN_INJECT_MAP.get(bmc.formula)
         if entry is None:
             return False
         halogen_symbol, injection_bond = entry
@@ -440,6 +443,7 @@ OVERLAP_RULES_CONFIG: dict = {
         "cross_overlap_rule": CrossOverlapRules._check_default,
         "inject_rules": {
             "Cl-CR2-CR2-Cl": OverlapInjector._inject_default,
+            "Br-CR2-CR2-Br": OverlapInjector._inject_default,
         },
         "on_accept": OverlapInjector._inject_aromatic,
     },

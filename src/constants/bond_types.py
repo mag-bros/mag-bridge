@@ -52,7 +52,7 @@ AR_NR2 = BondType(
 CARBON_HALOGEN_BOND = BondType(
     id=-1,
     formula="C-Cl",
-    SMARTS="[C;!$([c]);!$([C]([C])([C])([Cl])[Cl]);!$([C;X4;H1]([C;!$(C=O);!$(C#N)])([Cl])[Cl])]-[Cl;X1]",
+    SMARTS="[C;!$([c]);!$([C]([C])([C])([Cl])[Cl]);!$([C;X4;H1]([C;!$(C=O);!$(C#N)])([Cl])[Cl]);!$([C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])([Cl])-[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])[Cl])]-[Cl;X1]",
     constitutive_corr=3.1,
     sdf_files=("C-Cl.sdf",),
     description="Excluded: R2CCl2, RCHCl2, Ar-Cl and Cl-CR2-CR2-Cl",
@@ -353,15 +353,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             Condition: N not bound to aromatic C atom.
             Excluded: Nitroso -N=O group""",
     ),
-    # TODO C-Cl occurs in two places in the file, is is expected?
-    BondType(
-        id=31,
-        formula="C-Cl",
-        SMARTS="[C;!$([c]);!$([C]([C])([C])([Cl])[Cl]);!$([C;X4;H1]([C;!$(C=O);!$(C#N)])([Cl])[Cl]);!$([C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])([Cl])-[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])[Cl])]-[Cl;X1]",
-        constitutive_corr=3.1,
-        sdf_files=("C-Cl.sdf",),
-        description="Excluded: R2CCl2, RCHCl2, Ar-Cl and Cl-CR2-CR2-Cl",
-    ),
+    CARBON_HALOGEN_BOND,
     BondType(
         id=32,
         formula="Cl-CR2-CR2-Cl",
