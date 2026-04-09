@@ -11,7 +11,6 @@ from src.constants.bond_types import (
     CARBON_BROMINE_BOND,
     CARBON_HALOGEN_BOND,
     CARBON_TRIPLE_BOND,
-    CARBONYL_BOND,
     DOUBLE_BOND,
     BondType,
     OverlapGroup,
@@ -208,11 +207,12 @@ class OverlapInjector:
     # Maps each dihalide formula → (halogen symbol, C-X bond type to inject)
     # Extend this table when adding new dihalide types (e.g. Br-CR2-CR2-Br).
     # TODO move to global config
+    # TODO:: get bond type from INJECT_MAP instead
     INJECT_MAP: dict[str, tuple[str, BondType]] = {
-        "Cl-CR2-CR2-Cl": ("Cl", CARBON_HALOGEN_BOND),
-        "Br-CR2-CR2-Br": ("Br", CARBON_BROMINE_BOND),
-        "C#C": ("C", CARBON_TRIPLE_BOND),
-        "C=O": ("C", CARBONYL_BOND),
+        "Cl-CR2-CR2-Cl": ("Cl", CARBON_HALOGEN_BOND),  # SINGLE
+        "Br-CR2-CR2-Br": ("Br", CARBON_BROMINE_BOND),  # SINGLE
+        # "RC#C-C(=O)R": ("O", CARBONYL_BOND),  #  DOUBLE
+        "RC#C-C(=O)R": ("C", CARBON_TRIPLE_BOND),  # TRIPLE
     }
 
     @staticmethod
@@ -243,11 +243,19 @@ class OverlapInjector:
         for x_idx, sym in atom_map.items():
             if sym != seek_symbol:
                 continue
-            for nbr in mol.GetAtomWithIdx(x_idx).GetNeighbors():
+            nbrs = mol.GetAtomWithIdx(x_idx).GetNeighbors()
+            for nbr in nbrs:
                 if nbr.GetSymbol() != "C":
                     continue
                 bond = mol.GetBondBetweenAtoms(x_idx, nbr.GetIdx())
-                if bond.GetBondType() == Chem.BondType.SINGLE and nbr.GetIdx() in atom_map:
+                # TODO:: get bond type from INJECT_MAP instead
+                if bmc.formula in ["Cl-CR2-CR2-Cl", "Br-CR2-CR2-Br"] and bond.GetBondType() == Chem.BondType.SINGLE and nbr.GetIdx() in atom_map:
+                    c_x_pairs.append((nbr.GetIdx(), x_idx))
+                    break  # each halogen has exactly one C neighbor in the fragment
+                if bmc.formula in ["RC#C-C(=O)R"] and bond.GetBondType() == Chem.BondType.DOUBLE and seek_symbol == "O" and nbr.GetIdx() in atom_map:
+                    c_x_pairs.append((nbr.GetIdx(), x_idx))
+                    break  # each halogen has exactly one C neighbor in the fragment
+                if bmc.formula in ["RC#C-C(=O)R"] and bond.GetBondType() == Chem.BondType.TRIPLE and seek_symbol == "C" and nbr.GetIdx() in atom_map:
                     c_x_pairs.append((nbr.GetIdx(), x_idx))
                     break  # each halogen has exactly one C neighbor in the fragment
 
@@ -457,8 +465,7 @@ OVERLAP_RULES_CONFIG: dict = {
         "inject_rules": {
             "Cl-CR2-CR2-Cl": OverlapInjector._inject_default,
             "Br-CR2-CR2-Br": OverlapInjector._inject_default,
-            "C=O": OverlapInjector._inject_default,
-            "C#C": OverlapInjector._inject_default,
+            "RC#C-C(=O)R": OverlapInjector._inject_default,
         },
         "on_accept": OverlapInjector._inject_aromatic,
     },
