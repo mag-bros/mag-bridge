@@ -67,6 +67,26 @@ CARBON_BROMINE_BOND = BondType(
     description="Excluded: Ar-Br and Br-CR2-CR2-Br",
 )
 
+
+CARBON_TRIPLE_BOND = BondType(
+    id=25,
+    formula="C#C",
+    SMARTS="[C;!$([C]-[c]);!$([C]([!c])#[C]-[C](=[O])-[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]#[C;!$([C]-[c]);!$([C]([!c])#[C]-[C](=[O])-[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]",
+    constitutive_corr=0.8,
+    sdf_files=("C2H2.sdf",),
+    description="Condition: Any of C atoms in the C#C bond are not further connected to aryl group. Also excluded: RC#C-C(=O)R",
+)
+
+CARBONYL_BOND = BondType(
+    id=19,
+    formula="C=O",
+    SMARTS="[C;X3,X2;!$([C]-[c]);!$([C]([H])(=[O])[O*]);!$([C]([C])(=[O])[O*]);!$([C](=[O;X1])[N*]);!$([C]([C]#[C]-[!c])(=[O])[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]=[O;X1]",
+    constitutive_corr=6.3,
+    sdf_files=("C=O.sdf",),
+    description="Condition: C cannot be bound to aryl group. Omitted additional bond to O/N in any form.",
+    cross_overlap_group=OverlapGroup.CARBONYL_BOND_TYPES,
+)
+
 # Relevant bond type representation (see reference https://doi.org/10.1021/ed085p532)
 RELEVANT_BOND_TYPES: list[BondType] = [
     DOUBLE_BOND,
@@ -230,15 +250,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         cross_overlap_group=OverlapGroup.BICYCLIC_STRUCTURES,
     ),
     #### -----
-    BondType(
-        id=19,
-        formula="C=O",
-        SMARTS="[C;X3,X2;!$([C]-[c]);!$([C]([H])(=[O])[O*]);!$([C]([C])(=[O])[O*]);!$([C](=[O;X1])[N*]);!$([C]([C]#[C]-[!c])(=[O])[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]=[O;X1]",
-        constitutive_corr=6.3,
-        sdf_files=("C=O.sdf",),
-        description="Condition: C cannot be bound to aryl group. Omitted additional bond to O/N in any form.",
-        cross_overlap_group=OverlapGroup.CARBONYL_BOND_TYPES,
-    ),
+    CARBONYL_BOND,
     BondType(
         id=20,
         formula="RCOOR",
@@ -297,14 +309,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         description="""Assumption: Ar-CONH2 constitutive correction is extended to Ar-CONHR and Ar-CONR2, where R = aliphatic or aryl group.""",
         cross_overlap_group=OverlapGroup.CARBONYL_BOND_TYPES,
     ),
-    BondType(
-        id=25,
-        formula="C#C",
-        SMARTS="[C;!$([C]-[c]);!$([C]([!c])#[C]-[C](=[O])-[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]#[C;!$([C]-[c]);!$([C]([!c])#[C]-[C](=[O])-[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]",
-        constitutive_corr=0.8,
-        sdf_files=("C2H2.sdf",),
-        description="Condition: Any of C atoms in the C#C bond are not further connected to aryl group. Also excluded: RC#C-C(=O)R",
-    ),
+    CARBON_TRIPLE_BOND,
     BondType(
         id=26,
         formula="RCOOH",

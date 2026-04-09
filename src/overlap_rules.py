@@ -10,6 +10,8 @@ from src.constants.bond_types import (
     AR_NR2,
     CARBON_BROMINE_BOND,
     CARBON_HALOGEN_BOND,
+    CARBON_TRIPLE_BOND,
+    CARBONYL_BOND,
     DOUBLE_BOND,
     BondType,
     OverlapGroup,
@@ -137,6 +139,14 @@ class SelfOverlapRules:
             )
             if conflicting:
                 return RejectedCandidate(candidate=bmc, reason="dihalide_ring_overlap_4_atoms", conflicting_with=conflicting)
+        if bmc.formula in ["RC#C-C(=O)R"]:
+            conflicting = next(
+                (acc for acc in accepted_in_group if len(set(acc.atoms) & bmc_atoms) >= 3),
+                None,
+            )
+            if conflicting:
+                return RejectedCandidate(candidate=bmc, reason="alkynyl_ketone_overlap_3_atoms", conflicting_with=conflicting)
+
         return None
 
 
@@ -198,9 +208,11 @@ class OverlapInjector:
     # Maps each dihalide formula → (halogen symbol, C-X bond type to inject)
     # Extend this table when adding new dihalide types (e.g. Br-CR2-CR2-Br).
     # TODO move to global config
-    _DIHALOGEN_INJECT_MAP: dict[str, tuple[str, BondType]] = {
+    INJECT_MAP: dict[str, tuple[str, BondType]] = {
         "Cl-CR2-CR2-Cl": ("Cl", CARBON_HALOGEN_BOND),
         "Br-CR2-CR2-Br": ("Br", CARBON_BROMINE_BOND),
+        "C#C": ("C", CARBON_TRIPLE_BOND),
+        "C=O": ("C", CARBONYL_BOND),
     }
 
     @staticmethod
@@ -211,16 +223,17 @@ class OverlapInjector:
         accepted: dict[str, list[BondMatchCandidate]],
         trigger: str,
     ) -> bool:
+        # TODO refactor this code to be more readable (backward compatibility is crucial)
         """When a dihalide (e.g. Cl-CR2-CR2-Cl) is rejected, inject one C-X BondType per halogen pair in the fragment.
 
         Skips halogen atoms already claimed by an accepted dihalide or an already-injected C-X bond.
         Atom map of the rejected fragment (for debugging):
             {idx: mol.GetAtomInfoByIdx(idx).symbol for idx in bmc.atoms}
         """
-        entry = OverlapInjector._DIHALOGEN_INJECT_MAP.get(bmc.formula)
+        entry = OverlapInjector.INJECT_MAP.get(bmc.formula)
         if entry is None:
             return False
-        halogen_symbol, injection_bond = entry
+        seek_symbol, injection_bond = entry
 
         # atom_index → symbol map for the fragment
         atom_map: dict[int, str] = {idx: mol.GetAtomInfoByIdx(idx).symbol for idx in bmc.atoms}
@@ -228,7 +241,7 @@ class OverlapInjector:
         # For each halogen in the fragment, find its single-bond C neighbor — the C-X pair
         c_x_pairs: list[tuple[int, int]] = []
         for x_idx, sym in atom_map.items():
-            if sym != halogen_symbol:
+            if sym != seek_symbol:
                 continue
             for nbr in mol.GetAtomWithIdx(x_idx).GetNeighbors():
                 if nbr.GetSymbol() != "C":
@@ -246,13 +259,13 @@ class OverlapInjector:
         for acc in occupied:
             if acc.formula == injection_bond.formula:
                 for idx in acc.atoms:
-                    if mol.GetAtomInfoByIdx(idx).symbol == halogen_symbol:
+                    if mol.GetAtomInfoByIdx(idx).symbol == seek_symbol:
                         already_covered.add(idx)
         for acc_list in accepted.values():
             for acc in acc_list:
                 if acc.formula == bmc.formula:
                     for idx in acc.atoms:
-                        if mol.GetAtomInfoByIdx(idx).symbol == halogen_symbol:
+                        if mol.GetAtomInfoByIdx(idx).symbol == seek_symbol:
                             already_covered.add(idx)
 
         injected = False
@@ -444,6 +457,8 @@ OVERLAP_RULES_CONFIG: dict = {
         "inject_rules": {
             "Cl-CR2-CR2-Cl": OverlapInjector._inject_default,
             "Br-CR2-CR2-Br": OverlapInjector._inject_default,
+            "C=O": OverlapInjector._inject_default,
+            "C#C": OverlapInjector._inject_default,
         },
         "on_accept": OverlapInjector._inject_aromatic,
     },
