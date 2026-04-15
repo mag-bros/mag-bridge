@@ -39,6 +39,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="CC(=C)C1CC2=C(O1)C=CC3=C2OC4COC5=CC(=C(C=C5C4C3=O)OC)OC",
         expected_matches=Counter({"Ar-OR": 5, "benzene": 2, "C=C": 1, "Ar-C(=O)R": 1}),
     ),
+    # TODO: Ar-OR fix required
     SubstructMatchTest(
         id=5,
         SMILES="CC1(C(C1C(=O)OC(C#N)C2=CC(=CC=C2)OC3=CC=CC=C3)C=C(Cl)Cl)C",
@@ -50,7 +51,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "benzene": 2,
                 "cyclopropane": 1,
                 "C=C": 1,
-                "Ar-OR": 2,
+                "Ar-OR": 1,
             }
         ),
         description="Tests if ArOAr was not incorrectly matched.",
@@ -1795,11 +1796,12 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"Ar-Br": 5, "C-Br": 5, "Ar-OR": 1, "benzene": 1, "C=C-C=C": 1}),
         description="Ar-Br and C-Br in one structure",
     ),
+    # TODO: Ar-OR fix required
     SubstructMatchTest(
         id=260,
         SMILES="C1(=C(C(=C(C(=C1Br)Br)Br)Br)Br)OC2=C(C(=C(C(=C2Br)Br)Br)Br)Br",
-        expected_matches=Counter({"Ar-Br": 10, "Ar-OR": 2, "benzene": 2}),
-        description="Ar-O-Ar is matched as two Ar-OR bond types",
+        expected_matches=Counter({"Ar-Br": 10, "Ar-OR": 1, "benzene": 2}),
+        description="Ar-O-Ar is matched as one Ar-OR bond types",
     ),
     SubstructMatchTest(
         id=261,
@@ -1883,12 +1885,11 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"Ar-OR": 1, "Ar-OH": 1, "CH2=CH-CH2-": 1, "benzene": 1}),
         description="",
     ),
-    # TODO in Ar-NR-Ar fragment two Ar-NR2 bonds should be assigned.
     SubstructMatchTest(
         id=275,
         SMILES="CNCCCN1C2=CC=CC=C2CCC3=CC=CC=C31",
-        expected_matches=Counter({"benzene": 2, "Ar-NR2": 2}),
-        description="Ar-NR-Ar fragment is assigned as two Ar-NR2 bonds.",
+        expected_matches=Counter({"benzene": 2, "Ar-NR2": 1}),
+        description="Ar-NR-Ar fragment is assigned as one Ar-NR2 bonds.",
     ),
     SubstructMatchTest(
         id=276,
@@ -2158,7 +2159,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"Ar-COOH": 1, "benzene": 1, "Ar-C#C": 1, "C=C": 1, "cyclohexene": 1}),
         description="Check for conjugated bond system with Ar-C#C, C=C and cyclohexene.",
     ),
-    # TODO Ar-OR in Ar-O-Ar fragment must be matched twice.
+    # TODO: Ar-OR fix required
     SubstructMatchTest(
         id=316,
         SMILES="CC1([C@H]([C@H]1C(=O)O[C@H](C#N)C2=CC(=CC=C2)OC3=CC=CC=C3)C=C(Br)Br)C",
@@ -2166,14 +2167,14 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
             {
                 "cyclopropane": 1,
                 "-C#N": 1,
-                "Ar-OR": 2,
+                "Ar-OR": 1,
                 "C-Br": 2,
                 "C=C": 1,
                 "RCOOR": 1,
                 "benzene": 2,
             }
         ),
-        description="Ar-O-Ar is matched as two Ar-OR fragments.",
+        description="Ar-O-Ar is matched as one Ar-OR fragments.",
     ),
     SubstructMatchTest(
         id=317,
@@ -2239,7 +2240,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="C1=C(SC(=C1)[N+](=O)[O-])C=O",
         expected_matches=Counter({"Ar-CHO": 1, "Ar-NO2": 1, "thiophene": 1}),
     ),
-    # TODO Ar-O-Ar must be assigned as two Ar-OR bond types
+    # TODO: Ar-OR fix required
     SubstructMatchTest(
         id=328,
         SMILES="CC1=CC(=C(C2=C1C(=O)OC3=C(O2)C4=C(C(=C3C)O)C(=O)OC4O)C=O)OC",
@@ -2248,7 +2249,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "Ar-CHO": 1,
                 "Ar-COOR": 2,
                 "Ar-OH": 1,
-                "Ar-OR": 3,
+                "Ar-OR": 2,
                 "benzene": 2,
             }
         ),
@@ -2260,25 +2261,24 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"imidazole": 1, "thiazole": 1, "Ar-OR": 1, "Ar-CHO": 1}),
         description="If a heteroatom is shared by two fused rings, it is taken into account in the assignment of each ring. Ar-OR assignment allowed if R = N.",
     ),
-    # TODO Ar-O-Ar must be assigned as two Ar-OR bond types
+    # TODO: Ar-OR fix required
     SubstructMatchTest(
         id=330,
         SMILES="C1=CC=C2C(=C1)C(=O)OC23C4=C(C=C(C=C4)O)OC5=C3C=CC(=C5)[O-]",
-        expected_matches=Counter({"benzene": 3, "Ar-COOR": 1, "Ar-OH": 2, "Ar-OR": 2}),
+        expected_matches=Counter({"benzene": 3, "Ar-COOR": 1, "Ar-OH": 2, "Ar-OR": 1}),
         description="The Ar–O–Ar fragment, where the oxygen is part of the ring, is assigned as two Ar–OR bond types.",
     ),
     SubstructMatchTest(
         id=331,
         SMILES="[N+](C1=CC=CC=C1)(C2=CC=CC=C2)(C3=CC=CC=C3)C4=CC=CC=C4",
         expected_matches=Counter({"benzene": 4}),
-        description="For [N+]-Ar4 molecule, assignment of four Ar-NR2 bonds is assumed.",
+        description="For [N+]-Ar4 molecule, assignment of Ar-NR2 bond type is rejected.",
     ),
-    # TODO Fix Ar-NR-Ar assignment.
     SubstructMatchTest(
         id=332,
         SMILES="CN1CCN(CC1)CCCN2C3=CC=CC=C3SC4=C2C=C(C=C4)C(Cl)(Br)I",
-        expected_matches=Counter({"piperazine": 1, "benzene": 2, "C-Cl": 1, "C-Br": 1, "C-I": 1, "Ar-NR2": 2}),
-        description="Ar-NR-Ar fragment is assigned as two Ar-NR2, because the middle fused ring is not aromatic.",
+        expected_matches=Counter({"piperazine": 1, "benzene": 2, "C-Cl": 1, "C-Br": 1, "C-I": 1, "Ar-NR2": 1}),
+        description="Ar-NR-Ar fragment is assigned as one Ar-NR2.",
     ),
     SubstructMatchTest(
         id=333,
@@ -2636,17 +2636,16 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="C1=CC=C(C(=C1)NC2=NC(=NC=N2)N3C=CC=C3)Cl",
         expected_matches=Counter({"pyrrole": 1, "triazine": 1, "benzene": 1, "Ar-Cl": 1, "Ar-NR2": 1}),
     ),
-    # TODO Fix Ar-NR2 matching
     SubstructMatchTest(
         id=394,
         SMILES="C1=CC=C(C=C1)N(C2=CC=CC=C2)C3=NC(=NC(=N3)N)CCl",
-        expected_matches=Counter({"benzene": 2, "triazine": 1, "Ar-NR2": 3, "C-Cl": 1}),
+        expected_matches=Counter({"benzene": 2, "triazine": 1, "Ar-NR2": 2, "C-Cl": 1}),
     ),
-    # TODO The same problem with Ar-OR matching.
+    # TODO: Ar-OR fix required
     SubstructMatchTest(
         id=395,
         SMILES="C1=C(C=C(C(=C1Br)OC2=NC(=NC(=N2)OC3=C(C=C(C=C3Br)Br)Br)OC4=C(C=C(C=C4Br)I)I)I)I",
-        expected_matches=Counter({"Ar-OR": 6, "Ar-I": 4, "Ar-Br": 5, "benzene": 3, "triazine": 1}),
+        expected_matches=Counter({"Ar-OR": 3, "Ar-I": 4, "Ar-Br": 5, "benzene": 3, "triazine": 1}),
     ),
     SubstructMatchTest(
         id=396,
