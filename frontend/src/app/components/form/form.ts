@@ -16,18 +16,28 @@ export class Form {
 
   @ViewChild('number', { read: ElementRef }) number!: ElementRef<HTMLElement>;
 
-  submitButtonClicked() {
-    const inputValue = (this.number.nativeElement as HTMLInputElement).value;
-    const number = parseFloat(inputValue);
+  pickFile() {
+    window.electronAPI.selectFile().then((path: string | null) => {
+      if (!path) {
+        this.response = 'File selection cancelled';
+        return;
+      }
 
-    if (isNaN(number)) {
-      alert('Please enter a valid number');
-      return;
-    }
+      const allowedExtension = '.sdf';
+      if (!path.toLowerCase().endsWith(allowedExtension)) {
+        this.response = 'Only SDF files are allowed';
+        return;
+      }
 
-    this.restService.post(this.restService.endpoints.math.divideByTwo(number), {}).subscribe({
-      next: (res) => (this.response = JSON.stringify(res)),
-      error: (err) => console.error('Error:', err),
+      this.restService.post(this.restService.endpoints.files.upload, { path }).subscribe({
+        next: (res: any) => {
+          this.response = `Uploaded: ${res.filename}`;
+        },
+        error: (err) => {
+          this.response = 'Upload failed';
+          console.error(err);
+        },
+      });
     });
   }
 }

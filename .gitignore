@@ -247,3 +247,7 @@ rdkit/
 
 # [mcpmenago] automatically generated content — do not edit
 .claude/settings.local.json
+.local-mcp/
+external_repos/
+node_modules/
+tests/reports/

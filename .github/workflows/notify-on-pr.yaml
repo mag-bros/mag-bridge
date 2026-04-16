@@ -5,7 +5,7 @@ on:
     types: [ready_for_review]
 
 concurrency:
-  group: pr-ready-for-review-${{ github.event.pull_request.head.ref }}
+  group: ${{ github.workflow }}-pr-ready-for-review-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -47,7 +47,8 @@ jobs:
           echo "commits=$COMMITS" >> $GITHUB_OUTPUT
 
       - name: Notify Discord
-        uses: rjstone/discord-webhook-notify@v2
+        # https://github.com/rjstone/discord-webhook-notify/tree/v2.2.1
+        uses: rjstone/discord-webhook-notify@c2597273488aeda841dd1e891321952b51f7996f
         with:
           webhookUrl: ${{ secrets.DISCORD_PR_WEBHOOK }}
           username: "MagBridge CI"

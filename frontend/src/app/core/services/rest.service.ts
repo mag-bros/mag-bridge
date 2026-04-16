@@ -12,9 +12,8 @@ export class RestService {
   constructor(private http: HttpClient) {}
 
   private isElectron(): boolean {
-    return !!(window as any).electronAPI;
+    return typeof window !== 'undefined' && !!window.electronAPI;
   }
-
   get<T>(url: string): Observable<T> {
     if (this.isElectron()) {
       return from((window as any).electronAPI.apiRequest(url, 'GET')) as Observable<T>;

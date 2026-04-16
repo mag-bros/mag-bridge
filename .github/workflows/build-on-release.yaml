@@ -72,7 +72,8 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        # https://github.com/actions/checkout/tree/v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Derive app version from tag
         shell: bash
@@ -91,14 +92,16 @@ jobs:
           echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        # https://github.com/actions/setup-node/tree/v6.3.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: ${{ matrix.node_version }}
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        # https://github.com/actions/setup-python/tree/v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: ${{ matrix.python_version }}
           cache: "pip"
@@ -170,7 +173,8 @@ jobs:
           echo "⧗ Created $zip_name"
 
       - name: Upload zip to GitHub Release
-        uses: softprops/action-gh-release@v2
+        # https://github.com/softprops/action-gh-release/tree/v2.6.1
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe
         with:
           files: magbridge-${{ matrix.label }}.zip
         env:
