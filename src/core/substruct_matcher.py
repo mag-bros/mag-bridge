@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from src.constants.bond_types import RELEVANT_BOND_TYPES
 from src.core.cross_overlap_comparator import CrossOverlapComparator
 from src.core.molecule import MBMolecule
+from src.loader import MBMolecule
 from src.overlap_rules import (
     OVERLAP_RULES_CONFIG,
     BondMatchCandidate,

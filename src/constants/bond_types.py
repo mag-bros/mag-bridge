@@ -87,6 +87,7 @@ CARBONYL_BOND = BondType(
     cross_overlap_group=OverlapGroup.CARBONYL_BOND_TYPES,
 )
 
+
 # Relevant bond type representation (see reference https://doi.org/10.1021/ed085p532)
 RELEVANT_BOND_TYPES: list[BondType] = [
     DOUBLE_BOND,

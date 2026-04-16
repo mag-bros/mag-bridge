@@ -145,7 +145,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="CC(=O)NC1CCC2=CC(=C(C(=C2C3=CC=C(C(=O)C=C13)OC)OC)OC)OC",
         expected_matches=Counter({"RC(=O)NH2": 1, "Ar-OR": 4, "Ar-Ar": 1, "benzene": 1}),
         description="""
-            This is a corner case of aromaticity involving the seven-membered tropone ring. RDKit treats it as aromatic, but it is, in fact, antiaromatic.
+            This is a corner case of aromaticity involving the 7-membered tropone ring. RDKit treats it as aromatic, but it is, in fact, antiaromatic.
             See (DOI): https://doi.org/10.1021/acs.orglett.0c02343
             Note that RDKit treats antiaromatic rings as aromatic.""",
     ),
@@ -2548,7 +2548,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=376,
         SMILES="C[Si](C)(C)C#CC(=O)Cl",
         expected_matches=Counter({"RC#C-C(=O)R": 1, "C-Cl": 1}),
-        description="",
     ),
     SubstructMatchTest(
         id=378,
