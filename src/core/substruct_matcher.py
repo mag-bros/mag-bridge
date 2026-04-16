@@ -130,19 +130,6 @@ class MBSubstructMatcher:
                     trigger="on_self_reject",
                 )
 
-        # --- Phase 3: on_accept injection (e.g. Ar-OR / Ar-NR2 aromatic duplication) ---
-        for cand_key, cands in list(accepted.items()):
-            seen: list[BondMatchCandidate] = []
-            for bmc in list(cands):
-                OverlapInjector.inject_on_reject(
-                    mol=mol,
-                    bmc=bmc,
-                    occupied=seen,
-                    accepted=accepted,
-                    trigger="on_accept",
-                )
-                seen.append(bmc)
-
         return dict(accepted)
 
     @staticmethod

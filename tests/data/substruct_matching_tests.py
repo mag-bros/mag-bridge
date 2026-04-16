@@ -2006,13 +2006,12 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"Ar-C(=O)R": 2, "benzene": 2, "Ar-OR": 1}),
         description="Ar-C(=O)R matching for acetylacetone derivative.",
     ),
-    # TODO ID gap
-    # SubstructMatchTest(
-    #     id=293,
-    #     SMILES="C1=CC=C2C(=C1)C3=CC=CC=C3C(=O)C2=O",
-    #     expected_matches=Counter({"benzene": 2, "Ar-C(=O)R": 2, "Ar-Ar": 1}),
-    #     description="9,10-Phenanthrenequinone aromaticity check.",
-    # ),
+    SubstructMatchTest(
+        id=293,
+        SMILES="C(=C=CC1=CC=CC=C1)C2=CC=CC=C2",
+        expected_matches=Counter({"Ar-C=C": 2, "benzene": 2}),
+        description="todo",
+    ),
     SubstructMatchTest(
         id=294,
         SMILES="C1=CC=C2C(=C1)C(=O)C(=O)N2",
@@ -2060,13 +2059,12 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"benzene": 1}),
         description="Ar-COOR matching NOT allowed for Ar-C(=O)-SO2 fragment.",
     ),
-    # TODO ID gap
-    # SubstructMatchTest(
-    #     id=302,
-    #     SMILES="B(C1=CC(=C(C=C1)C)Cl)(C2=CC(=C(C=C2)C)Cl)OC(=O)C3=C(C=CC=N3)O",
-    #     expected_matches=Counter({"pyridine": 1, "benzene": 2, "Ar-Cl": 2, "Ar-OH": 1}),
-    #     description="Ar-COOR matching NOT allowed for Ar-C(=O)-B fragment.",
-    # ),
+    SubstructMatchTest(
+        id=302,
+        SMILES="C(=C=C(C1=CC=CC=C1)C2=CC=CC=C2)C3=CC=CC=C3",
+        expected_matches=Counter({"Ar-C=C": 2, "benzene": 3}),
+        description="todo",
+    ),
     SubstructMatchTest(
         id=303,
         SMILES="C1=CC=C2C(=C1)C(=O)O[Hg]O2",
@@ -2083,13 +2081,12 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="C1=CC=C(C=C1)S(=O)(=O)NC2=CC=CC(=C2)C#C/C=C/C(=O)NO",
         expected_matches=Counter({"benzene": 2, "Ar-C#C": 1, "C=C": 1, "RC(=O)NH2": 1}),
     ),
-    # TODO ID gap
-    # SubstructMatchTest(
-    #     id=306,
-    #     SMILES="C1=CC=C(C=C1)C#CI",
-    #     expected_matches=Counter({"Ar-C#C": 1, "C-I": 1, "benzene": 1}),
-    #     description="Ar-C#C matching for Ar-C#C-I molecule.",
-    # ),
+    SubstructMatchTest(
+        id=306,
+        SMILES="C(=C=C(C)C)C1=CC=CC=C1",
+        expected_matches=Counter({"C=C": 1, "Ar-C=C": 1, "benzene": 1}),
+        description="todo",
+    ),
     SubstructMatchTest(
         id=307,
         SMILES="C1=CC=C(C=C1)C#CC#CC2=CC=CC=C2",

@@ -103,7 +103,19 @@ class SelfOverlapRules:
             (acc for acc in accepted_in_group if len(set(acc.atoms) & bmc_atoms) >= 1),
             None,
         )
+
         if conflicting:
+            common_atoms = list(bmc_atoms & set(conflicting.atoms))
+            if len(common_atoms) == 1:
+                has_double_bond_nbrs = True
+                conflict_node = common_atoms[0]
+                for nbr in mol.GetAtomWithIdx(conflict_node).GetNeighbors():
+                    bond = mol.GetBondBetweenAtoms(conflict_node, nbr.GetIdx())
+                    if bond.GetBondType() != Chem.BondType.DOUBLE:
+                        has_double_bond_nbrs = False
+                if has_double_bond_nbrs:
+                    return None
+
             return RejectedCandidate(candidate=bmc, reason="double_bond_overlap_1_atom", conflicting_with=conflicting)
         return None
 
@@ -376,6 +388,17 @@ class CrossOverlapRules:
             is_double_bond_group = acc.cross_overlap_group == OverlapGroup.DOUBLE_BONDS
             shared_atoms = bmc_atoms & set(acc.atoms)
             if is_double_bond_group and len(shared_atoms) >= 1:
+                common_atoms = list(shared_atoms)
+                if len(common_atoms) == 1:
+                    has_double_bond_nbrs = True
+                    conflict_node = common_atoms[0]
+                    for nbr in mol.GetAtomWithIdx(conflict_node).GetNeighbors():
+                        bond = mol.GetBondBetweenAtoms(conflict_node, nbr.GetIdx())
+                        if bond.GetBondType() != Chem.BondType.DOUBLE:
+                            has_double_bond_nbrs = False
+                    if has_double_bond_nbrs:
+                        return True
+
                 double_bond_approved = False
         return double_bond_approved
 
