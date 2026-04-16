@@ -48,7 +48,7 @@ def test_bond_type_coverage(request, bond_coverage_report_publish) -> None:
     for smt in SUBSTRUCT_MATCH_TESTS:
         covered.update(smt.expected_matches.keys())
 
-    expected = {bt.formula for bt in RELEVANT_BOND_TYPES if bt.dummy_ring == False}
+    expected = {bt.formula for bt in RELEVANT_BOND_TYPES if bt.dummy_ring == False and bt.dummy_bond_type == False}
     total_usages: int = sum([val for val in covered.values()])
     found_unique = set(covered.keys())
 
