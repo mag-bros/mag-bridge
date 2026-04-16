@@ -149,7 +149,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
             {"RC(=O)NH2": 1, "Ar-OR": 4, "Ar-Ar": 1, "benzene": 1}
         ),
         description="""
-            This is a corner case of aromaticity involving the seven-membered tropone ring. RDKit treats it as aromatic, but it is, in fact, antiaromatic.
+            This is a corner case of aromaticity involving the 7-membered tropone ring. RDKit treats it as aromatic, but it is, in fact, antiaromatic.
             See (DOI): https://doi.org/10.1021/acs.orglett.0c02343
             Note that RDKit treats antiaromatic rings as aromatic.""",
     ),
@@ -874,7 +874,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"piperidine": 1}),
         description="with N/O",
     ),
-    # TODO allow overlap of RC(=O)NH2 only through N but NOT via C=O
     SubstructMatchTest(
         id=118,
         SMILES="C1CC2COC1CC2",
@@ -1124,7 +1123,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         description="Carbonate RCOC(=O)OR example.",
     ),
     # TODO Ester and carbonyl overlap fix
-    # TODO Consider adding cyclohexadiene ring that is omitted currently? It will be more elegant to model 6-membered rings with C=C-C(=O)-C=C fragment.
     SubstructMatchTest(
         id=151,
         SMILES="CCC(=O)OCC(=O)[C@]1(CC[C@@H]2[C@@]1(C[C@@H]([C@H]3[C@H]2CCC4=CC(=O)C=C[C@]34C)O)C)OC(=O)OCC",
@@ -2697,7 +2695,6 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=376,
         SMILES="C[Si](C)(C)C#CC(=O)Cl",
         expected_matches=Counter({"RC#C-C(=O)R": 1, "C-Cl": 1}),
-        description="",
     ),
     SubstructMatchTest(
         id=378,
@@ -2723,10 +2720,11 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     ),
     SubstructMatchTest(
         id=382,
-        SMILES="COC1=CC=C(C=C1)N=C(C#CC=O)C(F)(F)F",
+        SMILES="C(C#CC(C)=O)(C#CC(C#CC(C)=O)=O)=O",
         expected_matches=Counter(
             {"Ar-OR": 1, "benzene": 1, "C=N": 1, "RC#C-C(=O)R": 1}
         ),
+        description="Final test for RC#C-C(=O)R bond type self-overlap.",
     ),
     SubstructMatchTest(
         id=383,

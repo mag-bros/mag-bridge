@@ -1,11 +1,14 @@
 ## BondType Substruct Matching Tests Coverage
 
-- ❌ Status:  62/62
+- ❌ Status:  62/63
+## Missing Bond Types: 1
+`Ar-[N+]Ar3`
 ## Typos Found (most likely): 3
 `R-Br`, `R-Cl`, `R-I`
 
 | Bond Type Formula | Absolute Usages Count | Weight in usages [%] |
 |---|---:|---:|
+| `Ar-[N+]Ar3` | 0 | 0.00% |
 | `Ar-I` | 5 | 0.44% |
 | `Br-CR2-CR2-Br` | 5 | 0.44% |
 | `isoxazole` | 5 | 0.44% |
@@ -39,32 +42,32 @@
 | `R2CCl2` | 12 | 1.06% |
 | `RC#C-C(=O)R` | 12 | 1.06% |
 | `tetrahydrofuran` | 12 | 1.06% |
-| `Ar-C(=O)NH2` | 13 | 1.15% |
-| `piperidine` | 13 | 1.15% |
+| `Ar-C(=O)NH2` | 13 | 1.14% |
+| `piperidine` | 13 | 1.14% |
 | `Cl-CR2-CR2-Cl` | 15 | 1.32% |
 | `cyclopentane` | 15 | 1.32% |
 | `Ar-C#C` | 16 | 1.41% |
 | `C=C-C=C` | 17 | 1.50% |
-| `Ar-C(=O)R` | 18 | 1.59% |
-| `Ar-C=C` | 18 | 1.59% |
+| `Ar-C(=O)R` | 18 | 1.58% |
+| `Ar-C=C` | 18 | 1.58% |
 | `Ar-Cl` | 19 | 1.67% |
 | `N=N` | 19 | 1.67% |
 | `pyridine` | 20 | 1.76% |
 | `C=N` | 21 | 1.85% |
-| `Ar-NR2` | 22 | 1.94% |
 | `R2C=N-N=CR2` | 22 | 1.94% |
-| `Ar-OH` | 23 | 2.03% |
-| `RCOOH` | 23 | 2.03% |
-| `RCOOR` | 23 | 2.03% |
+| `Ar-NR2` | 23 | 2.02% |
+| `Ar-OH` | 23 | 2.02% |
+| `RCOOH` | 23 | 2.02% |
+| `RCOOR` | 23 | 2.02% |
 | `-C#N` | 27 | 2.38% |
 | `cyclohexene` | 27 | 2.38% |
 | `cyclopropane` | 27 | 2.38% |
-| `cyclobutane` | 29 | 2.56% |
+| `cyclobutane` | 29 | 2.55% |
 | `Ar-Ar` | 30 | 2.64% |
-| `C=O` | 33 | 2.91% |
-| `RC(=O)NH2` | 34 | 3.00% |
+| `C=O` | 33 | 2.90% |
+| `RC(=O)NH2` | 34 | 2.99% |
 | `Ar-OR` | 36 | 3.17% |
 | `cyclohexane` | 36 | 3.17% |
 | `C-Cl` | 45 | 3.96% |
 | `C=C` | 47 | 4.14% |
-| `benzene` | 172 | 15.15% |
+| `benzene` | 172 | 15.14% |
