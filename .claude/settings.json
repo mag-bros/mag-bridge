@@ -1,46 +1,4 @@
 {
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python ./.claude/hooks/lint.py"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python .claude/hooks/play_sound.py .claude/sounds/Glass.wav"
-          }
-        ]
-      }
-    ],
-    "PermissionRequest": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python .claude/hooks/play_sound.py .claude/sounds/Basso.wav"
-          }
-        ]
-      }
-    ]
-  },
-  "extraKnownMarketplaces": {
-    "claude-plugins-official": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/claude-plugins-official"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "pyright-lsp@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true
-  },
   "permissions": {
     "allow": [
       "Read",
@@ -104,6 +62,48 @@
       "Edit(**/*.pem)",
       "Edit(**/*.key)"
     ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python ./.claude/hooks/lint.py"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/play_sound.py .claude/sounds/Glass.wav"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/play_sound.py .claude/sounds/Basso.wav"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    }
   },
   "telemetry": {
     "enabled": false,

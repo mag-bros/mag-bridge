@@ -205,15 +205,17 @@ class OverlapInjector:
         accepted.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)
         return True
 
-    # Maps each dihalide formula → (halogen symbol, C-X bond type to inject)
-    # Extend this table when adding new dihalide types (e.g. Br-CR2-CR2-Br).
+    # Maps each formula → list of (seek_symbol, injection_bond, seek_bond_kind) entries.
+    # Multiple entries per formula are supported — each injects independently.
     # TODO move to global config
     # TODO:: get bond type from INJECT_MAP instead
-    INJECT_MAP: dict[str, tuple[str, BondType]] = {
-        "Cl-CR2-CR2-Cl": ("Cl", CARBON_HALOGEN_BOND),  # SINGLE
-        "Br-CR2-CR2-Br": ("Br", CARBON_BROMINE_BOND),  # SINGLE
-        # "RC#C-C(=O)R": ("O", CARBONYL_BOND),  #  DOUBLE
-        "RC#C-C(=O)R": ("C", CARBON_TRIPLE_BOND),  # TRIPLE
+    INJECT_MAP: dict[str, list[tuple[str, BondType, Chem.BondType]]] = {
+        "Cl-CR2-CR2-Cl": [("Cl", CARBON_HALOGEN_BOND, Chem.BondType.SINGLE)],
+        "Br-CR2-CR2-Br": [("Br", CARBON_BROMINE_BOND, Chem.BondType.SINGLE)],
+        "RC#C-C(=O)R": [
+            ("O", CARBONYL_BOND, Chem.BondType.DOUBLE),
+            ("C", CARBON_TRIPLE_BOND, Chem.BondType.TRIPLE),
+        ],
     }
 
     @staticmethod
@@ -231,61 +233,55 @@ class OverlapInjector:
         Atom map of the rejected fragment (for debugging):
             {idx: mol.GetAtomInfoByIdx(idx).symbol for idx in bmc.atoms}
         """
-        entry = OverlapInjector.INJECT_MAP.get(bmc.formula)
-        if entry is None:
+        entries = OverlapInjector.INJECT_MAP.get(bmc.formula)
+        if entries is None:
             return False
-        seek_symbol, injection_bond = entry
 
         # atom_index → symbol map for the fragment
         atom_map: dict[int, str] = {idx: mol.GetAtomInfoByIdx(idx).symbol for idx in bmc.atoms}
 
-        # For each halogen in the fragment, find its single-bond C neighbor — the C-X pair
-        c_x_pairs: list[tuple[int, int]] = []
-        for x_idx, sym in atom_map.items():
-            if sym != seek_symbol:
-                continue
-            nbrs = mol.GetAtomWithIdx(x_idx).GetNeighbors()
-            for nbr in nbrs:
-                if nbr.GetSymbol() != "C":
+        injected = False
+        for seek_symbol, injection_bond, seek_bond_kind in entries:
+            # For each target atom in the fragment, find its C neighbor via the expected bond kind
+            c_x_pairs: list[tuple[int, int]] = []
+            for x_idx, sym in atom_map.items():
+                if sym != seek_symbol:
                     continue
-                bond = mol.GetBondBetweenAtoms(x_idx, nbr.GetIdx())
                 # TODO:: get bond type from INJECT_MAP instead
-                if bmc.formula in ["Cl-CR2-CR2-Cl", "Br-CR2-CR2-Br"] and bond.GetBondType() == Chem.BondType.SINGLE and nbr.GetIdx() in atom_map:
-                    c_x_pairs.append((nbr.GetIdx(), x_idx))
-                    break  # each halogen has exactly one C neighbor in the fragment
-                if bmc.formula in ["RC#C-C(=O)R"] and bond.GetBondType() == Chem.BondType.DOUBLE and seek_symbol == "O" and nbr.GetIdx() in atom_map:
-                    c_x_pairs.append((nbr.GetIdx(), x_idx))
-                    break  # each halogen has exactly one C neighbor in the fragment
-                if bmc.formula in ["RC#C-C(=O)R"] and bond.GetBondType() == Chem.BondType.TRIPLE and seek_symbol == "C" and nbr.GetIdx() in atom_map:
-                    c_x_pairs.append((nbr.GetIdx(), x_idx))
-                    break  # each halogen has exactly one C neighbor in the fragment
+                for nbr in mol.GetAtomWithIdx(x_idx).GetNeighbors():
+                    if nbr.GetSymbol() != "C":
+                        continue
+                    bond = mol.GetBondBetweenAtoms(x_idx, nbr.GetIdx())
+                    if bond.GetBondType() == seek_bond_kind and nbr.GetIdx() in atom_map:
+                        c_x_pairs.append((nbr.GetIdx(), x_idx))
+                        break  # each target atom has exactly one matching C neighbor in the fragment
 
-        if not c_x_pairs:
-            return False
+            if not c_x_pairs:
+                continue
 
-        # Halogen atoms already accounted for — by an injected C-X bond or by an accepted dihalide
-        already_covered: set[int] = set()
-        for acc in occupied:
-            if acc.formula == injection_bond.formula:
-                for idx in acc.atoms:
-                    if mol.GetAtomInfoByIdx(idx).symbol == seek_symbol:
-                        already_covered.add(idx)
-        for acc_list in accepted.values():
-            for acc in acc_list:
-                if acc.formula == bmc.formula:
+            # Target atoms already accounted for — by an injected C-X bond or by an accepted parent
+            already_covered: set[int] = set()
+            for acc in occupied:
+                if acc.formula == injection_bond.formula:
                     for idx in acc.atoms:
                         if mol.GetAtomInfoByIdx(idx).symbol == seek_symbol:
                             already_covered.add(idx)
+            for acc_list in accepted.values():
+                for acc in acc_list:
+                    if acc.formula == bmc.formula:
+                        for idx in acc.atoms:
+                            if mol.GetAtomInfoByIdx(idx).symbol == seek_symbol:
+                                already_covered.add(idx)
 
-        injected = False
-        for c_idx, x_idx in c_x_pairs:
-            if x_idx in already_covered:
-                continue
-            new_bmc = BondMatchCandidate.from_bt(injection_bond, [c_idx, x_idx])
-            occupied.append(new_bmc)
-            accepted.setdefault(injection_bond.formula, []).append(new_bmc)
-            already_covered.add(x_idx)
-            injected = True
+            for c_idx, x_idx in c_x_pairs:
+                if x_idx in already_covered:
+                    continue
+                new_bmc = BondMatchCandidate.from_bt(injection_bond, [c_idx, x_idx])
+                occupied.append(new_bmc)
+                accepted.setdefault(injection_bond.formula, []).append(new_bmc)
+                already_covered.add(x_idx)
+                injected = True
+
         return injected
 
     @staticmethod
