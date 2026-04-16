@@ -30,4 +30,22 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Run tests
-        run: pytest -v
+        run: |
+          pytest -v -o "addopts=-v --tb=long"
+
+      - name: Run Test Drift Script
+        if: always()
+        id: run_drift
+        env:
+          PYTEST_ADDOPTS: "-q --tb=no --no-summary"
+        run: |
+          git fetch origin bondtype-match-query-tool --depth=1
+          python tests/scripts/test_drift.py \
+            --baseline origin/bondtype-match-query-tool \
+            --target tests/core/test_substruct_matching.py::test_substruct_matches \
+            --report tests/reports/DRIFT_REPORT_substruct_matching_cicd.md
+
+      - name: Publish to GitHub Step Summary
+        if: always()
+        run: |
+          cat tests/reports/DRIFT_REPORT_substruct_matching_cicd.md >> $GITHUB_STEP_SUMMARY

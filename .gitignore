@@ -1,4 +1,17 @@
+# Local binaries (Grype, etc.)
+bin/
+
+# Security scan reports
+security/
+
+# Local binaries (Grype, etc.)
+bin/
+
+# Security scan reports
+security/
+
 # Byte-compiled / optimized / DLL files
+bondtype_coverage.json
 __pycache__/
 *.py[codz]
 *$py.class
@@ -11,6 +24,8 @@ prof/
 
 # Electron node modules
 frontend/node_modules
+node_modules/
+node_modules/
 
 # Distribution / packaging
 .Python
@@ -193,6 +208,8 @@ cython_debug/
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/tasks.json
 
 # --- Trunk configuration ---
 !.trunk/
@@ -217,6 +234,19 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 test2
+docs/plans
+tests/reports/*.md
+tests/reports/*.json
+# MCP server
+mcp/.module_index.json
+rdkit/
+
+# Local MCP repos and indexes
+.local-mcp/
+!.local-mcp/manifest.json
+
+# [mcpmenago] automatically generated content — do not edit
+.claude/settings.local.json
 .local-mcp/
 external_repos/
 node_modules/

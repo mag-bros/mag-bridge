@@ -1,9 +1,7 @@
-from tokenize import group
 from typing import TYPE_CHECKING
 
-from src.constants.common_molecules import COMMON_MOLECULES, CommonMolecule
+from src.constants.common_molecules import COMMON_MOLECULES
 from src.constants.misc import (
-    METAL_CATIONS,
     RELEVANT_OXIDATION_ATOMS,
     RELEVANT_RING_ATOMS,
 )
