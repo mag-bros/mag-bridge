@@ -1,36 +1,25 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from collections.abc import Callable
-from dataclasses import asdict, dataclass
-from typing import Iterable
+from dataclasses import dataclass
 
-from src.constants.bond_types import (
-    DOUBLE_BOND,
-    RELEVANT_BOND_TYPES,
-    SENIORITY_THRESHOLD,
-    BondType,
-)
+from src.constants.bond_types import RELEVANT_BOND_TYPES
+from src.core.cross_overlap_comparator import CrossOverlapComparator
+from src.core.molecule import MBMolecule
 from src.loader import MBMolecule
-
-
-class BondMatchCandidate(BondType):
-    """Merges RDKit Substruct Match context with our BondType datasets."""
-
-    __slots__ = ("atoms",)
-
-    def __init__(self, atoms: Iterable[int], **kwargs) -> None:
-        super().__init__(**kwargs)
-        object.__setattr__(self, "atoms", tuple(int(a) for a in atoms))
-
-    @classmethod
-    def from_bt(cls, bt: BondType, atoms: Iterable[int]) -> "BondMatchCandidate":
-        return cls(atoms=atoms, **asdict(bt))
+from src.overlap_rules import (
+    OVERLAP_RULES_CONFIG,
+    BondMatchCandidate,
+    CrossOverlapRules,
+    OverlapInjector,
+    RejectedCandidate,
+    SelfOverlapRules,
+)
 
 
 @dataclass(frozen=True, slots=True)
 class SubstructMatchResult:
-    final_hits_by_formula: dict[str, list[tuple[int, ...]]]
+    hits_by_formula: dict[str, list[tuple[int, ...]]]
 
     # Renderer-ready outputs
     matchesCounter: Counter[str]
@@ -40,7 +29,7 @@ class SubstructMatchResult:
     @staticmethod
     def empty() -> "SubstructMatchResult":
         return SubstructMatchResult(
-            final_hits_by_formula={},
+            hits_by_formula={},
             matchesCounter=Counter(),
             highlightAtomGroups={},
             highlightAtomList=[],
@@ -68,9 +57,7 @@ class MBSubstructMatcher:
         return MBSubstructMatcher._Postprocess(mol, candidates)
 
     @staticmethod
-    def _Postprocess(
-        mol: MBMolecule, candidates: list[BondMatchCandidate]
-    ) -> SubstructMatchResult:
+    def _Postprocess(mol: MBMolecule, candidates: list[BondMatchCandidate]) -> SubstructMatchResult:
         """Remove overlapping substructures (same logic as previous version)."""
         if not candidates:
             return SubstructMatchResult.empty()
@@ -80,170 +67,94 @@ class MBSubstructMatcher:
         for c in candidates:
             grouped_candidates[c.formula].append(c)
 
-        filtered: dict[str, list[BondMatchCandidate]] = (
-            MBSubstructMatcher._FilterSelfOverlaps(grouped_candidates)
-        )
+        self_filtered: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterSelfOverlaps(mol, grouped_candidates)
 
-        final_candidates_by_formula: dict[str, list[BondMatchCandidate]] = (
-            MBSubstructMatcher._FilterCrossOverlaps(mol, filtered)
-        )
+        cross_filtered: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterCrossOverlaps(mol, self_filtered)
 
-        final_hits_by_formula: dict[str, list[tuple[int, ...]]] = {
-            f: [tuple(sorted(c.atoms)) for c in lst]
-            for f, lst in final_candidates_by_formula.items()
-        }
+        hits_by_formula: dict[str, list[tuple[int, ...]]] = {f: [tuple(sorted(bmc.atoms)) for bmc in lst] for f, lst in cross_filtered.items()}
 
         # Build counters + highlight structures
         matches_counter: Counter[str] = Counter()
-        groups_atoms: dict[str, set[int]] = defaultdict(set)
+        highlight_groups: dict[str, set[int]] = defaultdict(set)
         atoms_to_highlight: set[int] = set()
 
-        # prepare data for renderer
-        for formula, hits in final_hits_by_formula.items():
+        for formula, hits in hits_by_formula.items():
             if not hits:
                 continue
             matches_counter[formula] += len(hits)
             for hit in hits:
-                groups_atoms[formula].update(hit)
+                highlight_groups[formula].update(hit)
                 atoms_to_highlight.update(hit)
 
         return SubstructMatchResult(
-            final_hits_by_formula=final_hits_by_formula,
+            hits_by_formula=hits_by_formula,
             matchesCounter=matches_counter,
-            highlightAtomGroups={k: sorted(v) for k, v in groups_atoms.items()},
+            highlightAtomGroups={k: sorted(v) for k, v in highlight_groups.items()},
             highlightAtomList=sorted(atoms_to_highlight),
         )
 
     @staticmethod
     def _FilterSelfOverlaps(
+        mol: MBMolecule,
         grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[BondMatchCandidate]]:
-        # (A) Filter self-overlap within each formula (any shared atom => reject)
-        filtered = defaultdict(list)
+        """
+        Three-phase self-overlap filter, operating in isolation per bond type group.
 
-        for match, candidates in grouped_candidates.items():
-            used_local: set[int] = set()
-            seen: set[tuple[int, ...]] = set()
+        Phase 1 — Pure predicate: each candidate is appended to accepted or rejected.
+        Phase 2 — Derived injections: rejected candidates may produce new accepted matches.
+        Phase 3 — Duplication: Ar-OR / Ar-NR2 add copies based on aromatic C count.
+        """
+        accepted: dict[str, list[BondMatchCandidate]] = defaultdict(list)
+        rejected: dict[str, list[RejectedCandidate]] = defaultdict(list)
 
-            max_seniority = max(c.seniority for c in candidates)
-            skip_removal_check = max_seniority >= SENIORITY_THRESHOLD
-
+        # --- Phase 1: Pure filter ---
+        for cand_key, candidates in grouped_candidates.items():
             for bmc in candidates:
-                atoms = tuple(sorted(bmc.atoms))
+                bmc_atoms = set(bmc.atoms)
+                rejection = SelfOverlapRules.check_overlap(mol, bmc, bmc_atoms, accepted[cand_key])
+                if rejection is not None:
+                    rejected[cand_key].append(rejection)
+                else:
+                    accepted[cand_key].append(bmc)
 
-                # optional: remove exact duplicates (RDKit symmetry/permutations)
-                if atoms in seen:
-                    continue
-                seen.add(atoms)
+        # --- Phase 2: Derived injections ---
+        for cand_key, rejects in rejected.items():
+            # Snapshot of group's accepted — injectors may append but must not pollute accepted[cand_key]
+            occupied: list[BondMatchCandidate] = list(accepted[cand_key])
+            for rc in rejects:
+                OverlapInjector.inject_on_reject(
+                    mol=mol,
+                    bmc=rc.candidate,
+                    occupied=occupied,
+                    accepted=accepted,
+                    trigger="on_self_reject",
+                )
 
-                if (not skip_removal_check) and len(
-                    used_local.intersection(atoms)
-                ) >= 3:
-                    continue
-
-                filtered[match].append(bmc)
-                used_local.update(atoms)
-
-        return dict(filtered)
+        return dict(accepted)
 
     @staticmethod
     def _FilterCrossOverlaps(
         mol: MBMolecule,
         grouped_candidates: dict[str, list[BondMatchCandidate]],
     ) -> dict[str, list[BondMatchCandidate]]:
-        # (B) Remove cross-formula overlap by seniority (shared >1 atom => reject)
-        final_by_formula = defaultdict(list)
-        accepted_candidates: list[BondMatchCandidate] = []
+        """Filter cross overlaps via specific rules, respecting relations between Bond Match Candidates."""
+        accepted: dict[str, list[BondMatchCandidate]] = defaultdict(list)
+        # Flat list of all accepted candidates across all groups — tracks which atoms are occupied globally
+        occupied: list[BondMatchCandidate] = []
+        all_matches = CrossOverlapComparator.sort_matches(grouped_candidates, OVERLAP_RULES_CONFIG)
 
-        all_matches = sorted(
-            (
-                (f, lst, max(c.seniority for c in lst))
-                for f, lst in grouped_candidates.items()
-            ),
-            key=lambda t: (-t[2], t[0]),
-        )
-
-        for match, candidates, seniority in all_matches:
-            skip_removal_check = seniority >= SENIORITY_THRESHOLD
-
+        for _iteration, (cand_key, candidates) in enumerate(all_matches):
             for bmc in candidates:
-                atoms = tuple(sorted(bmc.atoms))
-                atom_set = set(atoms)
+                bmc_atoms = set(tuple(sorted(bmc.atoms)))
 
-                # Saturated rings in bicyclic structure overlaps with 3 or more shared atoms => reject
-                if (seniority > SENIORITY_THRESHOLD) and any(
-                    len(atom_set & set(acc_can.atoms)) >= 3
-                    for acc_can in accepted_candidates
-                ):
-                    BicyclicOverlaps.InjectDerivedMatches(
-                        mol, bmc, accepted_candidates, final_by_formula
-                    )
-                    continue
+                approve_candidate = CrossOverlapRules.check_overlap(mol, bmc, bmc_atoms, occupied)
+                if not approve_candidate:
+                    OverlapInjector.inject_on_reject(mol=mol, bmc=bmc, occupied=occupied, accepted=accepted, trigger="on_cross_reject")
+                if approve_candidate:
+                    accepted[cand_key].append(bmc)
+                    occupied.append(bmc)
 
-                if (not skip_removal_check) and any(
-                    len(atom_set & set(acc_can.atoms)) >= 1
-                    for acc_can in accepted_candidates
-                    if acc_can.seniority < SENIORITY_THRESHOLD
-                ):
-                    continue
-
-                # Placeholder rings must be "invisible" for overlap bookkeeping + output
-                final_by_formula[match].append(bmc)
-                accepted_candidates.append(bmc)
-
-        filtered_result = {
-            k: [c for c in v if not c.dummy_ring]
-            for k, v in dict(final_by_formula).items()
-        }
+        # Placeholder "dummy" rings must be removed from output - they are temporary objects used only during processing
+        filtered_result = {k: [c for c in v if (not c.dummy_ring and not c.dummy_bond_type)] for k, v in dict(accepted).items()}
         return filtered_result
-
-
-class BicyclicOverlaps:
-    _Rule = Callable[
-        [
-            MBMolecule,
-            BondMatchCandidate,
-            list[BondMatchCandidate],
-            dict[str, list[BondMatchCandidate]],
-        ],
-        None,
-    ]
-    _rules: dict[str, _Rule] | None = None
-
-    @classmethod
-    def _get_rules(cls) -> dict[str, _Rule]:
-        if cls._rules is None:
-            cls._rules = {
-                "cyclohexene": cls._rule_cyclohexene,
-            }
-        return cls._rules
-
-    @classmethod
-    def InjectDerivedMatches(
-        cls,
-        mol: MBMolecule,
-        bmc: BondMatchCandidate,
-        accepted_candidates: list[BondMatchCandidate],
-        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
-    ) -> None:
-        rule = cls._get_rules().get(bmc.formula)
-        if rule is None:
-            return
-        rule(mol, bmc, accepted_candidates, final_hits_by_formula)
-
-    @staticmethod
-    def _rule_cyclohexene(
-        mol: MBMolecule,
-        bmc: BondMatchCandidate,
-        accepted_candidates: list[BondMatchCandidate],
-        final_hits_by_formula: dict[str, list[BondMatchCandidate]],
-    ) -> None:
-        """If cyclohexene is rejected due to bicyclic overlap, add double bond matches instead."""
-        exclude_idx = {i for acc in accepted_candidates for i in acc.atoms}
-        double_bond_atoms = mol.GetDoubleBondAtomsIndexes(exclude_idx=exclude_idx)
-        if not double_bond_atoms:
-            return
-
-        new_bmc = BondMatchCandidate.from_bt(DOUBLE_BOND, double_bond_atoms)
-        accepted_candidates.append(new_bmc)
-        final_hits_by_formula.setdefault(DOUBLE_BOND.formula, []).append(new_bmc)

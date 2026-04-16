@@ -1,3 +1,30 @@
+[build-system]
+requires = ["setuptools", "setuptools_scm", "nuitka", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "magbridge"
+dynamic = ["version"]
+requires-python = ">=3.12"
+
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+
+[tool.setuptools]
+package-dir = { "magbridge" = "src" }
+packages = [
+    "magbridge",
+    "magbridge.constants",
+    "magbridge.core",
+    "magbridge.utils",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-vv"
+# addopts = "-q --tb=no --no-summary"
+
 [tool.pyright]
 include = ["backend", "src"]
 venvPath = "."
@@ -7,9 +34,14 @@ reportMissingModuleSource = false
 reportUndefinedVariable = false
 typeCheckingMode = "standard"
 
+[tool.ruff]
+src = ["src", "backend", "tests"]
+line-length = 150                 # default 88
+indent-width = 4
+
 [tool.ruff.lint]
-select = ["I"]
-fixable = ["I"]
+select = ["E501", "I"] #  "F401" - imports
+# fixable = ["I", "F401"]
 
 [tool.yamllint.rules]
 line-length = { max = 200 }

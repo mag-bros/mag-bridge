@@ -1,5 +1,7 @@
 import json
 import os
+import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -10,36 +12,17 @@ from typing import Any, Dict, List
 import click
 
 
-def run_cmd(
-    cmd: List[str],
-    cwd: Path | None = None,
-    capture: bool = True,
-    env: Dict[str, str] | None = None,
-) -> subprocess.CompletedProcess:
+def run_cmd(cmd: List[str], cwd: Path | None = None, env: Dict[str, str] | None = None) -> subprocess.CompletedProcess:
     try:
-        return subprocess.run(
-            cmd, cwd=cwd, text=True, capture_output=capture, check=True, env=env
-        )
+        return subprocess.run(cmd, cwd=cwd, text=True, capture_output=True, check=True, env=env)
     except subprocess.CalledProcessError as e:
-        click.secho(f"\nCOMMAND FAILED: {' '.join(cmd)}", fg="red", bold=True)
-        if capture:
-            click.secho(f"STDOUT: {e.stdout}", fg="yellow")
-            click.secho(f"STDERR: {e.stderr}", fg="red")
+        click.secho(f"\nFATAL: {' '.join(cmd)}\n{e.stderr}", fg="red")
         raise click.Abort()
 
 
-def get_commit_hash(ref: str, cwd: Path) -> str:
-    try:
-        res = subprocess.run(
-            ["git", "rev-parse", "--short", ref],
-            cwd=cwd,
-            text=True,
-            capture_output=True,
-            check=True,
-        )
-        return res.stdout.strip()
-    except subprocess.CalledProcessError:
-        return ref
+def get_commit(ref: str, cwd: Path) -> str:
+    res = subprocess.run(["git", "rev-parse", "--short", ref], cwd=cwd, text=True, capture_output=True)
+    return res.stdout.strip() if res.returncode == 0 else ref
 
 
 def parse_report(json_path: Path) -> Dict[str, Dict[str, Any]]:
@@ -50,247 +33,280 @@ def parse_report(json_path: Path) -> Dict[str, Dict[str, Any]]:
 
     results = {}
     for test in data.get("tests", []):
-        raw_nodeid = test.get("nodeid", "")
-        # Strip file path to make diffing immune to files moving between directories
-        nodeid = raw_nodeid.split("::")[-1] if "::" in raw_nodeid else raw_nodeid
+        raw_id = test.get("nodeid", "")
+        # Natural key for matching: extract 'test_func[<ID>]'
+        match = re.search(r"(\w+\[<\d+>)", raw_id)
+        nodeid = match.group(1) + "]" if match else raw_id.split("::")[-1]
 
         outcome = test.get("outcome", "unknown")
-        err_msg = ""
+        err = ""
         if outcome == "failed":
-            call_info = test.get("call", {})
-            crash = call_info.get("crash", {})
-            err_msg = (
-                crash.get("message", "Unknown error").splitlines()[0]
-                if crash
-                else "Failure"
-            )
-        results[nodeid] = {"outcome": outcome, "error": err_msg}
+            crash = test.get("call", {}).get("crash", {})
+            err = crash.get("message", "Failure").splitlines()[0]
+        results[nodeid] = {"outcome": outcome, "error": err}
     return results
 
 
-def generate_markdown(
-    target: str,
-    baseline_target: str,
-    baseline_ref: str,
-    current_ref: str,
-    baseline_res: Dict[str, Dict[str, Any]],
-    current_res: Dict[str, Dict[str, Any]],
-    output_path: Path,
-) -> None:
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    all_nodes = set(baseline_res.keys()).union(current_res.keys())
+def generate_markdown(target, b_label, c_label, b_res, c_res, out_path) -> Dict[str, Any]:
+    # Natural numeric sorting: <5> comes before <18>
+    all_nodes = sorted(set(b_res.keys()).union(c_res.keys()), key=lambda x: [int(c) if c.isdigit() else c for c in re.split(r"(\d+)", x)])
 
-    regressions, fixes, consistent_fails, new_fails = [], [], [], []
-    b_pass = b_fail = b_skip = c_pass = c_fail = c_skip = 0
-    b_total = len(baseline_res)
-    c_total = len(current_res)
+    regressions, fixes, fails, news = [], [], [], []
+    s = {"bp": 0, "bf": 0, "bs": 0, "cp": 0, "cf": 0, "cs": 0}
 
-    for node in sorted(all_nodes):
-        b_out = baseline_res.get(node, {}).get("outcome", "missing")
-        c_out = current_res.get(node, {}).get("outcome", "missing")
+    for n in all_nodes:
+        bo, co = b_res.get(n, {}).get("outcome", "missing"), c_res.get(n, {}).get("outcome", "missing")
+        if bo == "passed":
+            s["bp"] += 1
+        elif bo == "failed":
+            s["bf"] += 1
+        elif bo == "skipped":
+            s["bs"] += 1
 
-        if b_out == "passed":
-            b_pass += 1
-        elif b_out == "failed":
-            b_fail += 1
-        elif b_out == "skipped":
-            b_skip += 1
+        if co == "passed":
+            s["cp"] += 1
+        elif co == "failed":
+            s["cf"] += 1
+        elif co == "skipped":
+            s["cs"] += 1
 
-        if c_out == "passed":
-            c_pass += 1
-        elif c_out == "failed":
-            c_fail += 1
-        elif c_out == "skipped":
-            c_skip += 1
+        if bo == "passed" and co == "failed":
+            regressions.append((n, c_res[n]["error"]))
+        elif bo == "failed" and co == "passed":
+            fixes.append(n)
+        elif bo == "failed" and co == "failed":
+            fails.append((n, c_res[n]["error"]))
+        elif bo == "missing" and co == "failed":
+            news.append((n, c_res[n]["error"]))
 
-        if b_out == "passed" and c_out == "failed":
-            regressions.append((node, current_res[node]["error"]))
-        elif b_out == "failed" and c_out == "passed":
-            fixes.append(node)
-        elif b_out == "failed" and c_out == "failed":
-            consistent_fails.append((node, current_res[node]["error"]))
-        elif b_out == "missing" and c_out == "failed":
-            new_fails.append((node, current_res[node]["error"]))
+    def trend(d, inv=False):
+        if d == 0:
+            return "—"
+        icon = "📈" if (d > 0 if not inv else d < 0) else "📉"
+        return f"{icon} {d:+d}"
 
     md = [
         "# TEST_DRIFT Report\n",
-        "## Configuration\n",
-        "| Parameter | Value |",
+        "## ⚙️ Configuration\n",
+        "| Key | Value |",
         "|---|---|",
-        f"| **Timestamp** | `{timestamp}` |",
         f"| **Target** | `{target}` |",
+        f"| **Baseline** | `{b_label}` |",
+        f"| **Current** | `local changes ({c_label})` |\n",
+        "## 📊 Summary\n",
+        "| Metric | Baseline | Current | Delta | Trend |",
+        "|---|---|---|---|---|",
+        f"| **Total** | {len(b_res)} | {len(c_res)} | {len(c_res) - len(b_res):+d} | {trend(len(c_res) - len(b_res))} |",
+        f"| **Passed** | **{s['bp']}/{len(b_res)}** | **{s['cp']}/{len(c_res)}** | {s['cp'] - s['bp']:+d} | {trend(s['cp'] - s['bp'])} |",
+        f"| **Failed** | {s['bf']} | {s['cf']} | {s['cf'] - s['bf']:+d} | {trend(s['cf'] - s['bf'], True)} |",
+        f"| **Skipped** | {s['bs']} | {s['cs']} | {s['cs'] - s['bs']:+d} | — |\n",
+        "## 👎 Regressions (Passed → Failed)\n",
     ]
 
-    if baseline_target and baseline_target != target:
-        md.append(f"| **Baseline Target** | `{baseline_target}` |")
-
-    md.extend(
-        [
-            f"| **Baseline Ref** | `{baseline_ref}` |",
-            f"| **Current Ref** | `{current_ref}` |\n",
-            "## Summary\n",
-            "| Metric | Baseline | Current | Delta |",
-            "|---|---|---|---|",
-            f"| **Total Tests** | {b_total} | {c_total} | {c_total - b_total:+d} |",
-            f"| **Passed** | {b_pass} | {c_pass} | {c_pass - b_pass:+d} |",
-            f"| **Failed** | {b_fail} | {c_fail} | {c_fail - b_fail:+d} |",
-            f"| **Skipped** | {b_skip} | {c_skip} | {c_skip - b_skip:+d} |\n",
-        ]
-    )
-
     if regressions:
-        md.extend(
-            ["## Regressions (Passed → Failed)\n", "| Test Node | Error |", "|---|---|"]
-        )
-        for node, err in regressions:
-            md.append(f"| `{node}` | `{err}` |")
-        md.append("\n")
+        md.extend(["| Test Node | Error |", "|---|---|"])
+        md.extend([f"| `{n}` | `{e}` |" for n, e in regressions])
+    else:
+        md.append("There were no tests that transitioned from passed to failed.\n")
 
-    if new_fails:
-        md.extend(
-            [
-                "## New Failures (Not in Baseline)\n",
-                "| Test Node | Error |",
-                "|---|---|",
-            ]
-        )
-        for node, err in new_fails:
-            md.append(f"| `{node}` | `{err}` |")
-        md.append("\n")
-
+    md.append("\n## 👏 Fixes (Failed → Passed)\n")
     if fixes:
-        md.extend(["## Fixes (Failed → Passed)\n", "| Test Node |", "|---|"])
-        for node in fixes:
-            md.append(f"| `{node}` |")
-        md.append("\n")
+        md.extend(["| Test Node | Status |", "|---|---|"])
+        md.extend([f"| `{n}` | FIXED |" for n in fixes])
+    else:
+        md.append("No previously failing tests were fixed.\n")
 
-    if consistent_fails:
-        md.extend(
-            [
-                f"## Consistently Failing ({len(consistent_fails)} tests)\n",
-                "| Test Node | Error |",
-                "|---|---|",
-            ]
-        )
-        for node, err in consistent_fails:
-            md.append(f"| `{node}` | `{err}` |")
-        md.append("\n")
+    if news:
+        md.append("\n## 🆕 New Failures\n")
+        md.extend(["| Test Node | Error |", "|---|---|"])
+        md.extend([f"| `{n}` | `{e}` |" for n, e in news])
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(md))
+    if fails:
+        md.append(f"\n## 🔄 Consistently Failing ({len(fails)})\n")
+        md.extend(["| Test Node | Error |", "|---|---|"])
+        md.extend([f"| `{n}` | `{e}` |" for n, e in fails])
+
+    now = datetime.now()
+    version_tag = now.strftime("%Y-%m-%d___%H-%M-%S")
+    md.append(f"\n\n*Generated on {now.strftime('%Y-%m-%d %H:%M:%S')} — `v{version_tag}`*")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text("\n".join(md))
+
+    return {
+        "timestamp": now,
+        "baseline": b_label,
+        "commit": c_label,
+        "total": len(c_res),
+        "passed": s["cp"],
+        "failed": s["cf"],
+        "skipped": s["cs"],
+        "regressions": len(regressions),
+        "regression_nodes": [n for n, _ in regressions],
+        "fixes": len(fixes),
+        "consistently_failing": len(fails),
+    }
+
+
+def versioned_report(report_path: Path, timestamp: datetime) -> Path:
+    """Write the full report as a versioned file with short timestamp."""
+    # Subdirectory per report type, e.g. history/substruct_matching/test_drift/
+    type_name = report_path.stem.replace("TEST_DRIFT_", "")
+    history_dir = report_path.parent / "history" / type_name / "test_drift"
+    history_dir.mkdir(parents=True, exist_ok=True)
+    ts = timestamp.strftime("%Y-%m-%d___%H-%M-%S")
+    versioned_name = f"v{ts}{report_path.suffix}"
+    versioned_path = history_dir / versioned_name
+    shutil.copy2(report_path, versioned_path)
+    return versioned_path
+
+
+def _parse_previous_regressions(changelog_path: Path) -> List[str]:
+    """Extract regression nodes from the last Active Regression table."""
+    if not changelog_path.exists():
+        return []
+    lines = changelog_path.read_text().splitlines()
+    # Walk backwards to find the last "Active Regression" table rows
+    regressions = []
+    in_table = False
+    for line in reversed(lines):
+        if line.startswith("| `test_substruct_matches"):
+            node = line.split("`")[1]
+            regressions.append(node)
+            in_table = True
+        elif in_table and (line.startswith("|---") or line.startswith("| Active")):
+            break
+        elif in_table:
+            break
+    return regressions
+
+
+def update_changelog(report_path: Path, stats: Dict[str, Any], versioned_path: Path, cwd: Path) -> Path:
+    """Append a changelog entry with summary, baseline, and regression diff."""
+    changelog_path = report_path.parent / "TEST_DRIFT_CHANGELOG.md"
+
+    prev_regressions = set(_parse_previous_regressions(changelog_path))
+
+    source_dir = versioned_path.parent.relative_to(cwd)
+
+    if not changelog_path.exists():
+        header = [
+            "# Substruct Matching Test Drift Changelog",
+            "",
+            "Tracks regression changes between consecutive Test Drift runs.",
+            "",
+            f"**Source:** `{source_dir}/`",
+            "",
+        ]
+        changelog_path.write_text("\n".join(header))
+
+    version_tag = stats["timestamp"].strftime("%Y-%m-%d___%H-%M-%S")
+    regressions: List[str] = stats["regression_nodes"]
+    curr_regressions = set(regressions)
+
+    new_regressions = sorted(curr_regressions - prev_regressions)
+    resolved_regressions = sorted(prev_regressions - curr_regressions)
+
+    entry = [
+        f"## `v{version_tag}.md`\n",
+        "| Key | Value |",
+        "|---|---|",
+        f"| **Baseline** | {stats['baseline']} |",
+        f"| **Commit** | `{stats['commit']}` |",
+        f"| **Passed** | {stats['passed']}/{stats['total']} |",
+        f"| **Failed** | {stats['failed']} |",
+        f"| **Consistently Failing** | {stats['consistently_failing']} |",
+        f"| **Regressions** | {len(regressions)} |",
+        f"| **Fixes** | {stats['fixes']} |",
+    ]
+
+    if new_regressions:
+        entry.append("")
+        entry.append("| New Regression | |")
+        entry.append("|---|---|")
+        for node in new_regressions:
+            entry.append(f"| `{node}` | added since last run |")
+
+    if resolved_regressions:
+        entry.append("")
+        entry.append("| Resolved Regression | |")
+        entry.append("|---|---|")
+        for node in resolved_regressions:
+            entry.append(f"| `{node}` | resolved since last run |")
+
+    if not new_regressions and not resolved_regressions:
+        entry.append("")
+        entry.append("No regression changes since last run.")
+
+    entry.append("")
+
+    with open(changelog_path, "a", encoding="utf-8") as f:
+        f.write("\n".join(entry) + "\n")
+
+    return changelog_path
 
 
 @click.command()
-@click.option(
-    "--baseline", default="master", help="Git branch or commit to use as baseline."
-)
-@click.option("--target", default=".", help="Directory or file to run pytest against.")
-@click.option(
-    "--baseline-target",
-    default=None,
-    help="Fallback path for baseline if file was moved.",
-)
-@click.option(
-    "--report", default="tests/reports/TEST_DRIFT.md", help="Output MD report path."
-)
-def drift(baseline: str, target: str, baseline_target: str, report: str) -> None:
+@click.option("--baseline", default="master")
+@click.option("--target", default=".")
+@click.option("--baseline-target", default=None)
+@click.option("--report", default="tests/reports/TEST_DRIFT.md")
+def drift(baseline, target, baseline_target, report):
     cwd = Path.cwd()
     report_path = Path(report).resolve()
-    b_target = baseline_target if baseline_target else target
+    bt = baseline_target or target
+    ch, bh = get_commit("HEAD", cwd), get_commit(baseline, cwd)
 
-    current_commit = get_commit_hash("HEAD", cwd)
-    baseline_commit = get_commit_hash(baseline, cwd)
+    with tempfile.TemporaryDirectory() as td:
+        wt = Path(td) / "wt"
+        bj, cj = Path(td) / "b.json", Path(td) / "c.json"
 
-    click.secho(
-        f"Targeting Baseline Commit: {baseline_commit}", fg="magenta", bold=True
-    )
-    click.secho(f"Targeting Current Commit: {current_commit}", fg="magenta", bold=True)
-
-    if baseline_commit == current_commit:
-        click.secho(
-            "WARNING: Baseline and Current resolve to the exact same git commit!",
-            fg="yellow",
-            bold=True,
-        )
-
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_path = Path(temp_dir)
-        worktree_path = temp_path / "baseline_worktree"
-        b_json = temp_path / "baseline.json"
-        c_json = temp_path / "current.json"
-
-        b_env = os.environ.copy()
-        b_env["PYTHONPATH"] = str(worktree_path)
-
-        c_env = os.environ.copy()
-        c_env["PYTHONPATH"] = str(cwd)
-
-        click.secho(
-            f"\nCreating isolated worktree for baseline '{baseline}'...", fg="cyan"
-        )
-        run_cmd(
-            ["git", "worktree", "add", "--detach", str(worktree_path), baseline],
-            cwd=cwd,
-        )
-
+        # Using --detach ensures we don't mess with local branch pointers
+        run_cmd(["git", "worktree", "add", "--detach", str(wt), baseline], cwd=cwd)
         try:
-            click.secho(f"\n--- Running Baseline Pytest ({b_target}) ---", fg="yellow")
-            subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "pytest",
-                    b_target,
-                    "--json-report",
-                    f"--json-report-file={b_json}",
-                ],
-                cwd=worktree_path,
-                capture_output=False,
-                env=b_env,
-                check=False,
-            )
 
-            click.secho(f"\n--- Running Current Pytest ({target}) ---", fg="yellow")
-            subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "pytest",
-                    target,
-                    "--json-report",
-                    f"--json-report-file={c_json}",
-                ],
-                cwd=cwd,
-                capture_output=False,
-                env=c_env,
-                check=False,
-            )
+            def get_env(path: Path):
+                env = os.environ.copy()
+                # Replicate CI PYTHONPATH: root, src, and tests
+                new_paths = [str(path), str(path / "src"), str(path / "tests")]
+                existing = env.get("PYTHONPATH", "")
+                env["PYTHONPATH"] = os.pathsep.join(new_paths + ([existing] if existing else []))
+                return env
 
-            click.secho("\nAggregating results...", fg="cyan")
-            b_data = parse_report(b_json)
-            c_data = parse_report(c_json)
+            b_env, c_env = get_env(wt), get_env(cwd)
+            py_cmd = [sys.executable, "-m", "pytest", "-q", "--tb=no", "--no-summary", "--no-header", "--json-report"]
 
-            generate_markdown(
-                target,
-                b_target,
-                f"{baseline} ({baseline_commit})",
-                f"working tree ({current_commit})",
-                b_data,
-                c_data,
-                report_path,
-            )
-            click.secho(
-                f"Drift report generated at: {report_path.relative_to(cwd)}",
-                fg="green",
-                bold=True,
-            )
+            # --- Phase 1: Baseline ---
+            if os.getenv("GITHUB_ACTIONS") == "true":
+                print(f"::group::🔍 Running Baseline Pytest ({baseline})")
+
+            click.secho("\n--- Running Baseline Pytest ---", fg="yellow")
+            subprocess.run(py_cmd + [bt, f"--json-report-file={bj}"], cwd=wt, env=b_env, check=False)
+
+            if os.getenv("GITHUB_ACTIONS") == "true":
+                print("::endgroup::")
+
+            # --- Phase 2: Current ---
+            if os.getenv("GITHUB_ACTIONS") == "true":
+                print("::group::🚀 Running Current Pytest (Local Changes)")
+
+            click.secho("\n--- Running Current Pytest ---", fg="yellow")
+            subprocess.run(py_cmd + [target, f"--json-report-file={cj}"], cwd=cwd, env=c_env, check=False)
+
+            if os.getenv("GITHUB_ACTIONS") == "true":
+                print("::endgroup::")
+
+            # --- Phase 3: Aggregation ---
+            stats = generate_markdown(target, f"branch `{baseline}` ({bh})", ch, parse_report(bj), parse_report(cj), report_path)
+            click.secho(f"\nDrift report generated: {report_path.relative_to(cwd)}", fg="green", bold=True)
+
+            # --- Phase 4: Versioning ---
+            versioned_path = versioned_report(report_path, stats["timestamp"])
+            click.secho(f"Versioned report:  {versioned_path.relative_to(cwd)}", fg="cyan")
+            changelog_path = update_changelog(report_path, stats, versioned_path, cwd)
+            click.secho(f"Changelog updated: {changelog_path.relative_to(cwd)}", fg="cyan")
 
         finally:
-            click.secho("Cleaning up isolated worktree...", fg="cyan")
-            run_cmd(
-                ["git", "worktree", "remove", "--force", str(worktree_path)], cwd=cwd
-            )
+            run_cmd(["git", "worktree", "remove", "--force", str(wt)], cwd=cwd)
 
 
 if __name__ == "__main__":

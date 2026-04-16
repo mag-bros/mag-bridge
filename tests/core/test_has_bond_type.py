@@ -1,7 +1,6 @@
 import difflib
 
 import pytest
-
 from src import BOND_MATCH_SUBDIR
 from src.constants.bond_types import RELEVANT_BOND_TYPES, BondType
 from src.core.compound import MBCompound
@@ -20,6 +19,8 @@ def test_has_bond_type(bond_type: BondType) -> None:
     3. The aim of the test is to show that similar bond types are NOT incorrectly matched for the same structure.
     4. Only bond types from the reference https://doi.org/10.1021/ed085p532 are considered
     """
+    if bond_type.dummy_bond_type:
+        pytest.skip(reason=f"'{bond_type.formula}' is a dummy bond type used only for overlap rules testing.")
 
     # (A) Bond type test for internal SDF files
     # Is bond_type.SMARTS matched by each of the bond_type.sdf_files?
@@ -27,14 +28,11 @@ def test_has_bond_type(bond_type: BondType) -> None:
         compound: MBCompound = MBLoader.FromSDF(sdf_file, subdir=BOND_MATCH_SUBDIR)
 
         mols_in_file = compound.GetMols(to_rdkit=False)
-        assert mols_in_file, (
-            f"Test <{bond_type.id}> failed. SDF file '{sdf_file}' contains no molecules."
-        )
+        assert mols_in_file, f"Test <{bond_type.id}> failed. SDF file '{sdf_file}' contains no molecules."
 
         # Each SDF file was designed to contain exactly one molecule.
         assert len(mols_in_file) == 1, (
-            f"Test <{bond_type.id}> failed. SDF file '{sdf_file}' was expected to contain "
-            f"exactly one molecule, but contains {len(mols_in_file)}."
+            f"Test <{bond_type.id}> failed. SDF file '{sdf_file}' was expected to contain exactly one molecule, but contains {len(mols_in_file)}."
         )
 
         mol: MBMolecule = mols_in_file[0]
@@ -78,7 +76,7 @@ def test_has_bond_type(bond_type: BondType) -> None:
 
 def gather_bond_type_sdf_files() -> list[str]:
     # Gather all SDF files from relevant bond types
-    bond_type_sdf_files = sorted(f for bt in RELEVANT_BOND_TYPES for f in bt.sdf_files)
+    bond_type_sdf_files = sorted(f for bt in RELEVANT_BOND_TYPES for f in bt.sdf_files if not bt.dummy_bond_type)
 
     # Check if all SDF files are unique (1:1, diff-friendly) + show a real diff
     unique_sorted = sorted(set(bond_type_sdf_files))
@@ -92,9 +90,6 @@ def gather_bond_type_sdf_files() -> list[str]:
                 lineterm="",
             )
         )
-        raise AssertionError(
-            "SDF files are not unique across bond types (unified diff below):\n\n"
-            f"{diff}"
-        )
+        raise AssertionError(f"SDF files are not unique across bond types (unified diff below):\n\n{diff}")
 
     return bond_type_sdf_files

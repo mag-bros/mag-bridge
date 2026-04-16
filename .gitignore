@@ -4,6 +4,12 @@ bin/
 # Security scan reports
 security/
 
+# Local binaries (Grype, etc.)
+bin/
+
+# Security scan reports
+security/
+
 # Byte-compiled / optimized / DLL files
 bondtype_coverage.json
 __pycache__/
@@ -18,6 +24,7 @@ prof/
 
 # Electron node modules
 frontend/node_modules
+node_modules/
 node_modules/
 
 # Distribution / packaging
@@ -201,6 +208,7 @@ cython_debug/
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json
+!.vscode/tasks.json
 !.vscode/tasks.json
 
 # --- Trunk configuration ---

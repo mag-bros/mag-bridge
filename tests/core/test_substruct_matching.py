@@ -1,7 +1,6 @@
 from collections import Counter
 
 import pytest
-
 from src.constants.bond_types import RELEVANT_BOND_TYPES
 from src.core.substruct_matcher import MBSubstructMatcher
 from src.loader import MBLoader
@@ -21,9 +20,7 @@ def test_substruct_matches(substruct_match_test: SubstructMatchTest) -> None:
     """Test if a molecules matches all expected substructures - Bond Types."""
 
     if substruct_match_test.skip_test:
-        pytest.skip(
-            reason="skip this test due to underlying RDKit logical discrepancies"
-        )
+        pytest.skip(reason="skip this test due to underlying RDKit logical discrepancies")
 
     mol = MBLoader.MolFromSmiles(smiles=substruct_match_test.SMILES)
 
@@ -33,14 +30,10 @@ def test_substruct_matches(substruct_match_test: SubstructMatchTest) -> None:
     def normalize_counter_keys(c: Counter[str]) -> Counter[str]:
         return Counter({k.rstrip(":").strip(): v for k, v in c.items()})
 
-    assert normalize_counter_keys(
-        substruct_match_test.expected_matches
-    ) == normalize_counter_keys(result.matchesCounter)
+    assert normalize_counter_keys(substruct_match_test.expected_matches) == normalize_counter_keys(result.matchesCounter)
 
-    # Internal consistency check: counter must match final hit lists
-    assert sum(result.matchesCounter.values()) == sum(
-        len(hits) for hits in result.final_hits_by_formula.values()
-    )
+    # Internal consistency check: counter must match hit lists
+    assert sum(result.matchesCounter.values()) == sum(len(hits) for hits in result.hits_by_formula.values())
 
 
 def test_smiles_uniqueness() -> None:
@@ -55,7 +48,7 @@ def test_bond_type_coverage(request, bond_coverage_report_publish) -> None:
     for smt in SUBSTRUCT_MATCH_TESTS:
         covered.update(smt.expected_matches.keys())
 
-    expected = {bt.formula for bt in RELEVANT_BOND_TYPES if bt.dummy_ring == False}
+    expected = {bt.formula for bt in RELEVANT_BOND_TYPES if bt.dummy_ring == False and bt.dummy_bond_type == False}
     total_usages: int = sum([val for val in covered.values()])
     found_unique = set(covered.keys())
 
