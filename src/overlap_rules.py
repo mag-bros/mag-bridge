@@ -11,6 +11,7 @@ from src.constants.bond_types import (
     CARBON_BROMINE_BOND,
     CARBON_HALOGEN_BOND,
     CARBON_TRIPLE_BOND,
+    CARBONYL_BOND,
     DOUBLE_BOND,
     BondType,
     OverlapGroup,

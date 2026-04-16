@@ -40,8 +40,8 @@ line-length = 150                 # default 88
 indent-width = 4
 
 [tool.ruff.lint]
-select = ["E501", "I", "F401"]
-fixable = ["I", "F401"]
+select = ["E501", "I"] #  "F401" - imports
+# fixable = ["I", "F401"]
 
 [tool.yamllint.rules]
 line-length = { max = 200 }
