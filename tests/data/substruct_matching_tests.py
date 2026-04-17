@@ -256,13 +256,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=28,
         SMILES="CC1=C(C(CC(C1=O)O)(C)C)C=CC(=CC=CC(=CC=CC=C(C)C=CC=C(C)C=CC2=C(C(=O)C(CC2(C)C)O)C)C)C",
         expected_matches=Counter({"C=C-C=C": 4, "C=C": 1, "C=O": 2, "cyclohexene": 2}),
-        description="Examine C=C-C=C self-matching.",
+        description="Test for the matching of C=C-C=C, C=C and cyclohexene bond types.",
     ),
     SubstructMatchTest(
         id=29,
         SMILES="C=CC1=C(N2C(C(C2=O)NC(=O)C(=NOCC(=O)O)C3=CSC(=N3)N)SC1)C(=O)O",
         expected_matches=Counter({"C=C-C=C": 1, "RCOOH": 2, "RC(=O)NH2": 2, "C=N": 1, "thiazole": 1, "Ar-NR2": 1}),
-        description="Thiazole derivative example. RCONR2 allowed.",
+        description="Thiazole derivative example. RCONR2 matching allowed within 4-membered ring - a rough approximation.",
     ),
     SubstructMatchTest(
         id=30,
@@ -327,7 +327,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=36,
         SMILES="CC1(C2CCC1(C(=O)C2)C)C",
         expected_matches=Counter({"C=O": 1, "cyclohexane": 1}),
-        description="Bicycle molecule example.",
+        description="Ring matching within bicyclic fragment. Saturated ring is still matched if one of its C atoms forms external C=O bond.",
     ),
     SubstructMatchTest(
         id=37,
@@ -341,31 +341,31 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "piperazine": 1,
             }
         ),
-        description="Check for piperazine anion and Ar-COO- group.",
+        description="Check for the matching of piperazine anion and Ar-COO- group - an assumption.",
     ),
     SubstructMatchTest(
         id=38,
         SMILES="C(C(=O)O)(Cl)Cl",
         expected_matches=Counter({"C-Cl": 2, "RCOOH": 1}),
-        description="Adjacent RCHCl2 and RCOOH groups.",
+        description="Relevant RCHCl2 bond type is not matched if R = COOH.",
     ),
     SubstructMatchTest(
         id=39,
         SMILES="COC(=O)C(CC1=CC=CC=C1)NC(=O)C(CC(=O)O)N",
         expected_matches=Counter({"RCOOH": 1, "RCOOR": 1, "RC(=O)NH2": 1, "benzene": 1}),
-        description="Shows proper RCOOH, RCOOR and RC(=O)NH2 distinction.",
+        description="Shows proper distinction between RCOOH, RCOOR and RC(=O)NH2 groups.",
     ),
     SubstructMatchTest(
         id=40,
         SMILES="CC1=CC2C(CCC2(C(CC1)[N+]#[C-])C)C(C)C",
         expected_matches=Counter({"C=C": 1, "-N#C": 1, "cyclopentane": 1}),
-        description="Simple isonitrile molecule example.",
+        description="Test for simple isonitrile molecule example.",
     ),
     SubstructMatchTest(
         id=41,
         SMILES="CC(C(C1=NN=C(O1)C2=CC=C(C=C2)F)NC3=C4C=CSC4=C(C=C3)[N+]#[C-])O",
         expected_matches=Counter({"-N#C": 1, "Ar-Ar": 1, "benzene": 2, "thiophene": 1, "Ar-NR2": 1}),
-        description="Example with Ar-N#C and benzothiophene.",
+        description="Example with Ar-N#C and benzothiophene fragment.",
     ),
     SubstructMatchTest(
         id=42,
@@ -399,7 +399,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "RC(=O)NH2": 1,
             }
         ),
-        description="Alkyllated amide bond.",
+        description="Matching of saturated rings within complicated fused ring system.",
     ),
     SubstructMatchTest(
         id=46,
@@ -414,7 +414,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "pyrrole": 1,
             }
         ),
-        description="Both -C#N and -N#C groups in the structure.",
+        description="Both -C#N and -N#C groups in one molecule.",
     ),
     SubstructMatchTest(
         id=47,
@@ -429,19 +429,19 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "C=C": 1,
             }
         ),
-        description="Ar-C=C and cyclohexene overlap. Solved.",
+        description="Test for Ar-C=C and cyclohexene overlap.",
     ),
     SubstructMatchTest(
         id=48,
         SMILES="C1CN2CCN1CC2",
         expected_matches=Counter({"piperazine": 1}),
-        description="DABCO - one piperazine ring matching.",
+        description="Only one piperazine ring is matched within DABCO molecule.",
     ),
     SubstructMatchTest(
         id=49,
         SMILES="[C-]#[N+]C(=CC1=CC=C(C=C1)O)C(=CC2=CC=C(C=C2)O)[N+]#[C-]",
         expected_matches=Counter({"-N#C": 2, "Ar-OH": 2, "benzene": 2, "Ar-C=C": 2}),
-        description="Adjacent Ar-C=C and -N#C groups.",
+        description="Matching of adjacent Ar-C=C and -N#C groups.",
     ),
     SubstructMatchTest(
         id=50,
@@ -453,13 +453,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=51,
         SMILES="[C-]#[N+]C12CC3CC(C1)CC(C3)C2",
         expected_matches=Counter({"cyclohexane": 1, "-N#C": 1}),
-        description="Adamantane - fusion of three cyclohexane rings.",
+        description="Test for adamantane - only one out of four unique cyclohexane rings is matched.",
     ),
     SubstructMatchTest(
         id=52,
         SMILES="C1CC2CC2C1",
         expected_matches=Counter({"cyclopentane": 1, "cyclopropane": 1}),
-        description="Corner case of bicyclo[3.1.0]hexane. To solve: cyclopropane must not share 3 atom indicies with cyclohexene ring.",
+        description="Test for bicyclo[3.1.0]hexane. Cyclohexane ring is not matched.",
     ),
     SubstructMatchTest(
         id=53,
@@ -489,13 +489,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=57,
         SMILES="CC(C)(C)OC(=O)N1CCC2(CC1)C3CC(C2C=C3)C(=O)O",
         expected_matches=Counter({"RCOOH": 1, "cyclohexene": 1, "piperidine": 1, "RC(=O)NH2": 1}),
-        description="Cyclohexene containing bicyclo fragment bonded to piperidine ring. Assignment of amide fragment allowed for carbamate group.",
+        description="Cyclohexene matching within bicyclo fragment that is directly connected with piperidine ring.",
     ),
     SubstructMatchTest(
         id=58,
         SMILES="C1CCC2C(C1)CC2=O",
         expected_matches=Counter({"cyclobutane": 1, "cyclohexane": 1, "C=O": 1}),
-        description="Fused cyclohexane and cyclobutanon rings.",
+        description="Fused cyclohexane and cyclobutanon rings. Cyclobutane bond type is assigned if one of C forms C=O bond - an assumption.",
     ),
     SubstructMatchTest(
         id=59,
@@ -507,7 +507,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=60,
         SMILES="CC(C)(C)OC(=O)N1CC2CC2C1C(=O)O",
         expected_matches=Counter({"RCOOH": 1, "cyclopropane": 1, "pyrrolidine": 1, "RC(=O)NH2": 1}),
-        description="Corner case of azabicyclo[3.1.0]hexene with fused piperidine, pyrrolidine and cyclopropane.",
+        description="Test for the matching of piperidine, pyrrolidine and cyclopropane rings within bicycle. Piperidine matching excluded.",
     ),
     SubstructMatchTest(
         id=61,
@@ -528,25 +528,25 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "piperidine": 1,
             }
         ),
-        description="Check for azabicyclo[2.2.2] fragment with fused piperidine ring.",
+        description="Check for piperidine matching within azabicyclo[2.2.2] fragment.",
     ),
     SubstructMatchTest(
         id=63,
         SMILES="C1CCN(CC1)C2(C3CN(CC2COC3)CC4=CC=CC=C4)C5=CC=CC=C5",
         expected_matches=Counter({"benzene": 2, "piperidine": 2}),
-        description="Piperidine rings - one terminal and one incorporated in bicyclic fragment.",
+        description="Assignment of two piperidine rings - one terminal and one incorporated in bicyclic fragment.",
     ),
     SubstructMatchTest(
         id=64,
         SMILES="CN1C2CCC1C=C(C2)C3=C(C=CS3)Br",
         expected_matches=Counter({"Ar-Br": 1, "pyrrolidine": 1, "thiophene": 1, "Ar-C=C": 1}),
-        description="Azabicyclo[3:2:1]octene derivative with additional thiophene ring and Ar-Br bond.",
+        description="Azabicyclo[3:2:1]octene derivative with additional thiophene ring.",
     ),
     SubstructMatchTest(
         id=65,
         SMILES="C1C2CN(CC1C2=O)CC3=CC=CC=C3",
         expected_matches=Counter({"cyclobutane": 1, "C=O": 1, "benzene": 1}),
-        description="Corner case - cyclobutane and piperidine fused into bicyclic structure.",
+        description="Interesting case - cyclobutane and piperidine fused into bicyclic structure.",
     ),
     SubstructMatchTest(
         id=66,
@@ -558,12 +558,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=67,
         SMILES="C12CC1N2",
         expected_matches=Counter({"cyclopropane": 1}),
-        description="with heteroatoms",
+        description="bicyclo[1.1.0], with heteroatom",
     ),
     SubstructMatchTest(
         id=68,
         SMILES="C12OC1C2",
         expected_matches=Counter({"cyclopropane": 1}),
+        description="bicyclo[1.1.0], with heteroatom",
     ),
     SubstructMatchTest(
         id=69,
@@ -575,28 +576,31 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=70,
         SMILES="C12CNC1C2",
         expected_matches=Counter({"cyclopropane": 1}),
-        description="with N/O",
+        description="bicyclo[2.1.0], with N/O",
     ),
     SubstructMatchTest(
         id=71,
         SMILES="C12CCC1N2",
         expected_matches=Counter({"cyclobutane": 1}),
+        description="bicyclo[2.1.0], with N/O",
     ),
     SubstructMatchTest(
         id=72,
         SMILES="C12COC1C2",
         expected_matches=Counter({"cyclopropane": 1}),
+        description="bicyclo[2.1.0], with N/O",
     ),
     SubstructMatchTest(
         id=73,
         SMILES="C12CCC1O2",
         expected_matches=Counter({"cyclobutane": 1}),
+        description="bicyclo[2.1.0], with N/O",
     ),
     SubstructMatchTest(
         id=74,
         SMILES="C12C=CC1C2",
         expected_matches=Counter({"cyclopropane": 1, "C=C": 1}),
-        description="with C=C",
+        description="bicyclo[2.1.0], with C=C",
     ),
     SubstructMatchTest(
         id=75,
