@@ -20,26 +20,26 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=1,
         SMILES="ClC=CC(Cl)C=CCl",
         expected_matches=Counter({"C=C": 2, "C-Cl": 3}),
-        description="When counting bond types C=C and C-Cl, the same C atom for both bond types can be considered.",
+        description="When counting bond types C=C and C-Cl, the same C atom for both bond types is considered.",
     ),
     SubstructMatchTest(
         id=2,
         SMILES="C=CCC=C",
         expected_matches=Counter({"CH2=CH-CH2-": 1, "C=C": 1}),
-        description="All carbon atoms of allyl group cannot belong to other bond type!",
+        description="All carbon atoms of allyl group cannot belong to other bond type.",
     ),
     SubstructMatchTest(
         id=3,
         SMILES="CC(=CC=CC=C(C)C=CC=C(C)C(=O)OC1C(C(C(C(O1)COC2C(C(C(C(O2)CO)O)O)O)O)O)O)C=CC=C(C)C(=O)OC3C(C(C(C(O3)COC4C(C(C(C(O4)CO)O)O)O)O)O)O",
         expected_matches=Counter({"C=C-C=C": 3, "C=C": 1, "RCOOR": 2}),
-        description="All carbon atoms of C=C-C=C fragment cannot belong to other bond type! For ester RCOOR group the results are correct.",
+        description="The C=C-C=C and C=C bond types cannot share one or more atoms.",
     ),
     SubstructMatchTest(
         id=4,
         SMILES="CC(=C)C1CC2=C(O1)C=CC3=C2OC4COC5=CC(=C(C=C5C4C3=O)OC)OC",
         expected_matches=Counter({"Ar-OR": 5, "benzene": 2, "C=C": 1, "Ar-C(=O)R": 1}),
+        description="Saturated rings fused with aromatic rings are not assigned.",
     ),
-    # TODO: Ar-OR fix required
     SubstructMatchTest(
         id=5,
         SMILES="CC1(C(C1C(=O)OC(C#N)C2=CC(=CC=C2)OC3=CC=CC=C3)C=C(Cl)Cl)C",
@@ -54,7 +54,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "Ar-OR": 1,
             }
         ),
-        description="Tests if ArOAr was not incorrectly matched.",
+        description="Ar-O-Ar fragment is allowed to match as Ar-OR bond type.",
     ),
     SubstructMatchTest(
         id=6,
@@ -67,25 +67,19 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "C=C": 2,
             }
         ),
-        description="""
-            Tests saturated policyclic systems. 
-            Saturated rings will not be matched when attached to aromatic ring by the ring's edge.""",
+        description="Test for saturated policyclic ring system.",
     ),
     SubstructMatchTest(
         id=7,
         SMILES="C1=CN(C(=O)N=C1N)C2C(C(C(O2)CO)O)O",
         expected_matches=Counter({"tetrahydrofuran": 1, "Ar-NR2": 1}),
-        description="""
-            Tests tricky case of pyrimidinone ring in the structure, which cannot be matched as pyrimidine ring.
-            Pyrimidine ring is not matched when one of the carbons is a part of carbonyl group.""",
+        description="Pyrimidine ring is not matched as one of its carbons forms external C=O group, resulting in pyrimidinone ring.",
     ),
     SubstructMatchTest(
         id=8,
         SMILES="CCCCNC(=O)OCC#CI",
         expected_matches=Counter({"C#C": 1, "C-I": 1, "RC(=O)NH2": 1}),
-        description="""
-            Important case of carbamate ROC(=O)NHR group.
-            RCOOR and RCOONHR groups are not matched when being part of carbamate fragment.""",
+        description="Carbamate ROC(=O)NHR fragment is assumed to be assigned using RCOONHR bond type as a rough approximation.",
     ),
     SubstructMatchTest(
         id=9,
@@ -102,8 +96,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         ),
         description="""
                 Example of fused ring system and improtant case of piperidine and Ar-NR2 matching.
-                Note that for fused ring systems each ring is matched separately which is a rough approximation. 
-                Also, Ar-CONR2 group is omitted in query.""",
+                Note that for fused ring systems each ring is matched separately which is a rough approximation.""",
     ),
     SubstructMatchTest(
         id=10,
@@ -129,10 +122,9 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         SMILES="CN(C)C1=CC=C(C=C1)C(=C2C=CC(=[N+](C)C)C=C2)C3=CC=C(C=C3)N(C)C",
         expected_matches=Counter({"C=N": 1, "Ar-NR2": 2, "Ar-C=C": 1, "benzene": 2, "C=C": 2}),
         description="""
-            Highlights the complexity of C=C-C=C, C=C and Ar-C=C matching.
-            Result:. For the molecule, Ar-C=C cannot be matched twice!
+            Highlights the complexity of C=C-C=C, C=C and Ar-C=C matching. For the molecule, Ar-C=C cannot be matched twice!
             Note that C=C-C=C as well as C=C are not matched because of the presence of Ar-C=C bond type!
-            The C=N bond counts also with charged N+ atom.""",
+            The C=N bond is considered applicable to cases involving a positively charged [N+] atom.""",
     ),
     SubstructMatchTest(
         id=12,
@@ -144,32 +136,27 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=13,
         SMILES="CC(=O)NC1CCC2=CC(=C(C(=C2C3=CC=C(C(=O)C=C13)OC)OC)OC)OC",
         expected_matches=Counter({"RC(=O)NH2": 1, "Ar-OR": 4, "Ar-Ar": 1, "benzene": 1}),
-        description="""
-            This is a corner case of aromaticity involving the 7-membered tropone ring. RDKit treats it as aromatic, but it is, in fact, antiaromatic.
-            See (DOI): https://doi.org/10.1021/acs.orglett.0c02343
-            Note that RDKit treats antiaromatic rings as aromatic.""",
+        description="Test case for the assignment of the aromatic 7-membered tropone ring. See (DOI): https://doi.org/10.1021/acs.orglett.0c02343",
     ),
     SubstructMatchTest(
         id=14,
         SMILES="CC1=CC(=C(C(=C1C=CC(=CC=CC(=CC(=O)[O-])C)C)C)C)OC",
         expected_matches=Counter({"C=C-C=C": 1, "C=C": 1, "Ar-C=C": 1, "Ar-OR": 1, "benzene": 1, "RCOOH": 1}),
         description="""
-            Highlights the problem with self-matching of C=C-C=C bond type.
-            The C=C-C=C-C=C fragment of the molecule should be matched as C=C-C=C (1) and C=C (1).""",
+            Check if Ar-C=C, C=C-C=C and C=C bond types are not matched with each other (self-matching). 
+            Deprotonated RCOO- group is assumed to be assigned as RCOOH bond type.""",
     ),
     SubstructMatchTest(
         id=15,
         SMILES="COC1=C(C=CC(=C1)CC=C)[O-]",
         expected_matches=Counter({"CH2=CH-CH2-": 1, "Ar-OH": 1, "Ar-OR": 1, "benzene": 1}),
-        description="Checks matching of phenolate and allyl group attached to aromatic ring.",
+        description="Phenolate Ar-O(-) fragment is allowed to be assigned as Ar-OH bond type.",
     ),
     SubstructMatchTest(
         id=16,
         SMILES="C=CCN=C=S",
         expected_matches=Counter({"CH2=CH-CH2-": 1}),
-        description="""
-            Highlights the possibility of C=N matching in isothiocyanate S=C=N group.
-            Should no match C=N.""",
+        description="Isothiocyanate S=C=N group is not matched, i.e., assignment of C=N bond within S=C=N fragment is excluded.",
     ),
     SubstructMatchTest(
         id=17,
@@ -195,19 +182,19 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"CH2=CH-CH2-": 1, "RC(=O)NH2": 3}),
         description="""
             Tricky amide group matching in a barbiturate ring.
-            We assumed that RCONHR amide group is not matched when N atom is conneted to two carbonyl C atoms.""",
+            We assumed that two RCONHR bond types cannot share the same C=O bond, but they are allowed to share the same N atom.""",
     ),
     SubstructMatchTest(
         id=19,
         SMILES="CC1=C(C(=O)C=CO1)O",
         expected_matches=Counter({"pyrones": 1, "Ar-OH": 1}),
-        description="Example of gamma-pyrone derivative, which RDKit treats as aromatic molecule.",
+        description="Test for gamma-pyrone ring matching.",
     ),
     SubstructMatchTest(
         id=20,
         SMILES="CC(=O)CC(C1=CC=CC=C1)C2=C(C3=CC=CC=C3OC2=O)O",
         expected_matches=Counter({"C=O": 1, "Ar-OH": 1, "benzene": 2, "pyrones": 1}),
-        description="Interesting case of alpha-pyrone being part of fused aromatic ring system.",
+        description="Interesting case of alpha-pyrone being matched as part of fused aromatic ring system.",
     ),
     SubstructMatchTest(
         id=21,
@@ -222,36 +209,32 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
             }
         ),
         description="""
-            Highlights the possibility of matching of RCOOR within tetrahydrofuran ring.
-            RCOOR matched, while tetrahydrofuran ring ignored. Also, the C=O in thioester RC(=O)SR groups is ignored.""",
+            Highlights the possibility of matching of RCOOR within tetrahydrofuran ring. RCOOR is matched, while tetrahydrofuran ring is ignored. 
+            Also, the C=O in thioester RC(=O)SR groups is allowed to be assigned.""",
     ),
     SubstructMatchTest(
         id=22,
         SMILES="CC(C)(C)C(=O)C(N1C=NC=N1)OC2=CC=C(C=C2)Cl",
         expected_matches=Counter({"C=O": 1, "Ar-OR": 1, "Ar-Cl": 1, "benzene": 1}),
-        description="""
-            Shows that not all aromatic rings are considered in the query due to limited literature data.
-            Examine Triazole ring not matched.""",
+        description="Shows that not all aromatic rings are considered in the query due to limited literature data.",
     ),
     SubstructMatchTest(
         id=23,
         SMILES="CC1C(C(C(O1)OC2C(C(C(C(C2O)O)N=C(N)N)O)N=C(N)N)OC3C(C(C(C(O3)CO)O)O)NC)(C=O)O",
         expected_matches=Counter({"C=O": 1, "cyclohexane": 1, "tetrahydrofuran": 1, "C=N": 2}),
-        description="""
-            Highlights that C=N is ignored when being part of guanidine group.
-            Examine C=N not matched.""",
+        description="Highlights that C=N is assumed to be assigned when being part of guanidine group.",
     ),
     SubstructMatchTest(
         id=24,
         SMILES="CC1CCC2=C3N1C=C(C(=O)C3=CC(=C2)F)C(=O)[O-]",
         expected_matches=Counter({"Ar-COOH": 1, "benzene": 1}),
-        description="Highlights that pyridine ring is not matched when one of its C atoms is a part of C=O group.",
+        description="Highlights that pyridine ring is not matched when one of its C atoms is a part of external C=O group.",
     ),
     SubstructMatchTest(
         id=25,
         SMILES="CC1=C(C(CCC1)(C)C)C=CC(=CC=CC(=CC(=O)O)C)C",
         expected_matches=Counter({"C=C-C=C": 2, "RCOOH": 1, "cyclohexene": 1}),
-        description="Examine C=C-C=C self-matching.",
+        description="Examine C=C-C=C self-matching and cross-matching with cyclohexane ring.",
     ),
     # TODO: rdkit error?
     SubstructMatchTest(
