@@ -80,7 +80,7 @@ CARBON_TRIPLE_BOND = BondType(
 CARBONYL_BOND = BondType(
     id=19,
     formula="C=O",
-    SMARTS="[C;X3,X2;!$([C]-[c]);!$([C]([H])(=[O])[O*]);!$([C]([C])(=[O])[O*]);!$([C](=[O;X1])[N*]);!$([C]([C]#[C]-[!c])(=[O])[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]=[O;X1]",
+    SMARTS="[C;X3,X2;!$([C]-[c]);!$([C]([O])([O])=[O]);!$([C]([H])(=[O])[O*]);!$([C]([C])(=[O])[O*]);!$([C](=[O;X1])[N*]);!$([C]([C]#[C]-[!c])(=[O])[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]=[O;X1]",
     constitutive_corr=6.3,
     sdf_files=("C=O.sdf",),
     description="Condition: C cannot be bound to aryl group. Omitted additional bond to O/N in any form.",
@@ -314,7 +314,8 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=26,
         formula="RCOOH",
-        SMARTS="[C;X3;!$([C]-[c]);!$([C]([O])([O])=[O])](=[O;X1])[$([O;H1;X2]),$([O-;X1])]",
+        # SMARTS="[C;X3;!$([C]-[c]);!$([C]([O])([O])=[O])](=[O;X1])[$([O;H1;X2]),$([O-;X1])]",
+        SMARTS="[C;X3;!$([C]-[c])](=[O;X1])[$([O;H1;X2]),$([O-;X1])]",
         constitutive_corr=-5.0,
         sdf_files=(
             "RCOOH.sdf",
@@ -333,7 +334,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=28,
         formula="-C#N",
-        SMARTS="[C;X2]#[N;X1]",
+        SMARTS="[C;X2;!$([C]-[S])]#[N;X1]",
         constitutive_corr=0.8,
         sdf_files=("-C#N.sdf",),
         description="Cyanide (nitrile) -C#N group.",
