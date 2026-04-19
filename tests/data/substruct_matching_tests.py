@@ -1228,31 +1228,31 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=176,
         SMILES="CC1=[N+](ON=C1[N+](=O)[O-])[O-]",
         expected_matches=Counter({"Ar-NO2"}),
-        description="NO2 fragment not assigned when being part of aromatic ring.",
+        description="NO2 fragment not assigned when being part of aromatic ring - expected result.",
     ),
     SubstructMatchTest(
         id=177,
         SMILES="CC1=CN(C(=O)NC1=O)[C@H]2C[C@@H]([C@H](O2)CO)N=[N+]=[N-]",
         expected_matches=Counter({"tetrahydrofuran": 1, "N=N": 2}),
-        description="R-N=N=N is matched as two N=N.",
+        description="R-N=[N+]=[N-] is matched as two N=N bond types.",
     ),
     SubstructMatchTest(
         id=178,
         SMILES="CCN(C)C1=CC=C(C=C1)N=NC2=CC=CC=C2",
         expected_matches=Counter({"N=N": 1, "benzene": 2, "Ar-NR2": 1}),
-        description="N=N matched as part of Ar-N=N-Ar fragment.",
+        description="Test for N=N assignment within Ar-N=N-Ar fragment.",
     ),
     SubstructMatchTest(
         id=179,
         SMILES="C(=O)(N)/N=N/C(=O)N",
         expected_matches=Counter({"N=N": 1, "RC(=O)NH2": 2}),
-        description="N=N matched if adjacent to amid C(=O)NH2 group. ",
+        description="N=N bond is assigned if it is connected to amide C(=O)NH2 group. ",
     ),
     SubstructMatchTest(
         id=180,
         SMILES="CN1C(=O)N2C=NC(=C2N=N1)C(=O)N",
         expected_matches=Counter({"imidazole": 1, "Ar-C(=O)NH2": 1}),
-        description="N=N in aromatic ring not matched.",
+        description="N=N in aromatic ring is not assigned - expected result.",
     ),
     SubstructMatchTest(
         id=181,
@@ -1264,12 +1264,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=182,
         SMILES="C1=CC(=CC=C1C(=N)N)NN=NC2=CC=C(C=C2)C(=N)N",
         expected_matches=Counter({"N=N": 1, "C=N": 2, "benzene": 2}),
-        description="Matching N=N of N=N-N fragment allowed.",
+        description="Matching N=N bond within N=N-NH or N(=N)NH2 fragment allowed.",
     ),
     SubstructMatchTest(
         id=183,
         SMILES="C=[N+]=[N-]",
         expected_matches=Counter({"C=N": 1, "N=N": 1}),
+        description="[N-]=[N+]=C molecule is matched as N=N and C=N which is a rough approximation.",
     ),
     SubstructMatchTest(
         id=184,
@@ -1287,13 +1288,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=186,
         SMILES="C1COCCN1[N+]2=CC(=N)O[N-]2",
         expected_matches=Counter({"morpholine": 1}),
-        description="Check for N=N matching (not allowed).",
+        description="Check for N=N matching withing aromatic ring (not allowed).",
     ),
     SubstructMatchTest(
         id=187,
         SMILES="C([C@@H](C(=O)O)N)/[N+](=N/O)/[O-]",
         expected_matches=Counter({"N=N": 1, "RCOOH": 1}),
-        description="N=N matched for HO-N=[N+]-[O-] fragment.",
+        description="N=N bond is allowed to be assigned within HO-N=[N+]-[O-] fragment.",
     ),
     SubstructMatchTest(
         id=188,
@@ -1305,7 +1306,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=189,
         SMILES="CN(C)C1=CC=C(C=C1)N=NS(=O)(=O)[O-]",
         expected_matches=Counter({"N=N": 1, "benzene": 1, "Ar-NR2": 1}),
-        description="",
+        description="Assignment of N=N bond is allowed when one of N is conneted to -SO3(-) group.",
     ),
     SubstructMatchTest(
         id=190,
@@ -1323,17 +1324,19 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=192,
         SMILES="CC1=NC(=CC=C1)C#CC2=CC(=CC=C2)OC",
         expected_matches=Counter({"Ar-C#C-Ar": 1, "benzene": 1, "pyridine": 1, "Ar-OR": 1}),
-        description="Ar-C#C-Ar between different aromatic rings.",
+        description="Test for assingment of Ar-C#C-Ar bond type.",
     ),
     SubstructMatchTest(
         id=193,
         SMILES="CN(C)C1=CC=C(C=C1)C2=C(N=CN=C2N)C#CC3=CN=C(C=C3)N4CCOCC4",
         expected_matches=Counter({"morpholine": 1, "Ar-Ar": 1, "Ar-C#C-Ar": 1, "Ar-NR2": 3, "benzene": 1, "pyridine": 1, "pyrimidine": 1}),
+        description="Test for assignemnt for two Ar-NR2 - one terminal and one as part of the ring.",
     ),
     SubstructMatchTest(
         id=194,
         SMILES="CC1=NC(=CS1)C#CC2=CN=CC(=C2)C=C",
         expected_matches=Counter({"Ar-C#C-Ar": 1, "pyridine": 1, "Ar-C=C": 1, "thiazole": 1}),
+        description="Test for thiazole ring.",
     ),
     SubstructMatchTest(
         id=195,
@@ -1364,11 +1367,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "C=C": 2,
             }
         ),
+        description="Test for different aromatic rings linkages: Ar-Ar, Ar-C#C-Ar and Ar-C=C(Ar)-Ar.",
     ),
     SubstructMatchTest(
         id=197,
         SMILES="C1=CC=C(C=C1)C#CC2=C3C=CC=CC3=C(C4=CC=CC=C42)C#CC5=CC=CC=C5",
         expected_matches=Counter({"Ar-C#C-Ar": 2, "benzene": 5}),
+        description="Anthracene fragment is matched as three separate benzene rings - a rough approximation.",
     ),
     SubstructMatchTest(
         id=198,
@@ -1389,13 +1394,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "RCOOR": 1,
             }
         ),
-        description="",
+        description="Check for assignment within complicated fused (saturated) ring system with terminal chlorine atoms.",
     ),
     SubstructMatchTest(
         id=200,
         SMILES="C1C2C3C4C1C5(C2C6(C3(C(C4(C56Cl)Cl)(Cl)Cl)Cl)Cl)O",
         expected_matches=Counter({"C-Cl": 4, "R2CCl2": 1, "cyclobutane": 1, "cyclohexane": 2}),
-        description="Identifying the number of bond types is too difficult due to the complexity of the structure.",
+        description="Cl-CR2-CR2-Cl matching is excluded due to cross-overlap with rings via more than two C-C bonds.",
     ),
     SubstructMatchTest(
         id=201,
