@@ -15,12 +15,7 @@ class CommonMolecule:
 
     def __str__(self) -> str:
         smiles_str = ", ".join(sorted(self.SMILES))
-        return (
-            f"sdf_file='{self.sdf_file}', "
-            f"formula='{self.formula}', "
-            f"SMILES={{{smiles_str}}}, "
-            f"diamag_sus={self.diamag_sus}"
-        )
+        return f"sdf_file='{self.sdf_file}', formula='{self.formula}', SMILES={{{smiles_str}}}, diamag_sus={self.diamag_sus}"
 
 
 """
@@ -359,9 +354,7 @@ COMMON_MOLECULES: dict[str, list[CommonMolecule]] = {
         CommonMolecule(
             formula="H2Pc",
             name="phthalocyanine",
-            SMILES={
-                "c1ccc2c(c1)-c1nc-2nc2[nH]c(nc3nc(nc4[nH]c(n1)c1ccccc41)-c1ccccc1-3)c1ccccc21"
-            },
+            SMILES={"c1ccc2c(c1)-c1nc-2nc2[nH]c(nc3nc(nc4[nH]c(n1)c1ccccc41)-c1ccccc1-3)c1ccccc21"},
             diamag_sus=-442,
             sdf_file="phthalocyanine.sdf",
         ),

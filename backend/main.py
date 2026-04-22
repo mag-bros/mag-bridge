@@ -11,7 +11,7 @@ APP_DATA_DIR = Path(APP_DATA_DIR).resolve()
 APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 @click.command()
-@click.option("--host", default="127.0.0.1", show_default=True)
+@click.option("--host", default="0.0.0.0", show_default=True)
 @click.option("--port", default=8000, show_default=True)
 @click.option("--reload", is_flag=True, help="Enable auto-reload (dev mode).")
 @click.option("--workers", default=1, show_default=True)
@@ -20,7 +20,7 @@ def runserver(host: str, port: int, reload: bool, workers: int):
     """Run FastAPI using Uvicorn with CLI options."""
     import uvicorn
 
-    common_params = {"host": host, "port": port, "workers": workers}
+    common_params = {"host": host, "port": port, "workersas": workers}
 
     is_prod = getattr(sys, "frozen", False)
     if is_prod:  # frozen user build

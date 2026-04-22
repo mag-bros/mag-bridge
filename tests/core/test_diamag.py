@@ -1,5 +1,4 @@
 import pytest
-
 from src import (
     DIAMAG_COMPOUND_ATOMS_SUBDIR,
     DIAMAG_COMPOUND_CONSTITUTIVE_CORR_SUBDIR,
@@ -7,8 +6,8 @@ from src import (
 )
 from src.core.compound import MBCompound
 from src.loader import MBLoader
-from tests.core.diamag_test_data import (
-    CALC_DIAMAG_CONTR_TEST_CASES,
+from tests.data.diamag_tests import (
+    CALC_DIAMAG_CONTR_TESTS,
     DiamagneticContributionTestSDF,
 )
 
@@ -29,21 +28,23 @@ def _run_diamag_contr_test(
 
     try:
         assert round(diamag_contr, 2) == test_case.expected_contribution
-        print(
-            f'[INF] "{compound.loaded_from}": ✅ Diamag is as expected: {diamag_contr:.4f}'
-        )
+        print(f'[INF] "{compound.loaded_from}": ✅ Diamag is as expected: {diamag_contr:.4f}')
     except AssertionError as e:
-        print(
-            f'[ERR] "{compound.loaded_from}": ❌ result {round(diamag_contr, 2)} is not expected value: {test_case.expected_contribution}'
-        )
+        print(f'[ERR] "{compound.loaded_from}": ❌ result {round(diamag_contr, 2)} is not expected value: {test_case.expected_contribution}')
         raise e
 
 
 def _params_for(subdir: str):
+    def _safe_id(p) -> str:
+        try:
+            return f"<{p[0]}> {p[1].sdf_file}"
+        except Exception:
+            return str(p)
+
     return pytest.mark.parametrize(
         "diamag_contr_params",
-        list(enumerate(CALC_DIAMAG_CONTR_TEST_CASES[subdir])),
-        ids=lambda p: f"<{p[0]}> {p[1].sdf_file}",
+        list(enumerate(CALC_DIAMAG_CONTR_TESTS[subdir])),
+        ids=_safe_id,
     )
 
 

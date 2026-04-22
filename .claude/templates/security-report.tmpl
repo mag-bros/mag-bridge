@@ -1,0 +1,71 @@
+# Security Vulnerability Report
+
+| Key | Value |
+|---|---|
+| **Source** | `{{ .Source.Target }}` |
+| **Scanner** | Grype {{ .Descriptor.Version }} |
+| **Timestamp** | {{ .Descriptor.Timestamp }} |
+| **Total Vulnerabilities** | {{ len .Matches }} |
+
+---
+
+## Summary
+
+| Severity | Count |
+|---|---|
+| Critical | {{ $c := 0 }}{{ range .Matches }}{{ if eq .Vulnerability.Severity "Critical" }}{{ $c = add $c 1 }}{{ end }}{{ end }}{{ $c }} |
+| High | {{ $h := 0 }}{{ range .Matches }}{{ if eq .Vulnerability.Severity "High" }}{{ $h = add $h 1 }}{{ end }}{{ end }}{{ $h }} |
+| Medium | {{ $m := 0 }}{{ range .Matches }}{{ if eq .Vulnerability.Severity "Medium" }}{{ $m = add $m 1 }}{{ end }}{{ end }}{{ $m }} |
+| Low | {{ $l := 0 }}{{ range .Matches }}{{ if eq .Vulnerability.Severity "Low" }}{{ $l = add $l 1 }}{{ end }}{{ end }}{{ $l }} |
+| Negligible | {{ $n := 0 }}{{ range .Matches }}{{ if eq .Vulnerability.Severity "Negligible" }}{{ $n = add $n 1 }}{{ end }}{{ end }}{{ $n }} |
+
+---
+
+## Vulnerabilities
+{{ range .Matches }}
+### {{ .Vulnerability.ID }} — {{ .Vulnerability.Severity }}
+
+| Field | Value |
+|---|---|
+| **Package** | `{{ .Artifact.Name }}` |
+| **Installed** | `{{ .Artifact.Version }}` |
+| **Type** | {{ .Artifact.Type }} |
+| **Language** | {{ .Artifact.Language }} |
+| **PURL** | `{{ .Artifact.PURL }}` |
+| **Fix State** | {{ .Vulnerability.Fix.State }} |
+| **Fix Versions** | {{ if .Vulnerability.Fix.Versions }}{{ join ", " .Vulnerability.Fix.Versions }}{{ else }}none{{ end }} |
+| **Risk Score** | {{ .Vulnerability.Risk }} |
+{{- range .Vulnerability.Cvss }}
+| **CVSS ({{ .Source }})** | {{ .Version }} — Score: **{{ .Metrics.BaseScore }}** — `{{ .Vector }}` |
+{{- end }}
+{{- range .Vulnerability.EPSS }}
+| **EPSS** | {{ .Percentile }} percentile (score: {{ .EPSS }}) |
+{{- end }}
+| **Data Source** | {{ .Vulnerability.DataSource }} |
+{{- if .Vulnerability.URLs }}
+| **References** | {{ range $i, $url := .Vulnerability.URLs }}{{ if $i }}, {{ end }}{{ $url }}{{ end }} |
+{{- end }}
+{{ if .Vulnerability.Description }}
+> {{ .Vulnerability.Description }}
+{{ end }}
+{{- if .RelatedVulnerabilities }}
+<details>
+<summary>Related Vulnerabilities ({{ len .RelatedVulnerabilities }})</summary>
+
+{{ range .RelatedVulnerabilities }}
+**{{ .ID }}** ({{ .Severity }})
+{{ if .Description }}
+> {{ .Description }}
+{{ end }}
+{{- range .Cvss }}
+- CVSS {{ .Version }}: **{{ .Metrics.BaseScore }}** `{{ .Vector }}`
+{{- end }}
+{{- if .URLs }}
+- References: {{ range $i, $url := .URLs }}{{ if $i }}, {{ end }}{{ $url }}{{ end }}
+{{- end }}
+
+{{ end }}
+</details>
+{{ end }}
+---
+{{ end }}

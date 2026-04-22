@@ -79,11 +79,11 @@ build: build-backend
 ##### Dev & Run
 ##### ------------
 
-dev:
+dev: # TODO fix
 	$(MKDIR) "$(LOG_DIR)"
 	-rm -f "$(LOG_FILE)"
 	@echo "✨ Starting developer mode (Running Frontend with Backend) (logs: $(LOG_FILE))"
-	$(NPM) run dev
+	$(NPM) run dev:local
 
 backend:
 	@echo "✨ Starting Backend (logs: $(LOG_FILE))"

@@ -1,8 +1,7 @@
-from typing import TYPE_CHECKING, Literal, overload
+from typing import Literal, overload
 
 from rdkit.Chem import Mol
-
-from core.molecule import MBMolecule
+from src.core.molecule import MBMolecule
 
 
 class MBCompound:
