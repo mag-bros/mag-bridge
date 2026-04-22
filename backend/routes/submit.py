@@ -6,10 +6,10 @@ from fastapi import APIRouter, HTTPException
 from backend.config import SDF_DIR
 from backend.schemas.calculations import CalculationRequest, InputType
 
-router = APIRouter(tags=["calculations"])
+router = APIRouter(prefix="/calculations", tags=["calculations"])
 logger = logging.getLogger("uvicorn.access")
 
-@router.post("/calculations/submit")
+@router.post("/submit")
 async def submit_calculation(data: CalculationRequest):
     if data.input_type == InputType.SDF:
         if not data.path:
