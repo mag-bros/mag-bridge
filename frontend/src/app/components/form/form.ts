@@ -102,7 +102,7 @@ export class Form {
 
     this.restService.post(this.restService.endpoints.calculations.submit, requestData).subscribe({
       next: (res: any) => {
-        this.response = `Success: ${res.filename || 'Processed'}`;
+        this.response = `Success: ${res.filename || 'Processed'} (Calculations: ${res.selections?.join(', ') || 'none'})`;
       },
       error: (err) => {
         this.response = 'Operation failed';
