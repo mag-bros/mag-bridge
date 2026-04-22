@@ -1,28 +1,29 @@
+@import "../../../styles/theme-constants.scss";
+
 .form-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 20px;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
   max-width: 500px;
   margin: 0 auto;
 
   h3 {
     margin: 0;
-    font-size: 1.1rem;
-    color: #333;
+    font-size: $font-size-lg;
   }
 }
 
 .radio-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: $spacing-xs;
 }
 
 .checkbox-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: $spacing-xs;
 }
 
 .input-section {
@@ -33,15 +34,14 @@
 }
 
 .file-info {
-  margin-top: 8px;
-  font-size: 0.9rem;
-  color: #666;
+  margin-top: $spacing-xs;
+  font-size: $font-size-sm;
 }
 
 .response {
-  margin-top: 16px;
+  margin-top: $spacing-sm;
   padding: 12px;
-  border-radius: 4px;
+  border-radius: $border-radius;
   background-color: #f0f0f0;
   font-family: monospace;
 }
