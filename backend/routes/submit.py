@@ -36,25 +36,25 @@ async def submit_calculation(data: CalculationRequest):
 
         try:
             shutil.copy2(src, dest)
-            logger.info(f"SDF copied for calculation: {src} -> {dest}")
+            logger.info(f"SDF copied for calculation: {src} -> {dest}. Selections: {data.selections}")
         except Exception as e:
             logger.error(f"Failed to copy file {src} -> {dest}: {e}")
             raise HTTPException(status_code=500, detail="Failed to save file")
 
-        return {"filename": src.name, "status": "success"}
+        return {"filename": src.name, "status": "success", "selections": data.selections}
 
     elif data.input_type == InputType.SMILES_FORMULA:
         if not data.smiles_formula:
             raise HTTPException(status_code=400, detail="SMILES/Formula is required")
         # Logic for SMILES/Formula would go here
-        logger.info(f"Received SMILES/Formula: {data.smiles_formula}")
-        return {"status": "success", "input": data.smiles_formula}
+        logger.info(f"Received SMILES/Formula: {data.smiles_formula}. Selections: {data.selections}")
+        return {"status": "success", "input": data.smiles_formula, "selections": data.selections}
 
     elif data.input_type == InputType.SUSCEPTIBILITY:
         if data.susceptibility is None:
             raise HTTPException(status_code=400, detail="Susceptibility value is required")
         # Logic for user provided susceptibility would go here
-        logger.info(f"Received susceptibility: {data.susceptibility}")
-        return {"status": "success", "value": data.susceptibility}
+        logger.info(f"Received susceptibility: {data.susceptibility}. Selections: {data.selections}")
+        return {"status": "success", "value": data.susceptibility, "selections": data.selections}
 
     raise HTTPException(status_code=400, detail="Invalid input type")
