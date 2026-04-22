@@ -1,4 +1,5 @@
 pytest
+httpx
 pytest-profiling
 snakeviz
 ipykernel

@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/src:${{ github.workspace }}/tests"
+      APP_DATA_DIR: "/tmp"
     steps:
       - uses: actions/checkout@v6
 
