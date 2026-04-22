@@ -1,25 +1,47 @@
-@use 'theme-constants' as theme;
-
-:host {
-  display: flex;
-  flex-direction: column;
-  gap: theme.$spacing-sm;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
 .form-container {
-  gap: theme.$spacing-sm;
-  padding: theme.$spacing-sm;
-  border-radius: theme.$border-radius;
-  border: theme.$border;
   display: flex;
-  align-items: center;
   flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto;
+
+  h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+  }
 }
 
-form {
+.radio-group {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-section {
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.file-info {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.response {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+  font-family: monospace;
 }
