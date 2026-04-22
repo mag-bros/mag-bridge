@@ -5,7 +5,7 @@ export const ApiEndpoints = {
     home: `${environment.apiUrl}/`,
     health: `${environment.apiUrl}/health`,
   },
-  files: {
-    upload: `${environment.apiUrl}/files/upload`,
+  calculations: {
+    submit: `${environment.apiUrl}/calculations/submit`,
   },
 };
