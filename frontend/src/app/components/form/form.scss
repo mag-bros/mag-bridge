@@ -1,4 +1,4 @@
-@import "../../../styles/theme-constants.scss";
+@use "../../../styles/theme-constants.scss" as *;
 
 .form-container {
   display: flex;
@@ -40,8 +40,10 @@
 
 .response {
   margin-top: $spacing-sm;
-  padding: 12px;
+  padding: $spacing-xs;
   border-radius: $border-radius;
-  background-color: #f0f0f0;
+  background-color: $surface-color;
+  border: $border;
   font-family: monospace;
 }
+

@@ -5,6 +5,9 @@
 // All units are defined in rem for scalability and accessibility.
 // ======================================
 
+@use "sass:map";
+@use "../../_theme-colors" as colors;
+
 // --------------------------------------
 // Border
 // --------------------------------------
@@ -12,8 +15,9 @@ $border-radius: 0.25rem; // 4px
 $border-width-thin: 0.0625rem; // 1px
 $border-width-medium: 0.125rem; // 2px
 $border-width-thick: 0.25rem; // 4px
-$border-color: #e0e0e0;
+$border-color: map.get(colors.$primary-palette, 90); // Using a light blue from primary
 $border: 1px solid $border-color;
+$surface-color: map.get(colors.$primary-palette, 98); // Very light blue for backgrounds
 
 // --------------------------------------
 // Spacing (Padding & Margin)
