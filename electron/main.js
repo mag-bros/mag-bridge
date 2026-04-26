@@ -1,4 +1,4 @@
-// frontend/main.js
+// electron/main.js
 const { spawn } = require('child_process');
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
@@ -29,9 +29,18 @@ function createWindow() {
   log.bindWindow(mainWindow, 'main');
 
   if (cfg.isProd) {
-    mainWindow.loadFile(path.join(__dirname, 'build/frontend/browser/index.html'));
+    // Production: Load built Angular from ../frontend/build/frontend/browser/
+    mainWindow.loadFile(path.join(__dirname, '../frontend/build/frontend/browser/index.html'));
   } else {
-    mainWindow.loadURL('http://0.0.0.0:4200');
+    // Development: Connect to Angular dev server in container
+    // Windows (Docker Desktop) may need host.docker.internal
+    // macOS/Linux work with localhost
+    const devServerUrl = process.platform === 'win32' 
+      ? 'http://host.docker.internal:4200'
+      : 'http://localhost:4200';
+    
+    log.info(`Loading dev server: ${devServerUrl}`);
+    mainWindow.loadURL(devServerUrl);
     mainWindow.webContents.openDevTools();
   }
 

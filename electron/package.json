@@ -1,0 +1,85 @@
+{
+  "name": "mag-bridge-electron",
+  "version": "0.0.0",
+  "description": "Electron wrapper for MagBridge (macOS host only)",
+  "main": "main.js",
+  "private": true,
+  "homepage": "https://github.com/mag-bros/mag-bridge.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mag-bros/mag-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mag-bros/mag-bridge/issues"
+  },
+  "author": {
+    "name": "Mag Bros",
+    "email": "magbridge.dev@gmail.com"
+  },
+  "scripts": {
+    "dev": "wait-on http://localhost:4200 && NODE_ENV=development MANAGE_BACKEND=1 electron .",
+    "start": "electron .",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.github.magbridge",
+    "productName": "MagBridge",
+    "copyright": "Copyright © 2025 Mag Bros",
+    "directories": {
+      "output": "../frontend/build/app"
+    },
+    "files": [
+      {
+        "from": "../frontend/build",
+        "to": "build",
+        "filter": [
+          "frontend/**/*",
+          "backend/**/*"
+        ]
+      },
+      "main.js",
+      "preload.js",
+      "logging.js",
+      "app-config.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../frontend/build/backend/",
+        "to": "backend"
+      }
+    ],
+    "extraMetadata": {
+      "main": "main.js",
+      "env": {
+        "NODE_ENV": "production",
+        "APP_ENV": "production"
+      }
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^39.2.5",
+    "electron-builder": "^26.0.12",
+    "electron-reload": "^2.0.0-alpha.1",
+    "wait-on": "^9.0.3"
+  }
+}

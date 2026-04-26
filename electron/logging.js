@@ -1,4 +1,4 @@
-// frontend/logging.js
+// electron/logging.js
 // Minimal logger: colored console + single file in ~/.magbridge/logs, no rotation.
 // Format example:
 // ts=2025-10-26T22:08:05.907Z {level='info', msg='Application startup complete.', pid=44341, ver='electron/38.4.0', window='main:1', src='backend', stream='stdout'}
@@ -70,7 +70,7 @@ function quoteValue(v) {
   let s = String(v)
     .replace(/[\r\n\t]+/g, ' ')
     .trim()
-    .replace(/'/g, '’'); // typographic apostrophe
+    .replace(/'/g, "'"); // escape single quotes
   return `'${s}'`;
 }
 
