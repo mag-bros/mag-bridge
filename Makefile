@@ -51,7 +51,7 @@ else
   PATH_SEP := :
 endif
 
-.PHONY: build build-backend dev backend run logs info clean list-outdated
+.PHONY: build build-backend frontend backend run logs info clean list-outdated
 
 build-backend:
 	$(RM) "$(BACKEND_TARGET)"
@@ -86,7 +86,7 @@ build: build-backend
 ##### Dev & Run
 ##### ------------
 
-dev:
+frontend:
 	$(MKDIR) "$(LOG_DIR)"
 	-rm -f "$(LOG_FILE)"
 	@echo "✨ Starting developer mode (Angular dev server only)"
@@ -155,7 +155,9 @@ clean:
 
 npm-update:
 # npm update is an alternative, not sure what's the difference
-	@echo "🔍 Checking for npm de_ELECTRON) npm-check-updates --packageFile package.json --upgrade; echo "📦 Installing updated dependencies..."
+	@echo "🔍 Checking for npm dependencies updates..."
+	@$(NPM_FRONTEND) exec npm-check-updates --packageFile package.json --upgrade
+	@echo "📦 Installing updated dependencies..."
 	@$(NPM_FRONTEND) install && echo "✅ npm dependencies updated." || echo "❌ npm dependencies update FAIL."
 
 list-outdated:
@@ -168,10 +170,7 @@ rebuild-node:
 	@echo "✨ Resetting frontend lockfile and dependencies…"
 	$(RM) "$(FRONTEND_SRC)/package-lock.json"
 	$(RM) -r "$(FRONTEND_SRC)/node_modules"
-	@$(NPM_FRONTEND"✨ Resetting frontend lockfile and dependencies…"
-	$(RM) "$(FRONTEND_SRC)/package-lock.json"
-	$(RM) -r "$(FRONTEND_SRC)/node_modules"
-	@$(NPM) install \
+	@$(NPM_FRONTEND) install \
 		&& echo "✅ Lockfile regenerated and dependencies reinstalled" \
 		|| echo "❌ Failed to reset lockfile or reinstall dependencies"
 	
