@@ -73,23 +73,19 @@ function serializeArg(a) {
 // ============================================================================
 
 window.addEventListener('error', (evt) => {
+  const msg = `[Unhandled Error] ${evt.message} at ${evt.filename}:${evt.lineno}:${evt.colno}`;
   try {
-    ipcRenderer.send('frontend-log', {
-      level: 'error',
-      args: [`[Unhandled Error] ${evt.message} at ${evt.filename}:${evt.lineno}:${evt.colno}`],
-    });
-  } catch (_) {
-    // ignore
+    ipcRenderer.send('frontend-log', { level: 'error', args: [msg] });
+  } catch (e) {
+    console.error('[preload IPC failed]', msg, e);
   }
 });
 
 window.addEventListener('unhandledrejection', (evt) => {
+  const msg = `[Unhandled Promise Rejection] ${String(evt.reason)}`;
   try {
-    ipcRenderer.send('frontend-log', {
-      level: 'error',
-      args: [`[Unhandled Promise Rejection] ${String(evt.reason)}`],
-    });
-  } catch (_) {
-    // ignore
+    ipcRenderer.send('frontend-log', { level: 'error', args: [msg] });
+  } catch (e) {
+    console.error('[preload IPC failed]', msg, e);
   }
 });

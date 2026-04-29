@@ -87,24 +87,16 @@ build: build-backend
 ##### ------------
 
 frontend:
-	$(MKDIR) "$(LOG_DIR)"
-	-rm -f "$(LOG_FILE)"
-	@echo "✨ Starting developer mode (Angular dev server only)"
-	@echo "⚠️  For Electron, run 'cd electron && npm run dev' on macOS host"
-	$(NPM_FRONTEND) run serve-reloader
+	$(PYTHON) scripts/environment.py frontend
 
 dev-fullstack:
-	@echo "✨ Starting Full Stack (Angular + Backend)"
-	./dev-fullstack.sh
+	$(PYTHON) scripts/environment.py fullstack
 
 backend:
-	@echo "✨ Starting Backend (dev mode)"
-	NODE_ENV=development .venv/bin/python -m uvicorn backend:app --reload --host 0.0.0.0 --port 8000
+	$(PYTHON) scripts/environment.py backend
 
 install:
-	@echo "✨ Installing Frontend dependencies"
-	$(NPM_FRONTEND) install
-	@echo "⚠️  For Electron, run 'cd electron && npm install' on macOS host"
+	$(PYTHON) scripts/environment.py install
 
 run:
 	$(MKDIR) "$(LOG_DIR)"
