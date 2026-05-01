@@ -103,8 +103,8 @@ class MBSubstructMatcher:
 
         Phase 1 — Pure predicate: each candidate is appended to accepted or rejected.
         Phase 2 — Derived injections: rejected candidates may produce new accepted matches.
-        Phase 3 — Duplication: Ar-OR / Ar-NR2 add copies based on aromatic C count.
         """
+
         accepted: dict[str, list[BondMatchCandidate]] = defaultdict(list)
         rejected: dict[str, list[RejectedCandidate]] = defaultdict(list)
 

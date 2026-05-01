@@ -1,6 +1,17 @@
 # About
 This project is an innovative cross-platform desktop app designed to fill key gaps in current magnetic data processing workflows. Built around user experience and powered by the industry-standard RDKit library, using SDF file formats in a streamlined workflow that helps researchers focus on discovery.
 
+&nbsp;
+
+> [!NOTE]
+> ## Author Notes for Users
+>
+>As creators of the open-source MagBridge project, our primary goal is to develop a reliable tool for processing magnetic measurement data. We therefore invite you to contribute to the further development of MagBridge by sharing your feedback and suggestions. We hope this project grows into a space where experts and researchers from different fields come together to share their knowledge and experience to build a tool that advances scientific discovery.
+>
+> #### We welcome any comments on the approaches we have adopted. If you identify potential issues or areas for improvement, you are warmly invited to contact us via email: [kpwydra@gmail.com](mailto:kpwydra@gmail.com)
+
+&nbsp;
+
 ## Table of Contents
 1. [Document Goals](#document-goals)
 2. [Introduction](#introduction) 
