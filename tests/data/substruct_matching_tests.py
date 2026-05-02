@@ -1607,24 +1607,37 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=227,
         SMILES="C12=C3C4=C5C6=C1C7=C8C9=C1C%10=C%11C(=C29)C3=C2C3=C4C4=C5C5=C9C6=C7C6=C7C8=C1C1=C8C%10=C%10C%11=C2C2=C3C3=C4C4=C5C5=C%11C%12=C(C6=C95)C7=C1C1=C%12C5=C%11C4=C3C3=C5C(=C81)C%10=C23",
         expected_matches=Counter({"benzene": 20}),
-        description="RDKit fails when drawing fullerene structure. 15 pentagons are not assigned because they are treated as uncommon rings.",
+        description="RDKit fails to draw fullerene structure. 15 pentagons are not assigned because they are treated as uncommon rings.",
+    ),
+    SubstructMatchTest(
+        id=228,
+        SMILES="CCOC1=CC2=C(C=C1)NC(C=C2C)(C)C",
+        expected_matches=Counter({"benzene": 1, "Ar-OR": 1, "Ar-C=C": 1, "Ar-NR2": 1}),
+        description="Test for Ar-NR2 assignment within the uncommon ring.",
+    ),
+    SubstructMatchTest(
+        id=229,
+        SMILES="C1CN(CC=C1N2C3=CC=CC=C3NC2=O)CCCC(=O)C4=CC=C(C=C4)F",
+        expected_matches=Counter({"benzene": 2, "C=C": 1, "imidazole": 1, "Ar-C(=O)R": 1}),
+        description="Corner case of 2-imidazolidone ring for which matching of imidazole ring was forbidden.",
     ),
     SubstructMatchTest(
         id=230,
         SMILES="C12(C3(C4(C1(C5(C2(C3(C45Cl)Cl)Cl)Cl)Cl)Cl)Cl)Cl",
         expected_matches=Counter({"cyclobutane": 6, "C-Cl": 8}),
+        description="RDKit fails to draw 3D cubane structure. Matching of Cl-CR2-CR2-Cl excluded due to cross-overlap with cyclobutane rings.",
     ),
     SubstructMatchTest(
         id=231,
         SMILES="CC1=CC(=C(C=C1N)C)C(=C2C(=C(C(=NC)C(C2(C)Cl)(C)Cl)C)C)C3=CC=C(C=C3)N",
         expected_matches=Counter({"cyclohexene": 1, "benzene": 2, "Ar-C=C": 1, "C=N": 1, "C-Cl": 2, "Ar-NR2": 2}),
-        description="Cl-CR2-CR2-Cl assumed to match when one of R = C=N.",
+        description="For Ar(Ar)-C=C-R fragment, Ar-C=C bond type is matched only once.",
     ),
     SubstructMatchTest(
         id=232,
         SMILES="ClC(C)(C)C(C)(Cl)C(C)(Cl)C(C)(Cl)C(C)(Cl)C",
         expected_matches=Counter({"Cl-CR2-CR2-Cl": 2, "C-Cl": 1}),
-        description="Checks matching of adjacent Cl-CR2-CR2-Cl. Self-overlap allowed only through one C-C bond.",
+        description="Test for matching of adjacent Cl-CR2-CR2-Cl. Self-overlap allowed only via one C-C bond.",
     ),
     SubstructMatchTest(
         id=233,
@@ -1636,6 +1649,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=234,
         SMILES="CCOC(C(Cl)Cl)OCC",
         expected_matches=Counter({"RCHCl2": 1}),
+        description="RCHCl2 is matched when R = C-O.",
     ),
     SubstructMatchTest(
         id=235,
@@ -1684,11 +1698,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=241,
         SMILES="C(=O)C(=C(C(=O)O)Cl)C(Cl)Cl",
         expected_matches=Counter({"C=O": 1, "C=C": 1, "C-Cl": 1, "RCHCl2": 1, "RCOOH": 1}),
+        description="RCHCl2 is allowed to matched when R = C=C.",
     ),
     SubstructMatchTest(
         id=242,
         SMILES="C1=CC=C(C=C1)CC(Cl)Cl",
         expected_matches=Counter({"benzene": 1, "RCHCl2": 1}),
+        description="Simple RCHCl2 test.",
     ),
     SubstructMatchTest(
         id=243,
@@ -1706,6 +1722,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=245,
         SMILES="C(#N)C(Cl)Cl",
         expected_matches=Counter({"-C#N": 1, "C-Cl": 2}),
+        description="RCH2Cl2 is not matched when R = C#N and two C-Cl are assigned instead.",
     ),
     SubstructMatchTest(
         id=246,
@@ -1717,13 +1734,13 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=247,
         SMILES="CC1COC2=CC=CC=C2N1C(=O)C(Cl)Cl",
         expected_matches=Counter({"C-Cl": 2, "Ar-OR": 1, "RC(=O)NH2": 1, "benzene": 1}),
-        description="",
+        description="RCHCl2 is not matched when R = C(=O)NH2, C(=O)OR or C(=O)OH.",
     ),
     SubstructMatchTest(
         id=248,
         SMILES=" C(#N)Br",
         expected_matches=Counter({"C-Br": 1, "-C#N": 1}),
-        description="",
+        description="For C(#N)Br matching of both C-Br and -C#N bonds is allowed.",
     ),
     SubstructMatchTest(
         id=249,

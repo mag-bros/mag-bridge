@@ -543,7 +543,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=56,
         formula="imidazole",
-        SMARTS="n1cncc1",
+        SMARTS="[n]1[c;!$(c=O)][n][c;!$(c=O)][c;!$(c=O)]1",
         constitutive_corr=8.0,
         sdf_files=(
             "imidazole.sdf",
