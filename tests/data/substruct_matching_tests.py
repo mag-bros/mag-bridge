@@ -1618,7 +1618,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=229,
         SMILES="C1CN(CC=C1N2C3=CC=CC=C3NC2=O)CCCC(=O)C4=CC=C(C=C4)F",
-        expected_matches=Counter({"benzene": 2, "C=C": 1, "imidazole": 1, "Ar-C(=O)R": 1}),
+        expected_matches=Counter({"benzene": 2, "C=C": 1, "Ar-C(=O)R": 1}),
         description="Corner case of 2-imidazolidone ring for which matching of imidazole ring was forbidden.",
     ),
     SubstructMatchTest(
@@ -2078,7 +2078,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=302,
         SMILES="C(=C=C(C1=CC=CC=C1)C2=CC=CC=C2)C3=CC=CC=C3",
         expected_matches=Counter({"Ar-C=C": 2, "benzene": 3}),
-        description="todo",
+        description="Ar-C=C=C(Ar)-Ar fragment is expectedly matched as two Ar-C=C bond types.",
     ),
     SubstructMatchTest(
         id=303,
@@ -2090,23 +2090,25 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         id=304,
         SMILES="CCOC(=O)C#CC1=CC=CC=C1",
         expected_matches=Counter({"benzene": 1, "Ar-C#C": 1, "RCOOR": 1}),
+        description="Ar-C#C is matched if one of the carbons is connected to C=O group.",
     ),
     SubstructMatchTest(
         id=305,
         SMILES="C1=CC=C(C=C1)S(=O)(=O)NC2=CC=CC(=C2)C#C/C=C/C(=O)NO",
         expected_matches=Counter({"benzene": 2, "Ar-C#C": 1, "C=C": 1, "RC(=O)NH2": 1}),
+        description="Ar-C#C is matched if one of the carbons is connected to C=C bond type.",
     ),
     SubstructMatchTest(
         id=306,
         SMILES="C(=C=C(C)C)C1=CC=CC=C1",
         expected_matches=Counter({"C=C": 1, "Ar-C=C": 1, "benzene": 1}),
-        description="todo",
+        description="R-C=C=C-Ar fragment is expectedly matched as C=C and Ar-C=C bond types.",
     ),
     SubstructMatchTest(
         id=307,
         SMILES="C1=CC=C(C=C1)C#CC#CC2=CC=CC=C2",
         expected_matches=Counter({"benzene": 2, "Ar-C#C": 2}),
-        description="Ar-C#C matching for conjugated Ar-C#C-C#C-Ar bonds.",
+        description="Test for Ar-C#C matching for conjugated Ar-C#C-C#C-Ar bonds.",
     ),
     SubstructMatchTest(
         id=308,
@@ -2117,23 +2119,23 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
                 "imidazole": 1,
                 "pyrrole": 1,
                 "benzene": 2,
-                "RC(=O)NH2": 1,
                 "Ar-C(=O)R": 1,
                 "Ar-C#C": 1,
             }
         ),
+        description="RC(=O)NH2 is not matched if bonded to aromatic ring via its N atom.",
     ),
     SubstructMatchTest(
         id=309,
         SMILES="C1=CC=C(C=C1)C#C[P+](C2=CC=CC=C2)(C3=CC=CC=C3)C4=CC=CC=C4",
         expected_matches=Counter({"benzene": 4, "Ar-C#C": 1}),
-        description="Ar-C#C matching for Ar-C#C-[P+] fragment.",
+        description="Ar-C#C matching is allowed for Ar-C#C-[P+] fragment.",
     ),
     SubstructMatchTest(
         id=310,
         SMILES="C1=CC=C(C=C1)C#CC#N",
         expected_matches=Counter({"-C#N": 1, "Ar-C#C": 1, "benzene": 1}),
-        description="Ar-C#C matching for conjugated Ar-C#C-C#N bonds.",
+        description="Test for Ar-C#C and -C#N bond type matching for conjugated Ar-C#C-C#N bonds.",
     ),
     SubstructMatchTest(
         id=311,

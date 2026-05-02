@@ -266,7 +266,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
     BondType(
         id=21,
         formula="RC(=O)NH2",
-        SMARTS="[C;X3;!$([C]-[c])](=[O;X1])[$([N;X3;H2]),$([N;X3;H1][#6]),$([N;X3;H0]([#6])[#6])]",
+        SMARTS="[C;X3;!$([C]-[c]);!$([C]-[n])](=[O;X1])[$([N;X3;H2]),$([N;X3;H1][#6]),$([N;X3;H0]([#6])[#6])]",
         constitutive_corr=-3.5,
         sdf_files=(
             "RCONH2.sdf",
