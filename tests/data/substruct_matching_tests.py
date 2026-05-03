@@ -2588,7 +2588,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=377,
         SMILES="CCC(C)N1C(=O)N(C=N1)C2=CC=C(C=C2)N3CCN(CC3)C4=CC=C(C=C4)OCC5COC(O5)(CN6C=NC=N6)C7=C(C=C(C=C7)Cl)Cl",
-        expected_matches=Counter({}),
+        expected_matches=Counter({"piperazine": 1, "Ar-OR": 1, "Ar-Cl": 2, "benzene": 3, "Ar-NR2": 2}),
         description="Rings without an available constitutive correction are left unassigned. Piperazine ring and two Ar-NR2 bond types are allowed to cross-overlap.",
     ),
     SubstructMatchTest(
