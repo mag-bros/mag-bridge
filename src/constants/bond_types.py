@@ -11,6 +11,7 @@ class OverlapGroup(int, Enum):
     CARBONYL_BOND_TYPES = 2
 
 
+# Relevant bond type representation (see reference https://doi.org/10.1021/ed085p532)
 @dataclass(frozen=True, slots=True)
 class BondType:
     """Class representing a relevant bond type, including its SMARTS notation, constitutive correction, and SDF file(s) of molecules containing the given bond type."""
@@ -32,7 +33,7 @@ DOUBLE_BOND = BondType(
     SMARTS="[C;X3,X2;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]=[C;X3,X2;!$([c]);!$([C]-[c]);!$(C1=CCCCC1)]",
     constitutive_corr=5.5,
     sdf_files=("C2H4.sdf",),
-    description="Condition: C atoms not bound to aryl group. Also excluded: cyclohexene, C=C-C=C and H2C=CH-CH2- (allyl group).",
+    description="Condition: C atoms cannot be bound to aryl group or be a part of cyclohexene ring.",
     cross_overlap_group=OverlapGroup.DOUBLE_BONDS,
 )
 
@@ -44,9 +45,8 @@ AR_NR2 = BondType(
     sdf_files=("Ar-NR2.sdf",),
     cross_overlap_group=OverlapGroup.Ar_N_BOND_TYPES,
     description="""
-        Assumption: The Ar3N and Ar2NR fragments are modeled by applying three or two Ar-NR2 corrections.
-        Ar-NR2 correction is also applied for Ar-NH2 Ar-NHR and Ar-NH-Ar fragments.
-        For Ar-NH-Ar two Ar-NR2 corrections are applied.""",
+        Assumptions: For the Ar3N and Ar2NR fragments only one Ar-NR2 correction is applied.
+        Ar-NR2 correction is also applied for Ar-NH2, Ar-NHR and Ar-NH-Ar fragments.""",
 )
 
 CARBON_HALOGEN_BOND = BondType(
@@ -74,7 +74,7 @@ CARBON_TRIPLE_BOND = BondType(
     SMARTS="[C;!$([C]-[c]);!$([C]([!c])#[C]-[C](=[O])-[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]#[C;!$([C]-[c]);!$([C]([!c])#[C]-[C](=[O])-[!c;!#7;!#8;!#9;!#14;!#15;!#16;!#5;!#50])]",
     constitutive_corr=0.8,
     sdf_files=("C2H2.sdf",),
-    description="Condition: Any of C atoms in the C#C bond are not further connected to aryl group. Also excluded: RC#C-C(=O)R",
+    description="Condition: Any of C atoms in the C#C bond cannot be further connected to aryl group. Also excluded: RC#C-C(=O)R",
 )
 
 CARBONYL_BOND = BondType(
@@ -88,7 +88,6 @@ CARBONYL_BOND = BondType(
 )
 
 
-# Relevant bond type representation (see reference https://doi.org/10.1021/ed085p532)
 RELEVANT_BOND_TYPES: list[BondType] = [
     DOUBLE_BOND,
     BondType(
@@ -367,9 +366,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])([Cl])-[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])[Cl]",
         constitutive_corr=4.3,
         sdf_files=("Cl-CR2-CR2-Cl.sdf",),
-        description="""
-            Condition: Cl-CR2-CR2-Cl cannot share three C-C bonds with a saturated ring. 
-            If so, two C-Cl constitutive corrections are applied instead.""",
+        description="Condition: R cannot correspond to C#N or C=O group.",
     ),
     BondType(
         id=33,
@@ -392,9 +389,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])([Br;X1])-[C;X4]([C;!$(C#N);!$(C=O);!$(C=N)])([C;!$(C#N);!$(C=O);!$(C=N)])[Br;X1]",
         constitutive_corr=6.24,
         sdf_files=("Br-CR2-CR2-Br.sdf",),
-        description="""
-        Condition: Br-CR2-CR2-Br cannot share three C-C bonds with a saturated ring. 
-        If so, two C-Br constitutive corrections are applied instead.""",
+        description="Condition: R cannot correspond to C#N or C=O group.",
     ),
     BondType(
         id=37,
@@ -440,9 +435,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         SMARTS="[N;!$(n)]=[N;!$(n)]",
         constitutive_corr=1.85,
         sdf_files=("N=N.sdf",),
-        description="""
-            Condition: N are NOT aromatic - this excludes aromatic rings that are not listed in the reference.
-            Also excluded: Azides R-N=N(+)=N(-)""",
+        description="Condition: N are NOT aromatic - this excludes aromatic rings that are not listed in the reference.",
     ),
     BondType(
         id=43,
@@ -467,7 +460,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         sdf_files=("Ar-OR.sdf",),
         description="""
             Assumption: Cyclic ethers bound to aromatic C atom are also considered.
-            For Ar-O-Ar fragment, Ar-OR constant is considered and applied twice.""",
+            For Ar-O-Ar fragment, Ar-OR constant is considered and applied once.""",
     ),
     BondType(
         id=46,
@@ -654,5 +647,6 @@ RELEVANT_BOND_TYPES: list[BondType] = [
         sdf_files=("Ar-[N+]Ar3.sdf",),
         dummy_bond_type=True,
         cross_overlap_group=OverlapGroup.Ar_N_BOND_TYPES,
+        description="Dummy bond type used to exclude assignment of Ar-NR2 bond type for Ar-[N+]Ar3 fragment.",
     ),
 ]
