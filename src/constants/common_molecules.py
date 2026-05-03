@@ -40,6 +40,7 @@ Here's a breakdown of the values:
 """
 
 COMMON_MOLECULES: dict[str, list[CommonMolecule]] = {
+    # TODO: Add missing common molecules
     "ions": [
         CommonMolecule(
             formula="AsO3(3-)",
