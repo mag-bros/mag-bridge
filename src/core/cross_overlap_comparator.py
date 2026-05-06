@@ -26,7 +26,7 @@ class CrossOverlapComparator:
 
         def _sort_key(item: tuple[str, list]) -> tuple[int, int]:
             formula, cands = item
-            group = OverlapGroup.DEFAULT if cands[0].cross_overlap_group is None else cands[0].cross_overlap_group
+            group = OverlapGroup.DEFAULT if cands[0].overlap_group is None else cands[0].overlap_group
             rule = rules.get(group, rules[OverlapGroup.DEFAULT])
             order = rule["order"]
             idx = order.index(formula) if isinstance(order, tuple) and formula in order else (len(order) if isinstance(order, tuple) else 0)

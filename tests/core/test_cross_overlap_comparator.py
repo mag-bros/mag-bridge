@@ -18,7 +18,7 @@ def test_sort_matches():
 
     def make_candidates(group):
         c = MagicMock()
-        c.cross_overlap_group = group
+        c.overlap_group = group
         return [c]
 
     grouped = {

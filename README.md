@@ -1,5 +1,13 @@
 # About
-This project is an innovative cross-platform desktop app designed to fill key gaps in current magnetic data processing workflows. Built around user experience and powered by the industry-standard RDKit library, using SDF file formats in a streamlined workflow that helps researchers focus on discovery.
+This project is a cross-platform desktop app designed to fill key gaps in current magnetic data processing workflows. Built around user experience and powered by the industry-standard RDKit library, using SDF file formats in a streamlined workflows. We aim this project to grow into a space where experts and researchers from different fields come together to share their knowledge and experience to build a tool that advances scientific discovery.
+
+
+> [!NOTE]
+> ## Author Notes for Users
+>
+> Feel free to share your feedback and suggestions, We welcome any comments on the approaches we have adopted. If you identify potential issues or areas for improvement, you are warmly invited to open an issue.
+>
+> We develop this project in our free time. While we love hearing your ideas, please keep in mind that updates and support depend on our current availability.
 
 ## Table of Contents
 1. [Document Goals](#document-goals)
