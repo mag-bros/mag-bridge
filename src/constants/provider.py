@@ -50,7 +50,7 @@ class ConstDB:
         return COMMON_DIAMAG_NOT_MATCHED
 
     @staticmethod
-    def GetBondTypeConstitutiveCorrection(formula: str) -> float:
+    def GetBondTypeConstitutiveCorr(formula: str) -> float:
         """Returns constitutive correction for given bond type."""
 
         for bond_type in RELEVANT_BOND_TYPES:
