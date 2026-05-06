@@ -35,13 +35,12 @@ class MBMolecule:
 
         if self.common_diamag == COMMON_DIAMAG_NOT_MATCHED:
             contr_all_atoms: float = self.CalcDiamagContrAllAtoms()
-            constitutive_corr: float = self.CalcConstitutiveCorrection()
+            constitutive_corr: float = self.CalcAllConstitutiveCorrections()
             return contr_all_atoms + constitutive_corr
 
         return self.common_diamag
 
-    # TODO finish
-    def CalcConstitutiveCorrection(self, verbose=False) -> float:
+    def CalcAllConstitutiveCorrections(self, verbose=False) -> float:
         """Calculate constitutive corrections for matched bond types for uncommon molecule."""
 
         from src.core.substruct_matcher import MBSubstructMatcher

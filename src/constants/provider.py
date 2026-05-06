@@ -49,7 +49,6 @@ class ConstDB:
                     return cm.diamag_sus
         return COMMON_DIAMAG_NOT_MATCHED
 
-    # TODO finish
     @staticmethod
     def GetBondTypeConstitutiveCorrection(formula: str) -> float:
         """Returns constitutive correction for given bond type."""
