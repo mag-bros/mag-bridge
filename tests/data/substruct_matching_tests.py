@@ -1045,7 +1045,7 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
     SubstructMatchTest(
         id=149,
         SMILES="C(=O)(O)[O-]",
-        expected_matches=Counter({"C=O": 1}),
+        expected_matches=Counter({"RCOOH": 1}),
         description="COOH assignement for HCO3- allowed.",
     ),
     SubstructMatchTest(
