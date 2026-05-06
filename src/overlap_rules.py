@@ -9,7 +9,7 @@ from rdkit import Chem
 from src.constants.bond_types import (
     AR_NR2,
     CARBON_BROMINE_BOND,
-    CARBON_HALOGEN_BOND,
+    CARBON_CHLORINE_BOND,
     CARBON_TRIPLE_BOND,
     CARBONYL_BOND,
     DOUBLE_BOND,
@@ -222,7 +222,7 @@ class OverlapInjector:
     # TODO move to global config
     # TODO:: get bond type from INJECT_MAP instead
     INJECT_MAP: dict[str, list[tuple[str, BondType, Chem.BondType]]] = {
-        "Cl-CR2-CR2-Cl": [("Cl", CARBON_HALOGEN_BOND, Chem.BondType.SINGLE)],
+        "Cl-CR2-CR2-Cl": [("Cl", CARBON_CHLORINE_BOND, Chem.BondType.SINGLE)],
         "Br-CR2-CR2-Br": [("Br", CARBON_BROMINE_BOND, Chem.BondType.SINGLE)],
         "RC#C-C(=O)R": [
             ("O", CARBONYL_BOND, Chem.BondType.DOUBLE),

@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 from typing import Counter, Optional
 
 
-# TODO Literature search needed to confirm that all Ar-(functional group) corrections take into account the functional group corrections!
 @dataclass(frozen=True, slots=True)
 class SubstructMatchTest:
     """Represents a single bond-matching test case: a molecule (SMILES) with the expected bond-type match counts and an optional description."""

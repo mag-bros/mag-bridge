@@ -49,7 +49,7 @@ AR_NR2 = BondType(
         Ar-NR2 correction is also applied for Ar-NH2, Ar-NHR and Ar-NH-Ar fragments.""",
 )
 
-CARBON_HALOGEN_BOND = BondType(
+CARBON_CHLORINE_BOND = BondType(
     id=-1,
     formula="C-Cl",
     SMARTS="[C;!$([c]);!$([C]([C])([C])([Cl])[Cl]);!$([C;X4;H1]([C;!$(C=O);!$(C#N)])([Cl])[Cl]);!$([C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])([Cl])-[C;X4]([C;!$(C#N);!$(C=O)])([C;!$(C#N);!$(C=O)])[Cl])]-[Cl;X1]",
@@ -66,7 +66,6 @@ CARBON_BROMINE_BOND = BondType(
     sdf_files=("C-Br.sdf",),
     description="Excluded: Ar-Br and Br-CR2-CR2-Br",
 )
-
 
 CARBON_TRIPLE_BOND = BondType(
     id=25,
@@ -360,7 +359,7 @@ RELEVANT_BOND_TYPES: list[BondType] = [
             Condition: N not bound to aromatic C atom.
             Excluded: Nitroso -N=O group""",
     ),
-    CARBON_HALOGEN_BOND,
+    CARBON_CHLORINE_BOND,
     BondType(
         id=32,
         formula="Cl-CR2-CR2-Cl",
