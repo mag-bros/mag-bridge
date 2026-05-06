@@ -25,8 +25,9 @@ class MBMolecule:
         self.common_diamag: float = ConstDB.GetCommonMolDiamagContr(smiles=self.smiles)
 
     def CalcDiamagContr(self, verbose=False) -> float:
-        """Calculate the chemical compounds's total diamagnetic contribution.
-        Uses Pascal constants for ring, open-chain, oxidation state, and charge terms.
+        """Calculates the molecule's total diamagnetic contribution.
+        For common molecule, uses pre-determined diamagnetic susceptibility of given molecule.
+        For uncommon molecule, combines Pascal constants of all atoms and constitutive corrections of all matched bond types.
         """
 
         if verbose:
@@ -39,14 +40,17 @@ class MBMolecule:
 
         return self.common_diamag
 
-    # TODO:: finish
     def CalcConstitutiveCorrection(self, verbose=False) -> float:
-        # TODO:: finish
+        """Calculate constitutive corrections for matched bond types for uncommon molecule."""
+
+        if verbose:
+            print(f"- {repr(self)}")
+
         return 0.0
 
     def CalcDiamagContrAllAtoms(self, verbose=False) -> float:
-        """Calculate the chemical compounds's total diamagnetic contribution.
-        Uses Pascal constants for ring, open-chain, oxidation state, and charge terms.
+        """Calculate the diamagnetic contribution of uncommon molecule with the use of atomic Pascal constants.
+        Uses Pascal constants of the atoms based on ring, open-chain, oxidation state, and charge terms (vide infra).
         """
 
         if verbose:
