@@ -39,6 +39,7 @@ class MBMolecule:
 
         return self.common_diamag
 
+    # TODO:: finish
     def CalcConstitutiveCorrection(self, verbose=False) -> float:
         # TODO:: finish
         return 0.0
