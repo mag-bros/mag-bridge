@@ -9,6 +9,7 @@ from rdkit.Chem import (
 )
 from src.constants.provider import COMMON_DIAMAG_NOT_MATCHED, ConstDB
 from src.core.atom import MBAtom
+from src.core.substruct_matcher import MBSubstructMatcher
 
 
 class MBMolecule:
@@ -40,11 +41,20 @@ class MBMolecule:
 
         return self.common_diamag
 
+    # TODO finish
     def CalcConstitutiveCorrection(self, verbose=False) -> float:
         """Calculate constitutive corrections for matched bond types for uncommon molecule."""
 
-        if verbose:
-            print(f"- {repr(self)}")
+        bondtype_query = MBSubstructMatcher.GetMatches(mol=self)
+        result = bondtype_query.matchesCounter
+
+        total_molecule_constitutive_corr = 0.0
+
+        for matched_formula, count in result.items():
+            constitutive_corr = ConstDB.GetBondTypeConstitutiveCorrection(matched_formula)
+            total_molecule_constitutive_corr += count * constitutive_corr
+            if verbose:
+                print(f"- {repr(self)}")
 
         return 0.0
 

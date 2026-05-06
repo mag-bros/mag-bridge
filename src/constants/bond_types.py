@@ -48,7 +48,7 @@ AR_NR2 = BondType(
         Ar-NR2 correction is also applied for Ar-NH2 Ar-NHR and Ar-NH-Ar fragments.
         For Ar-NH-Ar two Ar-NR2 corrections are applied.""",
 )
-
+# Fix name -> CARBON_CHLORINE_BOND
 CARBON_HALOGEN_BOND = BondType(
     id=-1,
     formula="C-Cl",

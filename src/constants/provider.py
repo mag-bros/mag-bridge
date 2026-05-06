@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from src.constants.bond_types import RELEVANT_BOND_TYPES
 from src.constants.common_molecules import COMMON_MOLECULES
 from src.constants.misc import (
     RELEVANT_OXIDATION_ATOMS,
@@ -9,6 +10,7 @@ from src.constants.pascal_atoms import PASCAL_CONST
 
 if TYPE_CHECKING:
     from src.core.atom import MBAtom
+
 
 COMMON_DIAMAG_NOT_MATCHED = 0
 
@@ -45,5 +47,14 @@ class ConstDB:
             for cm in group:
                 if smiles in cm.SMILES:
                     return cm.diamag_sus
-
         return COMMON_DIAMAG_NOT_MATCHED
+
+    # TODO finish
+    @staticmethod
+    def GetBondTypeConstitutiveCorrection(formula: str) -> float:
+        """Returns constitutive correction for given bond type."""
+
+        for bond_type in RELEVANT_BOND_TYPES:
+            if bond_type.formula == formula:
+                return bond_type.constitutive_corr
+        return 0.0
