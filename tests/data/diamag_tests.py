@@ -3,11 +3,7 @@ from typing import Optional
 
 FEATURE_NOT_IMPLEMENTED = float("nan")
 NO_REFERENCE = float("nan")
-from src import (
-    DIAMAG_COMPOUND_ATOMS_SUBDIR,
-    DIAMAG_COMPOUND_CONSTITUTIVE_CORR_SUBDIR,
-    DIAMAG_COMPOUND_MOLECULES_SUBDIR,
-)
+from src import DIAMAG_COMPOUND_SUBDIR
 
 
 @dataclass(frozen=True, slots=True)
@@ -219,8 +215,13 @@ class DataQualityDiamagContrTestsSDF:
 
 CALC_DIAMAG_QUALITY_TESTS: list["DataQualityDiamagContrTestsSDF"] = [
     DataQualityDiamagContrTestsSDF(
-        sdf_file="",
-        measured_diamag_sus=0.0,
-        literature_reference="",
+        sdf_file="Na_HCOO_B(OH)3_2H2O.sdf",
+        measured_diamag_sus=-88.9,
+        literature_reference="M. Prasad, C. R. Kanekar, L.S. Kamat, J. Phys. Colloid. Chem. 55 (1957) 1534.",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Bi_Cl_2_PhMe_3.sdf",
+        measured_diamag_sus=-263.4,
+        literature_reference="P. Pascal, D. Voigt, M.-C. Labarre, L. Fournes, Comput. Rend. 269C (1966) 1481.",
     ),
 ]
