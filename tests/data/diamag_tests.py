@@ -193,3 +193,34 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         description="Tests many common solvents and ligand with similar structures in compound with metal cation and H2O, OH- and O2- molecules.",
     ),
 ]
+
+
+@dataclass(frozen=True, slots=True)
+class DataQualityDiamagContrTestsSDF:
+    """
+    Tests for evaluating the data quality of diamagnetic contribution calculations performed by MagBridge.
+    The test cases are based on literature examples of chemical compounds with experimentally measured diamagnetic susceptibilities.
+
+    Parameters
+    ----------
+    sdf_file : str
+        Name of the SDF file used as input.
+    measured_diamag_sus : float
+        Experimentally measured diamagnetic susceptibility.
+    literature_reference : str
+        Reference for the literature value of experimentally measured diamagnetic susceptibility.
+    """
+
+    sdf_file: str
+    measured_diamag_sus: float
+    literature_reference: str
+    description: Optional[str] = ""
+
+
+CALC_DIAMAG_QUALITY_TESTS: list["DataQualityDiamagContrTestsSDF"] = [
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="",
+        measured_diamag_sus=0.0,
+        literature_reference="",
+    ),
+]
