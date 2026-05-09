@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
+
 from src import DATA_QUALITY_SUBDIR
 
 
@@ -44,23 +45,23 @@ CALC_DIAMAG_QUALITY_TESTS: list["DataQualityDiamagContrTestsSDF"] = [
     DataQualityDiamagContrTestsSDF(
         sdf_file="Bi3+_HO_C_COO-_3.sdf",
         measured_diamag_sus=-120.2,
-        literature_reference="...",
+        literature_reference="No. 209",
     ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="...",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="...",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="...",
-    # ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Be_NO3_2.sdf",
+        measured_diamag_sus=-41.0,
+        literature_reference="No. 183",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Ba2+_PhCOO-_2H2O.sdf",
+        measured_diamag_sus=-203.2,
+        literature_reference="No. 171",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="SbBr3.sdf",
+        measured_diamag_sus=-111.4,
+        literature_reference="No. 16",
+    ),
     # DataQualityDiamagContrTestsSDF(
     #     sdf_file="",
     #     measured_diamag_sus=,

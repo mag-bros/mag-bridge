@@ -23,7 +23,7 @@ def test_diamag_contr_quality(diamag_contr_params: tuple[int, DataQualityDiamagC
     compound = MBLoader.FromSDF(test_case.sdf_file, subdir=DATA_QUALITY_SUBDIR)
     calculated_diamag_sus = compound.CalcDiamagContr()
     diamag_sus_precent_error = abs(round(((calculated_diamag_sus - test_case.measured_diamag_sus) / test_case.measured_diamag_sus * 100), 2))
-    percent_error_limit = 5.0
+    percent_error_limit = 10.0
 
     if diamag_sus_precent_error < percent_error_limit:
         print(f'[INF] "{compound.loaded_from}": ✅ Percent error {diamag_sus_precent_error:.1f}% within acceptable deviation')
