@@ -224,4 +224,44 @@ CALC_DIAMAG_QUALITY_TESTS: list["DataQualityDiamagContrTestsSDF"] = [
         measured_diamag_sus=-263.4,
         literature_reference="P. Pascal, D. Voigt, M.-C. Labarre, L. Fournes, Comput. Rend. 269C (1966) 1481.",
     ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Bi_Ph_3.sdf",
+        measured_diamag_sus=-194.6,
+        literature_reference="No. 211",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Bi3+_HO_C_COO-_3.sdf",
+        measured_diamag_sus=-120.2,
+        literature_reference="...",
+    ),
+    # DataQualityDiamagContrTestsSDF(
+    #     sdf_file="",
+    #     measured_diamag_sus=,
+    #     literature_reference="...",
+    # ),
+    # DataQualityDiamagContrTestsSDF(
+    #     sdf_file="",
+    #     measured_diamag_sus=,
+    #     literature_reference="...",
+    # ),
+    # DataQualityDiamagContrTestsSDF(
+    #     sdf_file="",
+    #     measured_diamag_sus=,
+    #     literature_reference="...",
+    # ),
+    # DataQualityDiamagContrTestsSDF(
+    #     sdf_file="",
+    #     measured_diamag_sus=,
+    #     literature_reference="...",
+    # ),
+    # DataQualityDiamagContrTestsSDF(
+    #     sdf_file="",
+    #     measured_diamag_sus=,
+    #     literature_reference="...",
+    # ),
+    # DataQualityDiamagContrTestsSDF(
+    #     sdf_file="",
+    #     measured_diamag_sus=,
+    #     literature_reference="...",
+    # ),
 ]

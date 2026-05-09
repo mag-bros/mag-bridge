@@ -1,6 +1,6 @@
 import pytest
 from src.loader import MBLoader
-from tests.data.diamag_tests import CALC_DIAMAG_QUALITY_TESTS, DataQualityDiamagContrTestsSDF
+from tests.data.data_quality_tests import CALC_DIAMAG_QUALITY_TESTS, DataQualityDiamagContrTestsSDF
 
 
 def _safe_id(p) -> str:
