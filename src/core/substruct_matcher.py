@@ -67,6 +67,8 @@ class MBSubstructMatcher:
         for c in candidates:
             grouped_candidates[c.formula].append(c)
 
+        # TODO add additional check for Ar-Ar in separate rings
+
         self_filtered: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterSelfOverlaps(mol, grouped_candidates)
 
         cross_filtered: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterCrossOverlaps(mol, self_filtered)
