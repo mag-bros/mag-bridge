@@ -100,7 +100,7 @@ export class Form {
       requestData.susceptibility = this.susceptibility;
     }
 
-    this.restService.post(this.restService.endpoints.calculations.submit, requestData).subscribe({
+    this.restService.post(this.restService.endpoints.experiments, requestData).subscribe({
       next: (res: any) => {
         this.response = `Success: ${res.filename || 'Processed'} (Calculations: ${res.selections?.join(', ') || 'none'})`;
       },
