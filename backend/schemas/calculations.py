@@ -6,7 +6,7 @@ class InputType(str, Enum):
     SMILES_FORMULA = "smiles_formula"
     SUSCEPTIBILITY = "susceptibility"
 
-class CalculationRequest(BaseModel):
+class ExperimentRequest(BaseModel):
     input_type: InputType
     path: str | None = None
     smiles_formula: str | None = None

@@ -4,13 +4,13 @@ import shutil
 
 from fastapi import APIRouter, HTTPException
 from backend.config import SDF_DIR
-from backend.schemas.calculations import CalculationRequest, InputType
+from backend.schemas.calculations import ExperimentRequest, InputType
 
-router = APIRouter(prefix="/calculations", tags=["calculations"])
+router = APIRouter(tags=["experiments"])
 logger = logging.getLogger("uvicorn.access")
 
-@router.post("/submit")
-async def submit_calculation(data: CalculationRequest):
+@router.post("/experiments")
+async def create_experiment(data: ExperimentRequest):
     if data.input_type == InputType.SDF:
         if not data.path:
             raise HTTPException(status_code=400, detail="Path is required for SDF input")

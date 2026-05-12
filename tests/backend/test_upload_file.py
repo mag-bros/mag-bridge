@@ -30,7 +30,7 @@ def test_upload_sdf_file(app_env):
         }
         
         # 3. Call the endpoint
-        response = client.post("/calculations/submit", json=data)
+        response = client.post("/experiments", json=data)
         
         # 4. Assertions
         assert response.status_code == 200
@@ -45,7 +45,7 @@ def test_upload_non_existent_file(app_env):
     app, _ = app_env
     client = TestClient(app)
     
-    response = client.post("/calculations/submit", json={"input_type": "sdf", "path": "/non/existent/path.sdf"})
+    response = client.post("/experiments", json={"input_type": "sdf", "path": "/non/existent/path.sdf"})
     assert response.status_code == 400
     assert response.json()["detail"] == "File does not exist"
 
@@ -57,7 +57,7 @@ def test_upload_smiles(app_env):
         "input_type": "smiles_formula",
         "smiles_formula": "C1=CC=CC=C1"
     }
-    response = client.post("/calculations/submit", json=data)
+    response = client.post("/experiments", json=data)
     assert response.status_code == 200
     assert response.json()["status"] == "success"
     assert response.json()["input"] == "C1=CC=CC=C1"
@@ -70,6 +70,6 @@ def test_upload_invalid_extension(app_env):
         txt_path = Path(src_dir) / "test.txt"
         txt_path.write_text("dummy content")
         
-        response = client.post("/calculations/submit", json={"input_type": "sdf", "path": str(txt_path)})
+        response = client.post("/experiments", json={"input_type": "sdf", "path": str(txt_path)})
         assert response.status_code == 400
         assert response.json()["detail"] == "Only SDF files are allowed"
