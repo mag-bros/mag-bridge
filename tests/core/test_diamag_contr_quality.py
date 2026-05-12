@@ -25,7 +25,9 @@ def test_diamag_contr_quality(diamag_contr_params: tuple[int, DataQualityDiamagC
     diamag_sus_precent_error = abs(round(((calculated_diamag_sus - test_case.measured_diamag_sus) / test_case.measured_diamag_sus * 100), 2))
     percent_error_limit = 10.0
 
+    print(f"[INF] Calculated value: {calculated_diamag_sus:.1f} 10^(-6) cm^3 mol^-1.")
+    print(f"[INF] Measured value: {test_case.measured_diamag_sus:.1f} 10^(-6) cm^3 mol^-1.")
     if diamag_sus_precent_error < percent_error_limit:
-        print(f'[INF] "{compound.loaded_from}": ✅ Percent error {diamag_sus_precent_error:.1f}% within acceptable deviation')
+        print(f'[INF] "{compound.loaded_from}": ✅ Percent error: {diamag_sus_precent_error:.1f}% - within set acceptable deviation')
     else:
-        print(f'[INF] "{compound.loaded_from}": ⚠️ Percent error {diamag_sus_precent_error:.1f}% HIGHER than acceptable deviation')
+        print(f'[INF] "{compound.loaded_from}": ⚠️ Percent error: {diamag_sus_precent_error:.1f}% - HIGHER than set acceptable deviation')
