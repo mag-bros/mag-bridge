@@ -9,7 +9,7 @@ from rdkit import Chem
 from src.constants.bond_types import (
     AR_NR2,
     CARBON_BROMINE_BOND,
-    CARBON_HALOGEN_BOND,
+    CARBON_CHLORINE_BOND,
     CARBON_TRIPLE_BOND,
     CARBONYL_BOND,
     DOUBLE_BOND,
@@ -65,9 +65,9 @@ class SelfOverlapRules:
         accepted_in_group: list[BondMatchCandidate],
     ) -> RejectedCandidate | None:
         """Check bmc against accepted_in_group using its group rule; returns RejectedCandidate on overlap, None to accept."""
-        if bmc.cross_overlap_group is None:
+        if bmc.overlap_group is None:
             return None
-        group_rules = OVERLAP_RULES_CONFIG.get(bmc.cross_overlap_group)
+        group_rules = OVERLAP_RULES_CONFIG.get(bmc.overlap_group)
         if group_rules is None:
             return None
         rule = group_rules.get("self_overlap_rule")
@@ -187,7 +187,7 @@ class OverlapInjector:
         trigger: str,
     ) -> None:
         """Dispatch injection rule via trigger context: formula-level for rejections, group-level for on_accept; no-op if no rule is registered."""
-        group = bmc.cross_overlap_group if bmc.cross_overlap_group is not None else OverlapGroup.DEFAULT
+        group = bmc.overlap_group if bmc.overlap_group is not None else OverlapGroup.DEFAULT
         group_entry = OVERLAP_RULES_CONFIG.get(group, {})
         if trigger == "on_accept":
             rule = group_entry.get("on_accept")
@@ -222,7 +222,7 @@ class OverlapInjector:
     # TODO move to global config
     # TODO:: get bond type from INJECT_MAP instead
     INJECT_MAP: dict[str, list[tuple[str, BondType, Chem.BondType]]] = {
-        "Cl-CR2-CR2-Cl": [("Cl", CARBON_HALOGEN_BOND, Chem.BondType.SINGLE)],
+        "Cl-CR2-CR2-Cl": [("Cl", CARBON_CHLORINE_BOND, Chem.BondType.SINGLE)],
         "Br-CR2-CR2-Br": [("Br", CARBON_BROMINE_BOND, Chem.BondType.SINGLE)],
         "RC#C-C(=O)R": [
             ("O", CARBONYL_BOND, Chem.BondType.DOUBLE),
@@ -352,7 +352,7 @@ class CrossOverlapRules:
         occupied: list[BondMatchCandidate],
     ) -> bool:
         """Dispatch to the group's cross-overlap rule; returns True (approve) if no rule registered."""
-        group = bmc.cross_overlap_group
+        group = bmc.overlap_group
         if group is None:
             return True
         rule = OVERLAP_RULES_CONFIG.get(group, {}).get("cross_overlap_rule")
@@ -385,7 +385,7 @@ class CrossOverlapRules:
         """Reject if bmc shares 1+ atom with any accepted double-bond candidate."""
         double_bond_approved = True
         for acc in occupied:
-            is_double_bond_group = acc.cross_overlap_group == OverlapGroup.DOUBLE_BONDS
+            is_double_bond_group = acc.overlap_group == OverlapGroup.DOUBLE_BONDS
             shared_atoms = bmc_atoms & set(acc.atoms)
             if is_double_bond_group and len(shared_atoms) >= 1:
                 common_atoms = list(shared_atoms)
@@ -431,7 +431,7 @@ class CrossOverlapRules:
             if acc.formula == bmc.formula:
                 continue
             shared_atoms = bmc_atoms & set(acc.atoms)
-            if len(shared_atoms) >= 2 and acc.cross_overlap_group == OverlapGroup.CARBONYL_BOND_TYPES:
+            if len(shared_atoms) >= 2 and acc.overlap_group == OverlapGroup.CARBONYL_BOND_TYPES:
                 carbonyl_approved = CrossOverlapComparator.is_higher_priority(
                     formula1=bmc.formula,
                     formula2=acc.formula,
@@ -450,7 +450,7 @@ class CrossOverlapRules:
         """Reject if bmc shares 3+ atoms with any accepted Ar-N candidate."""
         ar_n_approved = True
         for acc in occupied:
-            is_ar_n_group = acc.cross_overlap_group == OverlapGroup.Ar_N_BOND_TYPES
+            is_ar_n_group = acc.overlap_group == OverlapGroup.Ar_N_BOND_TYPES
             shared_atoms = bmc_atoms & set(acc.atoms)
             if is_ar_n_group and len(shared_atoms) >= 3:
                 ar_n_approved = False
@@ -467,7 +467,7 @@ class CrossOverlapRules:
         if bmc.formula not in ("Cl-CR2-CR2-Cl", "Br-CR2-CR2-Br"):
             return True
         for acc in occupied:
-            if acc.cross_overlap_group != OverlapGroup.BICYCLIC_STRUCTURES:
+            if acc.overlap_group != OverlapGroup.BICYCLIC_STRUCTURES:
                 continue
             shared_atoms = bmc_atoms & set(acc.atoms)
             if len(shared_atoms) >= 4:

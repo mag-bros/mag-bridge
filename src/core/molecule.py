@@ -25,8 +25,9 @@ class MBMolecule:
         self.common_diamag: float = ConstDB.GetCommonMolDiamagContr(smiles=self.smiles)
 
     def CalcDiamagContr(self, verbose=False) -> float:
-        """Calculate the chemical compounds's total diamagnetic contribution.
-        Uses Pascal constants for ring, open-chain, oxidation state, and charge terms.
+        """Calculates the molecule's total diamagnetic contribution.
+        For common molecule, uses pre-determined diamagnetic susceptibility of given molecule.
+        For uncommon molecule, combines Pascal constants of all atoms and constitutive corrections of all matched bond types.
         """
 
         if verbose:
@@ -34,18 +35,31 @@ class MBMolecule:
 
         if self.common_diamag == COMMON_DIAMAG_NOT_MATCHED:
             contr_all_atoms: float = self.CalcDiamagContrAllAtoms()
-            constitutive_corr: float = self.CalcConstitutiveCorrection()
+            constitutive_corr: float = self.CalcConstitutiveCorrections()
             return contr_all_atoms + constitutive_corr
 
         return self.common_diamag
 
-    def CalcConstitutiveCorrection(self, verbose=False) -> float:
-        # TODO:: finish
-        return 0.0
+    def CalcConstitutiveCorrections(self, verbose=False) -> float:
+        """Calculate constitutive corrections for matched bond types for uncommon molecule."""
+        from src.core.substruct_matcher import MBSubstructMatcher
+
+        bondtype_query = MBSubstructMatcher.GetMatches(mol=self)
+        matched_bondtypes = bondtype_query.matchesCounter
+
+        total_molecule_constitutive_corr = 0.0
+
+        for matched_formula, count in matched_bondtypes.items():
+            constitutive_corr = ConstDB.GetBondTypeConstitutiveCorr(matched_formula)
+            total_molecule_constitutive_corr += count * constitutive_corr
+            if verbose:
+                print(f"- {repr(self)}")
+
+        return total_molecule_constitutive_corr
 
     def CalcDiamagContrAllAtoms(self, verbose=False) -> float:
-        """Calculate the chemical compounds's total diamagnetic contribution.
-        Uses Pascal constants for ring, open-chain, oxidation state, and charge terms.
+        """Calculate the diamagnetic contribution of uncommon molecule with the use of atomic Pascal constants.
+        Uses Pascal constants of the atoms based on ring, open-chain, oxidation state, and charge terms (vide infra).
         """
 
         if verbose:
