@@ -32,7 +32,7 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest -v -o "addopts=-v --tb=long"
+          pytest tests/ -v -o "addopts=-v --tb=long"
 
       - name: Run Test Drift Script
         if: always()
