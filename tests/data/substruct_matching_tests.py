@@ -235,21 +235,17 @@ SUBSTRUCT_MATCH_TESTS: list[SubstructMatchTest] = [
         expected_matches=Counter({"C=C-C=C": 2, "RCOOH": 1, "cyclohexene": 1}),
         description="Examine C=C-C=C self-matching and cross-matching with cyclohexane ring.",
     ),
-    # TODO: rdkit error?
     SubstructMatchTest(
         id=26,
         SMILES="C1=CC=C(C(=C1)C2=C3C=CC(=O)C=C3OC4=C2C=CC(=C4)[O-])C(=O)[O-]",
         expected_matches=Counter({"Ar-OH": 1, "Ar-Ar": 1, "Ar-COOH": 1, "benzene": 3}),
         description="Corner case of Ar-Ar matching.",
-        skip_test=True,
     ),
-    # TODO: rdkit error?
     SubstructMatchTest(
         id=27,
         SMILES="CCN(CC)C1=CC2=C(C=C1)C(=C3C=CC(=[N+](CC)CC)C=C3O2)C4=CC=CC=C4C(=O)O",
         expected_matches=Counter({"Ar-NR2": 1, "Ar-Ar": 1, "Ar-COOH": 1, "benzene": 3}),
         description="Corner case of Ar-Ar matching.",
-        skip_test=True,
     ),
     SubstructMatchTest(
         id=28,
