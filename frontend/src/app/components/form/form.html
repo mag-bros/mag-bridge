@@ -1,7 +1,45 @@
 <div class="form-container">
-  <button matButton="elevated" (click)="pickFile()">Select file</button>
+  <h3>Input Type</h3>
+  <mat-radio-group [(ngModel)]="selectedInputType" class="radio-group">
+    @for (type of inputTypes; track type.value) {
+      <mat-radio-button [value]="type.value">{{ type.label }}</mat-radio-button>
+    }
+  </mat-radio-group>
+
+  <div class="input-section">
+    @if (selectedInputType === 'sdf') {
+      <button mat-raised-button (click)="pickFile()">Select SDF File</button>
+      @if (selectedFile) {
+        <div class="file-info">Selected: {{ selectedFile }}</div>
+      }
+    } @else if (selectedInputType === 'smiles_formula') {
+      <mat-form-field appearance="fill">
+        <mat-label>SMILES or Formula</mat-label>
+        <input matInput [(ngModel)]="formulaOrSmiles" placeholder="e.g. C6H6 or c1ccccc1">
+      </mat-form-field>
+    } @else if (selectedInputType === 'susceptibility') {
+      <mat-form-field appearance="fill">
+        <mat-label>Diamagnetic Susceptibility</mat-label>
+        <input matInput type="number" [(ngModel)]="susceptibility" placeholder="e.g. -12.5">
+      </mat-form-field>
+    }
+  </div>
+
+  <h3>Calculations</h3>
+  <div class="checkbox-group">
+    @for (option of calculationOptions; track option.value) {
+      <mat-checkbox
+        [checked]="selectedCalculations.includes(option.value)"
+        (change)="toggleCalculation(option.value)"
+      >
+        {{ option.label }}
+      </mat-checkbox>
+    }
+  </div>
+
+  <button mat-raised-button color="primary" (click)="submit()">Process</button>
 
   @if (response) {
-    <div>{{ response }}</div>
+    <div class="response">{{ response }}</div>
   }
 </div>
