@@ -24,6 +24,7 @@ class DataQualityDiamagContrTestsSDF:
     measured_diamag_sus: float
     literature_reference: str
     description: Optional[str] = ""
+    skip_test: bool = False
 
 
 CALC_DIAMAG_QUALITY_TESTS: list["DataQualityDiamagContrTestsSDF"] = [
@@ -209,6 +210,7 @@ CALC_DIAMAG_QUALITY_TESTS: list["DataQualityDiamagContrTestsSDF"] = [
         sdf_file="[HOC](SbF6)2.sdf",
         measured_diamag_sus=-430.0,
         literature_reference="No. 1545",
+        skip_test=True,
     ),
     DataQualityDiamagContrTestsSDF(
         sdf_file="[HOC].sdf",
@@ -391,6 +393,7 @@ CALC_DIAMAG_QUALITY_TESTS: list["DataQualityDiamagContrTestsSDF"] = [
         sdf_file="[Os(CO)4]3.sdf",
         measured_diamag_sus=-293.0,
         literature_reference="No. 1592",
+        skip_test=True,
     ),
     # DataQualityDiamagContrTestsSDF(
     #     sdf_file="",

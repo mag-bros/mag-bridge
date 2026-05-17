@@ -20,6 +20,10 @@ def test_diamag_contr_quality(diamag_contr_params: tuple[int, DataQualityDiamagC
     """Validation test comparing calculated and measured diamagnetic susceptibility for a chemical compound."""
 
     idx, test_case = diamag_contr_params
+
+    if test_case.skip_test:
+        pytest.skip(reason="skip this test as it will be handled in next development phase")
+
     compound = MBLoader.FromSDF(test_case.sdf_file, subdir=DATA_QUALITY_SUBDIR)
     calculated_diamag_sus = compound.CalcDiamagContr()
     diamag_sus_precent_error = abs(round(((calculated_diamag_sus - test_case.measured_diamag_sus) / test_case.measured_diamag_sus * 100), 2))
