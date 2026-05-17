@@ -103,6 +103,14 @@
           {
             "name": "GIT_READONLY",
             "value": "${containerEnv:GIT_READONLY}"
+          },
+          {
+            "name": "EXA_API_KEY",
+            "value": "${containerEnv:EXA_API_KEY}"
+          },
+          {
+            "name": "TAVILY_API_KEY",
+            "value": "${containerEnv:TAVILY_API_KEY}"
           }
         ],
         "claudeCode.preferredLocation": "sidebar",
