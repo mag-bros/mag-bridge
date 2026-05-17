@@ -41,6 +41,9 @@
     "ghcr.io/devcontainers/features/node:1": {
       "version": "22",
       "nodeGypDependencies": false
+    },
+    "ghcr.io/grafana/devcontainer-features/k6:1": {
+      "version": "latest"
     }
   },
   "remoteUser": "vscode_server",
