@@ -1,5 +1,5 @@
 ---
-name: manage-repomix
+name: repomix
 description: Use when indexing codebases or site-packages with Repomix MCP, managing packed indexes in .local-mcp/, or querying indexed modules
 ---
 

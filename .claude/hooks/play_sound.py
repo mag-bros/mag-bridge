@@ -26,9 +26,7 @@ def play(path: str) -> None:
 
     else:
         server = os.environ.get("PULSE_SERVER", "tcp:host.docker.internal:4713")
-        result = subprocess.run(
-            ["paplay", "--server", server, path], capture_output=True
-        )
+        result = subprocess.run(["paplay", "--server", server, path], capture_output=True)
         if result.returncode != 0:
             print("\a", end="", flush=True)
 

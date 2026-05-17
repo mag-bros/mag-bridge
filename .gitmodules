@@ -1,0 +1,3 @@
+[submodule ".claude2"]
+	path = .claude2
+	url = https://github.com/mag-bros/ai-internal

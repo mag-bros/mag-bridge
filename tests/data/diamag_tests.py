@@ -193,3 +193,5 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         description="Tests many common solvents and ligand with similar structures in compound with metal cation and H2O, OH- and O2- molecules.",
     ),
 ]
+
+CALC_DIAMAG_QUALITY_TESTS: list[DiamagneticContributionTestSDF] = []
