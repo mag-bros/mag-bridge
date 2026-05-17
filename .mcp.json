@@ -1,5 +1,10 @@
 {
   "mcpServers": {
+    "codebase-memory": {
+      "type": "stdio",
+      "command": "/usr/local/bin/codebase-memory-mcp",
+      "args": []
+    },
     "context7": {
       "type": "stdio",
       "command": "npx",

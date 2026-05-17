@@ -29,4 +29,8 @@ RUN mkdir -p /commandhistory /home/${USERNAME}/.claude \
 
 RUN pip install --no-cache-dir uv
 
+# codebase-memory-mcp v0.6.1 — https://github.com/DeusData/codebase-memory-mcp/releases/tag/v0.6.1
+RUN curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/c1eb3dd2d1285eb7b29e0c473e79e7a5a010bf20/install.sh \
+    | bash -s -- --dir /usr/local/bin --skip-config
+
 USER ${USERNAME}
