@@ -1,5 +1,6 @@
 uv
 pytest
+httpx
 pytest-profiling
 pytest-json-report
 snakeviz

@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/src:${{ github.workspace }}/tests"
+      APP_DATA_DIR: "/tmp"
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/tree/v6.0.2
@@ -31,7 +32,7 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest -v -o "addopts=-v --tb=long"
+          pytest tests/ -v -o "addopts=-v --tb=long"
 
       - name: Run Test Drift Script
         if: always()
@@ -48,4 +49,6 @@ jobs:
       - name: Publish to GitHub Step Summary
         if: always()
         run: |
-          cat tests/reports/DRIFT_REPORT_substruct_matching_cicd.md >> $GITHUB_STEP_SUMMARY
+          if [ -f tests/reports/DRIFT_REPORT_substruct_matching_cicd.md ]; then
+            cat tests/reports/DRIFT_REPORT_substruct_matching_cicd.md >> $GITHUB_STEP_SUMMARY
+          fi

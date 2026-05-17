@@ -1,25 +1,49 @@
-@use 'theme-constants' as theme;
-
-:host {
-  display: flex;
-  flex-direction: column;
-  gap: theme.$spacing-sm;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
+@use "../../../styles/theme-constants.scss" as *;
 
 .form-container {
-  gap: theme.$spacing-sm;
-  padding: theme.$spacing-sm;
-  border-radius: theme.$border-radius;
-  border: theme.$border;
   display: flex;
-  align-items: center;
   flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+  max-width: 500px;
+  margin: 0 auto;
+
+  h3 {
+    margin: 0;
+    font-size: $font-size-lg;
+  }
 }
 
-form {
+.radio-group {
   display: flex;
   flex-direction: column;
+  gap: $spacing-xs;
 }
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.input-section {
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.file-info {
+  margin-top: $spacing-xs;
+  font-size: $font-size-sm;
+}
+
+.response {
+  margin-top: $spacing-sm;
+  padding: $spacing-xs;
+  border-radius: $border-radius;
+  background-color: $surface-color;
+  border: $border;
+  font-family: monospace;
+}
+
