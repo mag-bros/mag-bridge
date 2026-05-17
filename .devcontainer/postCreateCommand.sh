@@ -33,4 +33,7 @@ if [[ -f ".devcontainer/dotfiles/.shell_utils" ]]; then
 	echo "[postCreateCommand]:: Aliases verified/injected successfully."
 fi
 
+echo "[postCreateCommand]:: Updating submodules..."
+git submodule update --init --remote .claude
+
 echo "[postCreateCommand]:: Exit"
