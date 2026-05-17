@@ -3,11 +3,7 @@ from typing import Optional
 
 FEATURE_NOT_IMPLEMENTED = float("nan")
 NO_REFERENCE = float("nan")
-from src import (
-    DIAMAG_COMPOUND_ATOMS_SUBDIR,
-    DIAMAG_COMPOUND_CONSTITUTIVE_CORR_SUBDIR,
-    DIAMAG_COMPOUND_MOLECULES_SUBDIR,
-)
+from src import DIAMAG_COMPOUND_SUBDIR
 
 
 @dataclass(frozen=True, slots=True)
