@@ -33,4 +33,32 @@ if [[ -f ".devcontainer/dotfiles/.shell_utils" ]]; then
 	echo "[postCreateCommand]:: Aliases verified/injected successfully."
 fi
 
+# ------------------------------------------------------
+# 4. CLAUDE CODE PLUGIN (magbridge-ai)
+# ------------------------------------------------------
+echo "[postCreateCommand]:: Setting up magbridge-ai Claude plugin..."
+PLUGIN_REMOTE="https://github.com/mag-bros/magbridge-ai"
+PLUGIN_PATH=".claude"
+
+if [ -f "${PLUGIN_PATH}/.git" ]; then
+	# Container restart or rebuild — sync to latest
+	echo "[postCreateCommand]:: magbridge-ai initialized, syncing to latest..."
+	git -C "${PLUGIN_PATH}" checkout master 2>/dev/null || true
+	git -C "${PLUGIN_PATH}" pull origin master 2>/dev/null || true
+elif grep -q "magbridge-ai" ".gitmodules" 2>/dev/null; then
+	# Fresh clone — submodule registered but not yet initialized
+	echo "[postCreateCommand]:: magbridge-ai registered, initializing..."
+	git submodule update --init "${PLUGIN_PATH}"
+	git -C "${PLUGIN_PATH}" checkout master
+else
+	# First time in this project — add the submodule
+	echo "[postCreateCommand]:: magbridge-ai not found, adding submodule..."
+	git submodule add "${PLUGIN_REMOTE}" "${PLUGIN_PATH}"
+	git -C "${PLUGIN_PATH}" checkout master
+	echo "[postCreateCommand]:: Submodule added — commit .gitmodules and .claude before pushing."
+fi
+
+PLUGIN_SHA=$(git -C "${PLUGIN_PATH}" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+echo "[postCreateCommand]:: magbridge-ai ready @ ${PLUGIN_SHA}."
+
 echo "[postCreateCommand]:: Exit"
