@@ -9,14 +9,10 @@
     "${localWorkspaceFolder}/.env"
   ],
   "mounts": [
-    // "source=${localEnv:AI_INTERNAL_LOCAL_DIR},target=${containerWorkspaceFolder}/.claude,type=bind",
     "source=${localWorkspaceFolderBasename}-history,target=/commandhistory,type=volume",
     "source=${localWorkspaceFolder}/.devcontainer/dotfiles/.p10k.zsh,target=/home/vscode_server/.p10k.zsh,type=bind",
     "source=${localWorkspaceFolderBasename}-claude-config,target=/home/vscode_server/.claude,type=volume"
   ],
-  // "containerEnv": {
-  //   "AI_INTERNAL_LOCAL_DIR": "${localEnv:AI_INTERNAL_LOCAL_DIR}"
-  // },
   "overrideCommand": true,
   "hostRequirements": {
     "memory": "3gb"
