@@ -50,7 +50,7 @@
   "remoteEnv": {
     "PATH": "${containerWorkspaceFolder}/.devcontainer/node_modules/.bin:${containerWorkspaceFolder}/.venv/bin:${containerEnv:PATH}",
     "UV_LINK_MODE": "copy",
-    "HISTFILE": "/commandhistory/.zsh_history"
+    "HISTFILE": "/commandhistory/.zsh_history",
   },
   "customizations": {
     "vscode": {
@@ -101,16 +101,16 @@
             "value": "${containerEnv:CONTEXT7_API_KEY}"
           },
           {
-            "name": "GIT_READONLY",
-            "value": "${containerEnv:GIT_READONLY}"
-          },
-          {
             "name": "EXA_API_KEY",
             "value": "${containerEnv:EXA_API_KEY}"
           },
           {
             "name": "TAVILY_API_KEY",
             "value": "${containerEnv:TAVILY_API_KEY}"
+          },
+          {
+            "name": "GIT_READONLY",
+            "value": "${containerEnv:GIT_READONLY}"
           }
         ],
         "claudeCode.preferredLocation": "sidebar",

@@ -3,7 +3,7 @@
     "context7": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "args": ["-y", "@upstash/context7-mcp@2.2.5"],
       "env": {
         "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
       }
@@ -19,11 +19,11 @@
     "repomix": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "repomix@1.12.0", "--mcp"]
+      "args": ["-y", "repomix@1.14.0", "--mcp"]
     },
-    "tavily-mcp": {
+    "tavily": {
       "command": "npx",
-      "args": ["-y", "tavily-mcp"],
+      "args": ["-y", "tavily-mcp@0.2.19"],
       "env": {
         "TAVILY_API_KEY": "${TAVILY_API_KEY}"
       }
@@ -31,7 +31,7 @@
     "exa": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "exa-mcp-server"],
+      "args": ["-y", "exa-mcp-server@3.2.1"],
       "env": {
         "EXA_API_KEY": "${EXA_API_KEY}"
       }
