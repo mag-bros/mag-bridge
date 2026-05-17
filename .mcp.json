@@ -35,6 +35,11 @@
       "env": {
         "EXA_API_KEY": "${EXA_API_KEY}"
       }
+    },
+    "pdf-reader": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@sylphx/pdf-reader-mcp@2.4.0", "--no-http"]
     }
   }
 }

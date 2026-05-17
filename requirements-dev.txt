@@ -34,3 +34,4 @@ twine
 tox
 setuptools
 six
+mineru[pipeline]==3.1.14
