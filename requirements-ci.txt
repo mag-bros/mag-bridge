@@ -1,0 +1,19 @@
+uv==0.11.14
+pytest
+httpx==0.28.1
+pytest-profiling
+pytest-json-report
+snakeviz==2.2.0
+ipykernel==7.2.0
+pyinstaller
+pyright==1.1.409
+pubchempy
+ruff==0.15.13
+twine
+tox
+setuptools==82.0.1
+six==1.17.0
+
+# --- Security Overrides ---
+pyasn1==0.6.3
+pygments==2.20.0

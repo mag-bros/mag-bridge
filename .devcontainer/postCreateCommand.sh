@@ -33,4 +33,23 @@ if [[ -f ".devcontainer/dotfiles/.shell_utils" ]]; then
 	echo "[postCreateCommand]:: Aliases verified/injected successfully."
 fi
 
+# ------------------------------------------------------
+# 4. CLAUDE CODE PLUGIN (magbridge-ai)
+# ------------------------------------------------------
+echo "[postCreateCommand]:: Setting up magbridge-ai Claude plugin..."
+PLUGIN_REMOTE="https://github.com/mag-bros/magbridge-ai"
+PLUGIN_PATH=".claude"
+
+if [ -d "${PLUGIN_PATH}/.git" ]; then
+    echo "[postCreateCommand]:: magbridge-ai found, syncing to latest..."
+    git -C "${PLUGIN_PATH}" pull origin master 2>/dev/null || true
+else
+    echo "[postCreateCommand]:: Cloning magbridge-ai plugin..."
+    git clone "${PLUGIN_REMOTE}" "${PLUGIN_PATH}"
+    git -C "${PLUGIN_PATH}" checkout master
+fi
+
+PLUGIN_SHA=$(git -C "${PLUGIN_PATH}" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+echo "[postCreateCommand]:: magbridge-ai ready @ ${PLUGIN_SHA}."
+
 echo "[postCreateCommand]:: Exit"

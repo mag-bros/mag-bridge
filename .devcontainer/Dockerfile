@@ -29,4 +29,21 @@ RUN mkdir -p /commandhistory /home/${USERNAME}/.claude \
 
 RUN pip install --no-cache-dir uv
 
+# codebase-memory-mcp v0.6.1 — built from source with UI assets embedded
+# UI variant requires Node.js (for graph-ui frontend build) + zlib (C linker).
+# Node.js is installed temporarily and removed after the build; the devcontainer
+# Node 22 feature installs its own copy later with no conflict.
+# The resulting binary is fully static — no GLIBC constraint.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends zlib1g-dev && \
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    git clone --depth=1 --branch v0.6.1 \
+        https://github.com/DeusData/codebase-memory-mcp.git /tmp/cbm-src && \
+    cd /tmp/cbm-src && bash scripts/build.sh --with-ui && \
+    install -m 755 build/c/codebase-memory-mcp /usr/local/bin/codebase-memory-mcp && \
+    cd / && rm -rf /tmp/cbm-src && \
+    apt-get remove -y nodejs npm && apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/* /root/.npm
+
 USER ${USERNAME}
