@@ -172,6 +172,7 @@ CALC_DIAMAG_QUALITY_TESTS: list["DataQualityDiamagContrTestsSDF"] = [
         measured_diamag_sus=-199.5,
         literature_reference="No. 2344",
     ),
+    # Nitrogen compounds
     DataQualityDiamagContrTestsSDF(
         sdf_file="HNO3.sdf",
         measured_diamag_sus=-19.91,
@@ -319,71 +320,78 @@ CALC_DIAMAG_QUALITY_TESTS: list["DataQualityDiamagContrTestsSDF"] = [
         measured_diamag_sus=-103.8,
         literature_reference="No. 1571",
     ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="",
-    # ),
-    # DataQualityDiamagContrTestsSDF(
-    #     sdf_file="",
-    #     measured_diamag_sus=,
-    #     literature_reference="",
-    # ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="(NH4)2(HPO4).sdf",
+        measured_diamag_sus=-71.0,
+        literature_reference="No. 1572",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="(NH4)2(SO3)_H2O.sdf",
+        measured_diamag_sus=-70.3,
+        literature_reference="No. 1573",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="(NH4)MgI3_6H2O.sdf",
+        measured_diamag_sus=-250.9,
+        literature_reference="No. 1575",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="N2.sdf",
+        measured_diamag_sus=-12.04,
+        literature_reference="No. 1576",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="[-N]=[N+]=O_resonance_form_of_N2O.sdf",
+        measured_diamag_sus=-18.9,
+        literature_reference="No. 1577",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="N#[N+]-[O-]_resonance_form_of_N2O.sdf",
+        measured_diamag_sus=-18.9,
+        literature_reference="No. 1577",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="N2O2.sdf",
+        measured_diamag_sus=-25.4,
+        literature_reference="No. 1578",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="N2O3.sdf",
+        measured_diamag_sus=-23.2,
+        literature_reference="No. 1579",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="N2O4.sdf",
+        measured_diamag_sus=-25.2,
+        literature_reference="No. 1580",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="N2O5.sdf",
+        measured_diamag_sus=-35.6,
+        literature_reference="No. 1581",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="N4S4.sdf",
+        measured_diamag_sus=-102.0,
+        literature_reference="No. 1582",
+    ),
+    # Osmium compounds
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="K4[Os(CN6)]_3H2O.sdf",
+        measured_diamag_sus=-223.8,
+        literature_reference="No. 1589",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Os(cp)2.sdf",
+        measured_diamag_sus=-193.0,
+        literature_reference="No. 1591",
+    ),
+    # TODO No Os(0) constant available - use Os(II) constant instead
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="[Os(CO)4]3.sdf",
+        measured_diamag_sus=-293.0,
+        literature_reference="No. 1592",
+    ),
     # DataQualityDiamagContrTestsSDF(
     #     sdf_file="",
     #     measured_diamag_sus=,
