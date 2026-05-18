@@ -29,6 +29,137 @@ class DataQualityDiamagContrTestsSDF:
 
 CALC_DIAMAG_QUALITY_TESTS: list["DataQualityDiamagContrTestsSDF"] = [
     # Aluminum compounds
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Al(NH4)(SO4)2.sdf",
+        measured_diamag_sus=-98.11,
+        literature_reference="No. 3",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Al(IO4)3_6H2O.sdf",
+        measured_diamag_sus=-286.9,
+        literature_reference="No. 4",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="AlK(SO4)2_12H2O.sdf",
+        measured_diamag_sus=-251.28,
+        literature_reference="No. 6",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="AlLi(SO4)2_12H2O.sdf",
+        measured_diamag_sus=-240.0,
+        literature_reference="No. 7",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="AlTl(SO4)2_12H2O.sdf",
+        measured_diamag_sus=-266.0,
+        literature_reference="No. 8",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Al(NH4)(SO4)2_12H2O.sdf",
+        measured_diamag_sus=-253.63,
+        literature_reference="No. 9",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="AlK(SO4)2.sdf",
+        measured_diamag_sus=-102.33,
+        literature_reference="No. 10",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Al2(SO4)3_18H2O.sdf",
+        measured_diamag_sus=-335.6,
+        literature_reference="No. 12",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Al2O3.sdf",
+        measured_diamag_sus=-37.0,
+        literature_reference="No. 13",
+    ),
+    # Antimony compounds
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="SbBr3.sdf",
+        measured_diamag_sus=-111.4,
+        literature_reference="No. 16",
+    ),
+    # TODO How it is correct if there is no Pascal const for Sb(IV)?
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="(NH4)2[SbBr6].sdf",
+        measured_diamag_sus=-249.0,
+        literature_reference="No. 19",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(V)(Ph)3Br2.sdf",
+        measured_diamag_sus=-232.4,
+        literature_reference="No. 22",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(V)(Ph)3Cl2.sdf",
+        measured_diamag_sus=-232.4,
+        literature_reference="No. 22",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(V)(Ph)3I2.sdf",
+        measured_diamag_sus=-261.1,
+        literature_reference="No. 24",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(V)(p-MePh)3Br2.sdf",
+        measured_diamag_sus=-267.4,
+        literature_reference="No. 28",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(V)(p-MePh)3Cl2.sdf",
+        measured_diamag_sus=-249.2,
+        literature_reference="No. 29",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(V)(o-MePh)3Cl2.sdf",
+        measured_diamag_sus=-249.6,
+        literature_reference="No. 30",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(V)(p-MePh)3I2.sdf",
+        measured_diamag_sus=-295.3,
+        literature_reference="No. 31",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(V)(o-MePh)3S.sdf",
+        measured_diamag_sus=-233.2,
+        literature_reference="No. 33",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(III)(p-MeOPh)3.sdf",
+        measured_diamag_sus=-230.1,
+        literature_reference="No. 32",
+        description="Calculations performed with Sb(III) covalent Pascal constant.",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(3+)(p-MeOPh)3.sdf",
+        measured_diamag_sus=-230.1,
+        literature_reference="No. 32",
+        description="Calculations performed with Sb(3+) ionic Pascal constant.",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(V)(p-MePh)3S.sdf",
+        measured_diamag_sus=-231.9,
+        literature_reference="No. 34",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(3+)(o-MePh)3.sdf",
+        measured_diamag_sus=-217.0,
+        literature_reference="No. 35",
+        description="Calculations performed with Sb(3+) ionic Pascal constant.",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(III)(o-MePh)3.sdf",
+        measured_diamag_sus=-217.0,
+        literature_reference="No. 35",
+        description="Calculations performed with Sb(III) covalent Pascal constant.",
+    ),
+    DataQualityDiamagContrTestsSDF(
+        sdf_file="Sb(V)(1,2-Me2Ph)3Br2.sdf",
+        measured_diamag_sus=-300.7,
+        literature_reference="No. 37",
+    ),
     # DataQualityDiamagContrTestsSDF(
     #     sdf_file="",
     #     measured_diamag_sus=,
@@ -38,13 +169,13 @@ CALC_DIAMAG_QUALITY_TESTS: list["DataQualityDiamagContrTestsSDF"] = [
     DataQualityDiamagContrTestsSDF(
         sdf_file="Na_HCOO_B(OH)3_2H2O.sdf",
         measured_diamag_sus=-88.9,
-        literature_reference="M. Prasad, C. R. Kanekar, L.S. Kamat, J. Phys. Colloid. Chem. 55 (1957) 1534.",
+        literature_reference="No. 1534.",
     ),
     # Bismuth compounds
     DataQualityDiamagContrTestsSDF(
         sdf_file="Bi_Cl_2_PhMe_3.sdf",
         measured_diamag_sus=-263.4,
-        literature_reference="P. Pascal, D. Voigt, M.-C. Labarre, L. Fournes, Comput. Rend. 269C (1966) 1481.",
+        literature_reference="No. 1481.",
     ),
     DataQualityDiamagContrTestsSDF(
         sdf_file="Bi_Ph_3.sdf",
@@ -67,12 +198,6 @@ CALC_DIAMAG_QUALITY_TESTS: list["DataQualityDiamagContrTestsSDF"] = [
         sdf_file="Ba2+_PhCOO-_2H2O.sdf",
         measured_diamag_sus=-203.2,
         literature_reference="No. 171",
-    ),
-    # Antimony compounds
-    DataQualityDiamagContrTestsSDF(
-        sdf_file="SbBr3.sdf",
-        measured_diamag_sus=-111.4,
-        literature_reference="No. 16",
     ),
     # Platinum compounds
     DataQualityDiamagContrTestsSDF(
