@@ -226,24 +226,39 @@ class OverlapInjector:
         trigger: str,
     ) -> bool:
         """Inject component BondTypes when a multi-bond fragment (dihalide, alkynyl-ketone) is rejected."""
-        entries = INJECT_MAP.get(bmc.formula)
+        # Load sub-bond targets for this rejected formula
+        inject_map = OVERLAP_RULES_CONFIG.get(OverlapGroup.DEFAULT, {}).get("inject_map", {})
+        entries = inject_map.get(bmc.formula)
         if entries is None:
             return False
 
+        # Atom indices of the rejected multi-bond fragment
         fragment_atoms = set(bmc.atoms)
         injected = False
-        for seek_symbol, injection_bond, bond_kind in entries:
-            cx_pairs = mol.find_cx_pairs(fragment_atoms, seek_symbol, bond_kind)
-            if not cx_pairs:
+        for atom_symbol, injection_bond, bond_kind in entries:
+            # Find target bond sites within the fragment
+            atom_pairs = mol.FindBondedAtomPairs(fragment_atoms, atom_symbol, bond_type=bond_kind)
+            if not atom_pairs:
                 continue
-            already_covered = _covered_x_atoms(occupied, accepted, bmc.formula, injection_bond.formula, seek_symbol, mol)
-            for c_idx, x_idx in cx_pairs:
-                if x_idx in already_covered:
+
+            # Atoms already claimed by prior injections or parents
+            already_covered: set[int] = set()
+            for acc in occupied:
+                if acc.formula == injection_bond.formula:
+                    already_covered.update(idx for idx in acc.atoms if (a := mol.GetAtomInfoByIdx(idx)) and a.symbol == atom_symbol)
+            for acc_list in accepted.values():
+                for acc in acc_list:
+                    if acc.formula == bmc.formula:
+                        already_covered.update(idx for idx in acc.atoms if (a := mol.GetAtomInfoByIdx(idx)) and a.symbol == atom_symbol)
+
+            # Register each unclaimed bond pair as a match
+            for nbr_idx, atom_idx in atom_pairs:
+                if atom_idx in already_covered:
                     continue
-                new_bmc = BondMatchCandidate.from_bt(injection_bond, [c_idx, x_idx])
+                new_bmc = BondMatchCandidate.from_bt(injection_bond, [nbr_idx, atom_idx])
                 occupied.append(new_bmc)
                 accepted.setdefault(injection_bond.formula, []).append(new_bmc)
-                already_covered.add(x_idx)
+                already_covered.add(atom_idx)
                 injected = True
 
         return injected
@@ -427,36 +442,6 @@ class CrossOverlapRules:
         return True
 
 
-INJECT_MAP: dict[str, list[tuple[str, BondType, Chem.BondType]]] = {
-    "Cl-CR2-CR2-Cl": [("Cl", CARBON_CHLORINE_BOND, Chem.BondType.SINGLE)],
-    "Br-CR2-CR2-Br": [("Br", CARBON_BROMINE_BOND, Chem.BondType.SINGLE)],
-    "RC#C-C(=O)R": [
-        ("O", CARBONYL_BOND, Chem.BondType.DOUBLE),
-        ("C", CARBON_TRIPLE_BOND, Chem.BondType.TRIPLE),
-    ],
-}
-
-
-def _covered_x_atoms(
-    occupied: list[BondMatchCandidate],
-    accepted: dict[str, list[BondMatchCandidate]],
-    bmc_formula: str,
-    injection_formula: str,
-    x_symbol: str,
-    mol: MBMolecule,
-) -> set[int]:
-    """Return x_symbol atom indices already claimed by prior injections or accepted parents."""
-    covered: set[int] = set()
-    for acc in occupied:
-        if acc.formula == injection_formula:
-            covered.update(idx for idx in acc.atoms if (a := mol.GetAtomInfoByIdx(idx)) and a.symbol == x_symbol)
-    for acc_list in accepted.values():
-        for acc in acc_list:
-            if acc.formula == bmc_formula:
-                covered.update(idx for idx in acc.atoms if (a := mol.GetAtomInfoByIdx(idx)) and a.symbol == x_symbol)
-    return covered
-
-
 OVERLAP_RULES_CONFIG: dict = {
     ## Elements to the left have higher priority!
     OverlapGroup.DEFAULT: {
@@ -468,6 +453,14 @@ OVERLAP_RULES_CONFIG: dict = {
             "Cl-CR2-CR2-Cl": OverlapInjector._inject_default,
             "Br-CR2-CR2-Br": OverlapInjector._inject_default,
             "RC#C-C(=O)R": OverlapInjector._inject_default,
+        },
+        "inject_map": {
+            "Cl-CR2-CR2-Cl": [("Cl", CARBON_CHLORINE_BOND, Chem.BondType.SINGLE)],
+            "Br-CR2-CR2-Br": [("Br", CARBON_BROMINE_BOND, Chem.BondType.SINGLE)],
+            "RC#C-C(=O)R": [
+                ("O", CARBONYL_BOND, Chem.BondType.DOUBLE),
+                ("C", CARBON_TRIPLE_BOND, Chem.BondType.TRIPLE),
+            ],
         },
         "on_accept": OverlapInjector._inject_aromatic,
     },

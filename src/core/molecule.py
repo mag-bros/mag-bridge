@@ -137,26 +137,27 @@ class MBMolecule:
 
         return tuple(a.idx for a in self._atoms if (include_h or a.symbol != "H") and a.idx not in exclude_idx and a.has_double_bond)
 
-    def find_cx_pairs(
+    def FindBondedAtomPairs(
         self,
         fragment_atoms: set[int],
-        x_symbol: str,
-        bond_kind: Chem.BondType,
+        atom_symbol: str,
+        bond_type: Chem.BondType,
+        neighbor_symbol: str = "C",
     ) -> list[tuple[int, int]]:
-        """Return (C_idx, X_idx) pairs within fragment_atoms where X matches x_symbol
-        and is bonded to C via bond_kind."""
+        """Return (neighbor_idx, atom_idx) pairs within fragment_atoms where atom matches
+        atom_symbol and is bonded to neighbor_symbol via bond_type."""
         pairs: list[tuple[int, int]] = []
-        for x_idx in fragment_atoms:
-            atom = self.GetAtomInfoByIdx(x_idx)
-            if atom is None or atom.symbol != x_symbol:
+        for atom_idx in fragment_atoms:
+            atom = self.GetAtomInfoByIdx(atom_idx)
+            if atom is None or atom.symbol != atom_symbol:
                 continue
-            for nbr in self.GetAtomWithIdx(x_idx).GetNeighbors():
-                c_idx = nbr.GetIdx()
-                if nbr.GetSymbol() != "C" or c_idx not in fragment_atoms:
+            for nbr in self.GetAtomWithIdx(atom_idx).GetNeighbors():
+                nbr_idx = nbr.GetIdx()
+                if nbr.GetSymbol() != neighbor_symbol or nbr_idx not in fragment_atoms:
                     continue
-                bond = self.GetBondBetweenAtoms(x_idx, c_idx)
-                if bond.GetBondType() == bond_kind:
-                    pairs.append((c_idx, x_idx))
+                bond = self.GetBondBetweenAtoms(atom_idx, nbr_idx)
+                if bond.GetBondType() == bond_type:
+                    pairs.append((nbr_idx, atom_idx))
                     break
         return pairs
 
