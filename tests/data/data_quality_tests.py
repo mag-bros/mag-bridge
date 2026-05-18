@@ -28,6 +28,12 @@ class DataQualityDiamagContrTestsSDF:
 
 
 CALC_DIAMAG_QUALITY_TESTS: list["DataQualityDiamagContrTestsSDF"] = [
+    # Aluminum compounds
+    # DataQualityDiamagContrTestsSDF(
+    #     sdf_file="",
+    #     measured_diamag_sus=,
+    #     literature_reference="",
+    # ),
     # Boron compounds
     DataQualityDiamagContrTestsSDF(
         sdf_file="Na_HCOO_B(OH)3_2H2O.sdf",
