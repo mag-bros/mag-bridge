@@ -46,4 +46,12 @@ RUN apt-get update && \
     apt-get remove -y nodejs npm && apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/* /root/.npm
 
+# GitHub CLI — version pinned. To upgrade: bump both version numbers in the URL.
+# Arch-agnostic: $(dpkg --print-architecture) resolves arm64/amd64 at build time.
+RUN ARCH=$(dpkg --print-architecture) \
+    && curl -fsSL "https://github.com/cli/cli/releases/download/v2.92.0/gh_2.92.0_linux_${ARCH}.deb" \
+       -o /tmp/gh.deb \
+    && dpkg -i /tmp/gh.deb \
+    && rm /tmp/gh.deb
+
 USER ${USERNAME}

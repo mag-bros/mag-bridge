@@ -52,4 +52,12 @@ fi
 PLUGIN_SHA=$(git -C "${PLUGIN_PATH}" rev-parse --short HEAD 2>/dev/null || echo "unknown")
 echo "[postCreateCommand]:: magbridge-ai ready @ ${PLUGIN_SHA}."
 
+# ------------------------------------------------------
+# 5. GITHUB CLI AUTH
+# ------------------------------------------------------
+echo "[postCreateCommand]:: Checking GitHub CLI auth..."
+gh auth status 2>/dev/null \
+    && echo "[postCreateCommand]:: GitHub CLI authenticated." \
+    || echo "[postCreateCommand]:: GitHub CLI not authenticated — ensure GH_TOKEN (fine-grained PAT) is set in .env"
+
 echo "[postCreateCommand]:: Exit"

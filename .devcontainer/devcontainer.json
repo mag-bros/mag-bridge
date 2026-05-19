@@ -52,7 +52,7 @@
     "ghcr.io/devcontainers/features/node:1": {
       "version": "22",
       "nodeGypDependencies": false
-    }``
+    }
   },
   "remoteUser": "vscode_server",
   "remoteEnv": {
@@ -92,6 +92,10 @@
         "files.associations": {
           "*.sh": "shellscript"
         },
+        "github.copilot.enable": {
+          "*": true,
+          "dotenv": false
+        },
         "files.autoSave": "onFocusChange",
         "files.exclude": {},
         "files.watcherExclude": {},
@@ -118,8 +122,8 @@
             "value": "${containerEnv:TAVILY_API_KEY}"
           },
           {
-            "name": "GIT_READONLY",
-            "value": "${containerEnv:GIT_READONLY}"
+            "name": "GH_TOKEN",
+            "value": "${containerEnv:GH_TOKEN}"
           }
         ],
         "claudeCode.preferredLocation": "sidebar",

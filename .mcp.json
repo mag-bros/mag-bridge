@@ -18,7 +18,7 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"],
       "env": {
-        "GITHUB_TOKEN": "${GIT_READONLY}"
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GH_TOKEN}"
       }
     },
     "repomix": {
