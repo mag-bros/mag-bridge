@@ -1,5 +1,6 @@
 from typing import Any
 
+from rdkit import Chem
 from rdkit.Chem import (
     Mol,
     MolFromSmarts,
@@ -25,8 +26,9 @@ class MBMolecule:
         self.common_diamag: float = ConstDB.GetCommonMolDiamagContr(smiles=self.smiles)
 
     def CalcDiamagContr(self, verbose=False) -> float:
-        """Calculate the chemical compounds's total diamagnetic contribution.
-        Uses Pascal constants for ring, open-chain, oxidation state, and charge terms.
+        """Calculates the molecule's total diamagnetic contribution.
+        For common molecule, uses pre-determined diamagnetic susceptibility of given molecule.
+        For uncommon molecule, combines Pascal constants of all atoms and constitutive corrections of all matched bond types.
         """
 
         if verbose:
@@ -34,18 +36,31 @@ class MBMolecule:
 
         if self.common_diamag == COMMON_DIAMAG_NOT_MATCHED:
             contr_all_atoms: float = self.CalcDiamagContrAllAtoms()
-            constitutive_corr: float = self.CalcConstitutiveCorrection()
+            constitutive_corr: float = self.CalcConstitutiveCorrections()
             return contr_all_atoms + constitutive_corr
 
         return self.common_diamag
 
-    def CalcConstitutiveCorrection(self, verbose=False) -> float:
-        # TODO:: finish
-        return 0.0
+    def CalcConstitutiveCorrections(self, verbose=False) -> float:
+        """Calculate constitutive corrections for matched bond types for uncommon molecule."""
+        from src.core.substruct_matcher import MBSubstructMatcher
+
+        bondtype_query = MBSubstructMatcher.GetMatches(mol=self)
+        matched_bondtypes = bondtype_query.matchesCounter
+
+        total_molecule_constitutive_corr = 0.0
+
+        for matched_formula, count in matched_bondtypes.items():
+            constitutive_corr = ConstDB.GetBondTypeConstitutiveCorr(matched_formula)
+            total_molecule_constitutive_corr += count * constitutive_corr
+            if verbose:
+                print(f"- {repr(self)}")
+
+        return total_molecule_constitutive_corr
 
     def CalcDiamagContrAllAtoms(self, verbose=False) -> float:
-        """Calculate the chemical compounds's total diamagnetic contribution.
-        Uses Pascal constants for ring, open-chain, oxidation state, and charge terms.
+        """Calculate the diamagnetic contribution of uncommon molecule with the use of atomic Pascal constants.
+        Uses Pascal constants of the atoms based on ring, open-chain, oxidation state, and charge terms (vide infra).
         """
 
         if verbose:
@@ -121,6 +136,30 @@ class MBMolecule:
         exclude_idx = exclude_idx or set()
 
         return tuple(a.idx for a in self._atoms if (include_h or a.symbol != "H") and a.idx not in exclude_idx and a.has_double_bond)
+
+    def FindBondedAtomPairs(
+        self,
+        fragment_atoms: set[int],
+        atom_symbol: str,
+        bond_type: Chem.BondType,
+        neighbor_symbol: str = "C",
+    ) -> list[tuple[int, int]]:
+        """Return (neighbor_idx, atom_idx) pairs within fragment_atoms where atom matches
+        atom_symbol and is bonded to neighbor_symbol via bond_type."""
+        pairs: list[tuple[int, int]] = []
+        for atom_idx in fragment_atoms:
+            atom = self.GetAtomInfoByIdx(atom_idx)
+            if atom is None or atom.symbol != atom_symbol:
+                continue
+            for nbr in self.GetAtomWithIdx(atom_idx).GetNeighbors():
+                nbr_idx = nbr.GetIdx()
+                if nbr.GetSymbol() != neighbor_symbol or nbr_idx not in fragment_atoms:
+                    continue
+                bond = self.GetBondBetweenAtoms(atom_idx, nbr_idx)
+                if bond.GetBondType() == bond_type:
+                    pairs.append((nbr_idx, atom_idx))
+                    break
+        return pairs
 
     def GetAtoms(self) -> list[MBAtom]:
         """Return the list of MBAtom objects in this molecule."""

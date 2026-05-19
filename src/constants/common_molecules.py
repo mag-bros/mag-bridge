@@ -40,6 +40,7 @@ Here's a breakdown of the values:
 """
 
 COMMON_MOLECULES: dict[str, list[CommonMolecule]] = {
+    # TODO: Add missing common molecules
     "ions": [
         CommonMolecule(
             formula="AsO3(3-)",
@@ -264,6 +265,27 @@ COMMON_MOLECULES: dict[str, list[CommonMolecule]] = {
             SMILES={"O=[Te](=O)([O-])[O-]"},
             diamag_sus=-55,
             sdf_file="TeO42-.sdf",
+        ),
+        CommonMolecule(
+            formula="N(CH3)4(+)",
+            name="tetramethylammonium",
+            SMILES={"C[N+](C)(C)C"},
+            diamag_sus=-52,
+            sdf_file="NMe4+.sdf",
+        ),
+        CommonMolecule(
+            formula="N(CH2CH3)4(+)",
+            name="tetraethylammonium",
+            SMILES={"CC[N+](CC)(CC)CC"},
+            diamag_sus=-101,
+            sdf_file="NEt4+.sdf",
+        ),
+        CommonMolecule(
+            formula="VO(2+)",
+            name="vanadyl",
+            SMILES={"[O]=[V+2]"},
+            diamag_sus=-12.5,
+            sdf_file="VO2+.sdf",
         ),
     ],
     "ligands": [

@@ -251,3 +251,4 @@ rdkit/
 external_repos/
 node_modules/
 tests/reports/
+.claude/

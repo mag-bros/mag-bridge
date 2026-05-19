@@ -33,10 +33,11 @@ alias gpl='git pull'
 alias gco='git commit -m'
 alias gch='git checkout'
 alias gchm='gch master && gpl'
-alias uvpipr='uv pip install -r requirements.txt -r requirements-dev.txt'
-alias uvpipur='uv pip uninstall -r requirements.txt -r requirements-dev.txt'
+alias uvpipr='uv pip install -r requirements.txt -r requirements-ci.txt'
+alias uvpipur='uv pip uninstall -r requirements.txt -r requirements-ci.txt'
 alias gpu='git push' 
 alias wpp='which python pip'
+alias gbdl='current=$(git branch --show-current); default=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed "s|^origin/||" || echo "master"); git checkout "$default" && { [ -n "$current" ] && [ "$current" != "$default" ] && git branch -D "$current" || echo "Nie usunięto gałęzi (taka sama jak default lub brak)"; } && git pull'
 
 # Silently activate venv
 if [ -f "${PWD}/.venv/bin/activate" ];then

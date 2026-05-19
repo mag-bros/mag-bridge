@@ -67,6 +67,20 @@ class MBSubstructMatcher:
         for c in candidates:
             grouped_candidates[c.formula].append(c)
 
+        # Filter Ar-Ar matches to only include those in different rings
+        if "Ar-Ar" in grouped_candidates:
+            ring_info = mol._mol.GetRingInfo()
+            rings = [set(ring) for ring in ring_info.AtomRings()]
+            aromatic_rings = [r for r in rings if all(mol._mol.GetAtomWithIdx(atom_idx).GetIsAromatic() for atom_idx in r)]
+            filtered_ar_ar = []
+            for cand in grouped_candidates["Ar-Ar"]:
+                atom1, atom2 = cand.atoms
+                ring1 = next((r for r in aromatic_rings if atom1 in r), None)
+                ring2 = next((r for r in aromatic_rings if atom2 in r), None)
+                if ring1 != ring2:
+                    filtered_ar_ar.append(cand)
+            grouped_candidates["Ar-Ar"] = filtered_ar_ar
+
         self_filtered: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterSelfOverlaps(mol, grouped_candidates)
 
         cross_filtered: dict[str, list[BondMatchCandidate]] = MBSubstructMatcher._FilterCrossOverlaps(mol, self_filtered)
@@ -103,8 +117,8 @@ class MBSubstructMatcher:
 
         Phase 1 — Pure predicate: each candidate is appended to accepted or rejected.
         Phase 2 — Derived injections: rejected candidates may produce new accepted matches.
-        Phase 3 — Duplication: Ar-OR / Ar-NR2 add copies based on aromatic C count.
         """
+
         accepted: dict[str, list[BondMatchCandidate]] = defaultdict(list)
         rejected: dict[str, list[RejectedCandidate]] = defaultdict(list)
 

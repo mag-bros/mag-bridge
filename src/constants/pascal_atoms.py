@@ -137,7 +137,7 @@ PASCAL_CONST = {
     "Bi": {
         "covalent": {
             "ring": None,
-            "open_chain": -192.0,
+            "open_chain": -192.0,  # uncertain value as revealed by data quality tests
             "ox_state": {},
         },
         "ionic": {

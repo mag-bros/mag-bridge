@@ -5,6 +5,7 @@
   },
   "runArgs": [
     "--shm-size=1g",
+    // "--memory=6g", // hard limit
     "--env-file",
     "${localWorkspaceFolder}/.env"
   ],
@@ -14,12 +15,14 @@
     "source=${localWorkspaceFolderBasename}-claude-config,target=/home/vscode_server/.claude,type=volume"
   ],
   "overrideCommand": true,
-  "hostRequirements": {
-    "memory": "3gb"
-  },
+  // "hostRequirements": {
+  //   "memory": "6gb"
+  // },
   "forwardPorts": [
     4200,
-    8000
+    8000,
+    9749,
+    15500
   ],
   "portsAttributes": {
     "4200": {
@@ -28,6 +31,14 @@
     },
     "8000": {
       "label": "FastAPI Backend",
+      "onAutoForward": "silent"
+    },
+    "9749": {
+      "label": "Codebase Memory UI",
+      "onAutoForward": "silent"
+    },
+    "15500": {
+      "label": "Promptfoo UI",
       "onAutoForward": "silent"
     }
   },
@@ -41,13 +52,14 @@
     "ghcr.io/devcontainers/features/node:1": {
       "version": "22",
       "nodeGypDependencies": false
-    }
+    }``
   },
   "remoteUser": "vscode_server",
   "remoteEnv": {
     "PATH": "${containerWorkspaceFolder}/.devcontainer/node_modules/.bin:${containerWorkspaceFolder}/.venv/bin:${containerEnv:PATH}",
+    "CBM_CACHE_DIR": "/home/vscode_server/.claude/.cbm-cache",
     "UV_LINK_MODE": "copy",
-    "HISTFILE": "/commandhistory/.zsh_history"
+    "HISTFILE": "/commandhistory/.zsh_history",
   },
   "customizations": {
     "vscode": {
@@ -96,6 +108,14 @@
           {
             "name": "CONTEXT7_API_KEY",
             "value": "${containerEnv:CONTEXT7_API_KEY}"
+          },
+          {
+            "name": "EXA_API_KEY",
+            "value": "${containerEnv:EXA_API_KEY}"
+          },
+          {
+            "name": "TAVILY_API_KEY",
+            "value": "${containerEnv:TAVILY_API_KEY}"
           },
           {
             "name": "GIT_READONLY",
