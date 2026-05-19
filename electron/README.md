@@ -189,4 +189,4 @@ tail -f ~/magbridge/app.log
 
 - [Dev Container Setup](../.devcontainer/README.md)
 - [Frontend (Angular)](../frontend/README.md)
-- [Makefile Commands](../Makefile)
+- [Environment CLI](../scripts/environment.py)

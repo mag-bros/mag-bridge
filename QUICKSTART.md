@@ -45,7 +45,7 @@ For testing Electron integration:
 
 ```bash
 # Terminal 1 (Container): Full Stack
-make dev-fullstack
+python scripts/environment.py fullstack
 
 # Terminal 2 (Host - macOS/Windows/Linux):
 cd electron
@@ -102,13 +102,14 @@ npm install
 ## Production Build
 
 ```bash
-# On macOS host
+# On macOS/Windows/Linux host
 cd /path/to/mag-bridge
-make build
+python scripts/environment.py build
 
 # Output:
-# frontend/build/app/mac-arm64/MagBridge.app
-# frontend/build/app/MagBridge-0.0.0-arm64.dmg
+# frontend/build/app/mac-arm64/MagBridge.app      (macOS)
+# frontend/build/app/linux-unpacked/MagBridge     (Linux)
+# frontend/build/app/win-unpacked/MagBridge.exe   (Windows)
 ```
 
 ## Key Files Changed
@@ -123,7 +124,7 @@ make build
 
 ### Updated Files
 - `frontend/package.json` - Angular only (no Electron deps)
-- `Makefile` - Updated for new structure
+- `scripts/environment.py` - CLI replacing Makefile tasks
 - `frontend/src/` - No changes (already uses `window.electronAPI`)
 
 ## Benefits
@@ -192,6 +193,6 @@ If you were using the old integrated structure:
 
 ## Related Documentation
 
+- [environment.py](scripts/environment.py) - CLI for dev servers, build and packaging
 - [Electron README](electron/README.md) - Detailed Electron setup
 - [Dev Container Setup](.devcontainer/README.md) - Container architecture
-- [Makefile](Makefile) - Build commands
