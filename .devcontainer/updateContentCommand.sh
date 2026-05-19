@@ -16,16 +16,15 @@ fi
 # ------------------------------------------------------
 # 2. APPLICATION DEPENDENCY INSTALLATION
 # ------------------------------------------------------
-# Node.js Dependencies
-if [ -f "package.json" ]; then
-	if [ ! -d "node_modules" ]; then
-		echo "[updateContentCommand]:: Installing Main App Node modules..."
-		npm install
-	else
-		echo "[updateContentCommand]:: node_modules exists. Skipping npm install."
-	fi
+# Devcontainer Tooling Dependencies — Claude Code CLI, Promptfoo, Repomix.
+# Kept under .devcontainer/ so devcontainer tooling stays separate from app code.
+# PATH in devcontainer.json points at .devcontainer/node_modules/.bin so the
+# binaries are reachable without `npx`.
+if [ ! -d ".devcontainer/node_modules" ]; then
+	echo "[updateContentCommand]:: Installing devcontainer tooling (claude, promptfoo, repomix)..."
+	(cd .devcontainer && npm install)
 else
-	echo "[updateContentCommand]:: No package.json found. Skipping npm install."
+	echo "[updateContentCommand]:: .devcontainer/node_modules exists. Skipping."
 fi
 
 # Python Dependencies

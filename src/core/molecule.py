@@ -1,5 +1,6 @@
 from typing import Any
 
+from rdkit import Chem
 from rdkit.Chem import (
     Mol,
     MolFromSmarts,
@@ -135,6 +136,30 @@ class MBMolecule:
         exclude_idx = exclude_idx or set()
 
         return tuple(a.idx for a in self._atoms if (include_h or a.symbol != "H") and a.idx not in exclude_idx and a.has_double_bond)
+
+    def FindBondedAtomPairs(
+        self,
+        fragment_atoms: set[int],
+        atom_symbol: str,
+        bond_type: Chem.BondType,
+        neighbor_symbol: str = "C",
+    ) -> list[tuple[int, int]]:
+        """Return (neighbor_idx, atom_idx) pairs within fragment_atoms where atom matches
+        atom_symbol and is bonded to neighbor_symbol via bond_type."""
+        pairs: list[tuple[int, int]] = []
+        for atom_idx in fragment_atoms:
+            atom = self.GetAtomInfoByIdx(atom_idx)
+            if atom is None or atom.symbol != atom_symbol:
+                continue
+            for nbr in self.GetAtomWithIdx(atom_idx).GetNeighbors():
+                nbr_idx = nbr.GetIdx()
+                if nbr.GetSymbol() != neighbor_symbol or nbr_idx not in fragment_atoms:
+                    continue
+                bond = self.GetBondBetweenAtoms(atom_idx, nbr_idx)
+                if bond.GetBondType() == bond_type:
+                    pairs.append((nbr_idx, atom_idx))
+                    break
+        return pairs
 
     def GetAtoms(self) -> list[MBAtom]:
         """Return the list of MBAtom objects in this molecule."""

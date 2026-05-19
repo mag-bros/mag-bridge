@@ -21,7 +21,8 @@
   "forwardPorts": [
     4200,
     8000,
-    9749
+    9749,
+    15500
   ],
   "portsAttributes": {
     "4200": {
@@ -34,6 +35,10 @@
     },
     "9749": {
       "label": "Codebase Memory UI",
+      "onAutoForward": "silent"
+    },
+    "15500": {
+      "label": "Promptfoo UI",
       "onAutoForward": "silent"
     }
   },
