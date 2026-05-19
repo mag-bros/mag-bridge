@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "@anthropic-ai/claude-code": "latest",
-    "repomix": "^1.12.0"
-  }
-}
