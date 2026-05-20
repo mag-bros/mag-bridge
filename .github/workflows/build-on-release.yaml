@@ -16,12 +16,12 @@ jobs:
       matrix:
         include:
           # Linux x64
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             label: linux-x86_64
             arch: x86_64
             eb_platform: --linux
             python_version: "3.13"
-            node_version: "20"
+            node_version: "24"
 
           # Linux arm64
           - os: ubuntu-24.04-arm
@@ -29,15 +29,15 @@ jobs:
             arch: arm64
             eb_platform: --linux
             python_version: "3.13"
-            node_version: "20"
+            node_version: "24"
 
           # Windows x86_64
-          - os: windows-latest
+          - os: windows-2025
             label: windows-x86_64
             arch: x86_64
             eb_platform: --win
             python_version: "3.13"
-            node_version: "20"
+            node_version: "24"
 
           # On PyPI, the latest published rdkit version is 2024.9.4, not 2025.3.6.
           # # Windows arm64
@@ -54,15 +54,15 @@ jobs:
             arch: x86_64
             eb_platform: --mac
             python_version: "3.13"
-            node_version: "20"
+            node_version: "24"
 
           # macOS Apple Silicon (arm64)
-          - os: macos-latest
+          - os: macos-15
             label: macos-arm64
             arch: arm64
             eb_platform: --mac
             python_version: "3.13"
-            node_version: "20"
+            node_version: "24"
 
     runs-on: ${{ matrix.os }}
     env:
