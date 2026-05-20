@@ -1,8 +1,10 @@
 """Shared helpers: CLI group, output formatting, port management, env checks."""
+
 from __future__ import annotations
 
 import os
 import platform
+import shutil
 import signal
 import subprocess
 from pathlib import Path
@@ -46,6 +48,25 @@ def _echo_warn(msg: str) -> None:
 
 def _echo_info(msg: str) -> None:
     click.echo(f"📦 {msg}")
+
+
+# ---------------------------------------------------------------------------
+# Node helpers
+# ---------------------------------------------------------------------------
+
+
+def _node_bin(bin_name: str) -> str:
+    """Return a resolvable Node binary name (npm/npx), handling Windows .cmd."""
+    candidates = [bin_name]
+    if os.name == "nt":
+        candidates = [f"{bin_name}.cmd", f"{bin_name}.exe", bin_name]
+
+    for candidate in candidates:
+        if shutil.which(candidate):
+            return candidate
+
+    _echo_error(f"{bin_name} not found on PATH. Install Node.js and ensure npm is available.")
+    raise SystemExit(1)
 
 
 # ---------------------------------------------------------------------------
@@ -120,7 +141,7 @@ def _check_node_modules(path: Path, name: str) -> bool:
     node_modules = path / "node_modules"
     if not node_modules.exists():
         _echo_info(f"Installing {name} dependencies...")
-        result = subprocess.run(["npm", "install"], cwd=path)
+        result = subprocess.run([_node_bin("npm"), "install"], cwd=path)
         if result.returncode != 0:
             _echo_error(f"Failed to install {name} dependencies")
             return False

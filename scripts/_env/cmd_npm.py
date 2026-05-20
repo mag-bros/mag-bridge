@@ -1,4 +1,5 @@
 """npm dependency management commands: install, npm-update, list-outdated, update-lock, rebuild-node."""
+
 from __future__ import annotations
 
 import shutil
@@ -7,8 +8,8 @@ import sys
 
 import click
 
-from _env.config import FRONTEND, ELECTRON
-from _env.utils import cli, _echo_header, _echo_success, _echo_error, _echo_info, _echo_warn
+from _env.config import ELECTRON, FRONTEND
+from _env.utils import _echo_error, _echo_header, _echo_info, _echo_success, _echo_warn, _node_bin, cli
 
 
 @cli.command()
@@ -20,14 +21,14 @@ def install(frontend_only: bool, electron_only: bool) -> None:
 
     if not frontend_only and not electron_only:
         _echo_info("Installing Frontend dependencies...")
-        subprocess.run(["npm", "install"], cwd=FRONTEND, check=True)
+        subprocess.run([_node_bin("npm"), "install"], cwd=FRONTEND, check=True)
         _echo_warn("For Electron, run 'python scripts/environment.py install --electron-only' on the host machine")
     elif frontend_only:
         _echo_info("Installing Frontend dependencies...")
-        subprocess.run(["npm", "install"], cwd=FRONTEND, check=True)
+        subprocess.run([_node_bin("npm"), "install"], cwd=FRONTEND, check=True)
     elif electron_only:
         _echo_info("Installing Electron dependencies...")
-        subprocess.run(["npm", "install"], cwd=ELECTRON, check=True)
+        subprocess.run([_node_bin("npm"), "install"], cwd=ELECTRON, check=True)
 
     _echo_success("Dependencies installed")
 
@@ -38,12 +39,12 @@ def npm_update() -> None:
     _echo_header("Updating Frontend npm Dependencies")
     _echo_info("Checking for updates with npm-check-updates...")
     subprocess.run(
-        ["npm", "exec", "npm-check-updates", "--", "--packageFile", "package.json", "--upgrade"],
+        [_node_bin("npm"), "exec", "npm-check-updates", "--", "--packageFile", "package.json", "--upgrade"],
         cwd=FRONTEND,
         check=True,
     )
     _echo_info("Installing updated dependencies...")
-    result = subprocess.run(["npm", "install"], cwd=FRONTEND)
+    result = subprocess.run([_node_bin("npm"), "install"], cwd=FRONTEND)
     if result.returncode == 0:
         _echo_success("npm dependencies updated")
     else:
@@ -54,14 +55,14 @@ def npm_update() -> None:
 @cli.command("list-outdated")
 def list_outdated() -> None:
     """List outdated frontend npm dependencies."""
-    subprocess.run(["npm", "outdated", "--long"], cwd=FRONTEND)
+    subprocess.run([_node_bin("npm"), "outdated", "--long"], cwd=FRONTEND)
 
 
 @cli.command("update-lock")
 def update_lock() -> None:
     """Update frontend package-lock.json without installing."""
     _echo_info("Updating package-lock.json...")
-    subprocess.run(["npm", "install", "--package-lock-only"], cwd=FRONTEND, check=True)
+    subprocess.run([_node_bin("npm"), "install", "--package-lock-only"], cwd=FRONTEND, check=True)
     _echo_success("package-lock.json updated")
 
 
@@ -79,7 +80,7 @@ def rebuild_node() -> None:
         shutil.rmtree(modules)
 
     _echo_info("Installing dependencies from scratch...")
-    result = subprocess.run(["npm", "install"], cwd=FRONTEND)
+    result = subprocess.run([_node_bin("npm"), "install"], cwd=FRONTEND)
     if result.returncode == 0:
         _echo_success("Lockfile regenerated and dependencies reinstalled")
     else:

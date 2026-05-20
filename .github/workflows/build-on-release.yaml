@@ -53,13 +53,14 @@ jobs:
           #   python_version: "3.13"
           #   node_version: "20"
 
+          # On PyPI, the latest published rdkit version is 2024.9.3, not 2026.3.2.
           # macOS Intel (x86_64)
-          - os: macos-15-intel
-            label: macos-x86_64
-            arch: x86_64
-            eb_platform: --mac
-            python_version: "3.13"
-            node_version: "24"
+          # - os: macos-15-intel
+          #   label: macos-x86_64
+          #   arch: x86_64
+          #   eb_platform: --mac
+          #   python_version: "3.13"
+          #   node_version: "24"
 
           # macOS Apple Silicon (arm64)
           - os: macos-15
