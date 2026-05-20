@@ -4,12 +4,17 @@ on:
   release:
     types: [published]
 
+concurrency:
+  group: gh-releases
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
 jobs:
   build-and-publish:
     name: Build & publish ${{ matrix.label }} zip
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       max-parallel: 6
