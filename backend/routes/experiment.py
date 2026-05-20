@@ -1,9 +1,8 @@
 import logging
-from pathlib import Path
 import shutil
 
 from fastapi import APIRouter, HTTPException
-from backend.config import SDF_DIR
+from backend.config import SDF_DIR, IS_DEV_MODE, translate_path
 from backend.schemas.calculations import ExperimentRequest, InputType
 
 router = APIRouter(tags=["experiments"])
@@ -15,7 +14,15 @@ async def create_experiment(data: ExperimentRequest):
         if not data.path:
             raise HTTPException(status_code=400, detail="Path is required for SDF input")
         
-        src = Path(data.path)
+        # Translate path (dev mode: macOS → container, prod mode: direct)
+        try:
+            src = translate_path(data.path)
+            logger.info(f"Upload request: {data.path} → {src} (dev_mode={IS_DEV_MODE})")
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Path translation error: {e}")
+            raise HTTPException(status_code=500, detail="Internal path translation error")
 
         # Check if file exists
         if not src.exists():

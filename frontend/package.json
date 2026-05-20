@@ -1,7 +1,6 @@
 {
-  "name": "mag-bridge",
+  "name": "mag-bridge-frontend",
   "version": "0.0.0",
-  "main": "main.js",
   "private": true,
   "homepage": "https://github.com/mag-bros/mag-bridge.git",
   "repository": {
@@ -24,62 +23,7 @@
     "build:dev": "ng build --configuration development",
     "test-angular": "ng test",
     "serve-reloader": "ng serve --host 0.0.0.0 --hmr --port 4200",
-    "dev:local": "concurrently \"npm run serve-reloader\" \"wait-on http://0.0.0.0:4200 && NODE_ENV=development MANAGE_BACKEND=1 electron .\"",
-    "start:electron": "export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/dev/null && xvfb-run -a -s '-screen 0 1024x768x24' electron . --remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 --no-sandbox --disable-gpu --disable-dev-shm-usage",
-    "dev:container": "concurrently \"npm run serve-reloader\" \"wait-on http://0.0.0.0:4200 && NODE_ENV=development MANAGE_BACKEND=1 npm run start:electron\"",
     "dev-backend": "cd ../ && .venv/bin/python -m uvicorn backend:app --reload"
-  },
-  "build": {
-    "appId": "com.github.magbridge",
-    "productName": "MagBridge",
-    "copyright": "Copyright © 2025 Mag Bros",
-    "directories": {
-      "output": "build/app"
-    },
-    "files": [
-      {
-        "from": "build",
-        "to": "build",
-        "filter": [
-          "frontend/**/*",
-          "backend/**/*"
-        ]
-      },
-      "main.js",
-      "preload.js",
-      "logging.js",
-      "app-config.js",
-      "package.json"
-    ],
-    "extraResources": [
-      {
-        "from": "build/backend/",
-        "to": "backend"
-      }
-    ],
-    "extraMetadata": {
-      "main": "main.js",
-      "env": {
-        "NODE_ENV": "production",
-        "APP_ENV": "production"
-      }
-    },
-    "win": {
-      "target": [
-        "nsis"
-      ]
-    },
-    "mac": {
-      "target": [
-        "dmg"
-      ]
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ]
-    }
   },
   "prettier": {
     "printWidth": 100,
@@ -111,10 +55,6 @@
     "@angular/cli": "^21.0.2",
     "@angular/compiler-cli": "^21.0.3",
     "@types/jasmine": "~5.1.13",
-    "concurrently": "^9.2.1",
-    "electron": "^39.2.5",
-    "electron-builder": "^26.0.12",
-    "electron-reload": "^2.0.0-alpha.1",
     "jasmine-core": "~5.13.0",
     "karma": "~6.4.4",
     "karma-chrome-launcher": "~3.2.0",
@@ -124,7 +64,6 @@
     "npm-check-updates": "^19.1.2",
     "playwright": "^1.58.2",
     "prettier": "^3.7.4",
-    "typescript": "~5.9.3",
-    "wait-on": "^9.0.3"
+    "typescript": "~5.9.3"
   }
 }

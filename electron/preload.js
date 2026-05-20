@@ -50,43 +50,21 @@ function serializeArg(a) {
   return String(a);
 }
 
-// Remove %c formatting (CSS in browser console)
-function stripPercentCAndStyles(args) {
-  if (!args.length) return args;
-  const out = [];
-  let i = 0;
-
-  while (i < args.length) {
-    const text = String(args[i]);
-
-    if (text.includes('%c')) {
-      const cnt = (text.match(/%c/g) || []).length;
-      out.push(text.replace(/%c/g, ''));
-      i += 1 + cnt;
-    } else {
-      out.push(text);
-      i++;
-    }
-  }
-
-  return out;
-}
-
-// Patch console.* and forward messages to main
-['log', 'warn', 'error', 'info', 'debug'].forEach((level) => {
+['log', 'info', 'warn', 'error', 'debug'].forEach((level) => {
   const original = console[level];
 
-  console[level] = (...args) => {
+  console[level] = function (...args) {
     try {
-      const stripped = stripPercentCAndStyles(args);
-      const msg = stripped.map(serializeArg).join(' ');
-      ipcRenderer.send('frontend-log', { level, message: msg });
-    } catch {
-      ipcRenderer.send('frontend-log', { level: 'error', message: '[log serialization failed]' });
+      const serialized = args.map(serializeArg);
+      ipcRenderer.send('frontend-log', {
+        level: level === 'log' ? 'info' : level,
+        args: serialized,
+      });
+    } catch (_) {
+      // ignore
     }
 
-    // Still print to local renderer DevTools
-    original(...args);
+    original.apply(console, args);
   };
 });
 
@@ -94,16 +72,20 @@ function stripPercentCAndStyles(args) {
 // 4. Unhandled Error Forwarding
 // ============================================================================
 
-window.addEventListener('error', (event) => {
-  ipcRenderer.send('frontend-log', {
-    level: 'error',
-    message: `Unhandled error: ${event.message}`,
-  });
+window.addEventListener('error', (evt) => {
+  const msg = `[Unhandled Error] ${evt.message} at ${evt.filename}:${evt.lineno}:${evt.colno}`;
+  try {
+    ipcRenderer.send('frontend-log', { level: 'error', args: [msg] });
+  } catch (e) {
+    console.error('[preload IPC failed]', msg, e);
+  }
 });
 
-window.addEventListener('unhandledrejection', (event) => {
-  ipcRenderer.send('frontend-log', {
-    level: 'error',
-    message: `Unhandled rejection: ${serializeArg(event.reason)}`,
-  });
+window.addEventListener('unhandledrejection', (evt) => {
+  const msg = `[Unhandled Promise Rejection] ${String(evt.reason)}`;
+  try {
+    ipcRenderer.send('frontend-log', { level: 'error', args: [msg] });
+  } catch (e) {
+    console.error('[preload IPC failed]', msg, e);
+  }
 });

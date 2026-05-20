@@ -4,24 +4,29 @@ on:
   release:
     types: [published]
 
+concurrency:
+  group: gh-releases
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
 jobs:
   build-and-publish:
     name: Build & publish ${{ matrix.label }} zip
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       max-parallel: 6
       matrix:
         include:
           # Linux x64
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             label: linux-x86_64
             arch: x86_64
             eb_platform: --linux
             python_version: "3.13"
-            node_version: "20"
+            node_version: "24"
 
           # Linux arm64
           - os: ubuntu-24.04-arm
@@ -29,15 +34,15 @@ jobs:
             arch: arm64
             eb_platform: --linux
             python_version: "3.13"
-            node_version: "20"
+            node_version: "24"
 
           # Windows x86_64
-          - os: windows-latest
+          - os: windows-2025
             label: windows-x86_64
             arch: x86_64
             eb_platform: --win
             python_version: "3.13"
-            node_version: "20"
+            node_version: "24"
 
           # On PyPI, the latest published rdkit version is 2024.9.4, not 2025.3.6.
           # # Windows arm64
@@ -48,21 +53,22 @@ jobs:
           #   python_version: "3.13"
           #   node_version: "20"
 
+          # On PyPI, the latest published rdkit version is 2024.9.3, not 2026.3.2.
           # macOS Intel (x86_64)
-          - os: macos-13
-            label: macos-x86_64
-            arch: x86_64
-            eb_platform: --mac
-            python_version: "3.13"
-            node_version: "20"
+          # - os: macos-15-intel
+          #   label: macos-x86_64
+          #   arch: x86_64
+          #   eb_platform: --mac
+          #   python_version: "3.13"
+          #   node_version: "24"
 
           # macOS Apple Silicon (arm64)
-          - os: macos-latest
+          - os: macos-15
             label: macos-arm64
             arch: arm64
             eb_platform: --mac
             python_version: "3.13"
-            node_version: "20"
+            node_version: "24"
 
     runs-on: ${{ matrix.os }}
     env:
@@ -116,10 +122,6 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-ci.txt
 
-      - name: Install make (Windows only)
-        if: runner.os == 'Windows'
-        run: choco install make -y
-
       - name: Install system fpm (Linux ARM only)
         if: runner.os == 'Linux' && matrix.arch == 'arm64'
         run: |
@@ -130,11 +132,12 @@ jobs:
 
       - name: Build backend & Electron app
         shell: bash
+        env:
+          PYTHONIOENCODING: "utf-8"
         run: |
-          # ARCH and EB_PLATFORM available via env
-          make build \
-            EB_PLATFORM="${{ matrix.eb_platform }}" \
-            EB_EXTRA="--publish never -c.extraMetadata.version=${APP_VERSION}"
+          python scripts/environment.py build \
+            --platform "${{ matrix.eb_platform }}" \
+            --extra "--publish never -c.extraMetadata.version=${APP_VERSION}"
 
       - name: Package installer into single zip
         shell: bash
