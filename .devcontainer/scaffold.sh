@@ -54,9 +54,9 @@ DEVCONTAINER_INGRESS_PORT=CHANGE_ME
 PYTHONPATH="src:src/converter:tests:devcontainers/workspace/tests:.:./compressor-archive"
 
 # --- GitHub tokens (fine-grained PATs) ---
-# GH_TOKEN_RO: READ-ONLY, access to the private submodules (Sevelantis/.claude + Sevelantis/devcontainers).
+# GH_TOKEN_RO_INFRA: READ-ONLY, access to the private submodules (Sevelantis/.claude + Sevelantis/devcontainers).
 #   This is the onboarding/setup token — used to fetch the submodules.
-GH_TOKEN_RO=
+GH_TOKEN_RO_INFRA=
 # GH_TOKEN_RW: read/write — only if you push from inside the container.
 GH_TOKEN_RW=
 
@@ -144,6 +144,11 @@ gen_mcp() { cat <<'EOF'
       "type": "stdio",
       "command": "uvx",
       "args": ["jcodemunch-mcp"]
+    },
+    "yfinance": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["--from", "yfmcp", "yfmcp"]
     }
   }
 }

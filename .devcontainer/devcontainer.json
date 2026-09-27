@@ -59,7 +59,7 @@
   },
   // Consumers run ONLY the workspace. The gateway is a shared singleton owned by the central
   // `devcentral` platform project (see initializeCommand); it is NOT pulled per-consumer.
-  "runServices": ["workspace", "mongo", "mongo-express"],
+  "runServices": ["workspace"],
   // =========================================================================
   // ♻️ Lifecycle — initializeCommand runs FIRST, on the HOST, before the workspace builds: ensures the
   // shared --internal network (fail-closed if it exists but isn't internal) and the central `devcentral`

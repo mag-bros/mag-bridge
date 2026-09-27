@@ -22,23 +22,23 @@ git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1 || {
   exit 1
 }
 
-# 2. token — reuse .env's GH_TOKEN_RO if filled, else prompt (hidden) and persist
-read_env_token() { grep -E '^GH_TOKEN_RO=' "$ENV" 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '"'\''  '; }
+# 2. token — reuse .env's GH_TOKEN_RO_INFRA if filled, else prompt (hidden) and persist
+read_env_token() { grep -E '^GH_TOKEN_RO_INFRA=' "$ENV" 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '"'\''  '; }
 tok="$(read_env_token)"
 if [ -z "$tok" ]; then
-  printf 'Paste your READ-ONLY GitHub token (GH_TOKEN_RO) — input hidden: ' >&2
+  printf 'Paste your READ-ONLY GitHub token (GH_TOKEN_RO_INFRA) — input hidden: ' >&2
   read -rs tok; echo >&2
   [ -n "$tok" ] || { echo "  ✗ no token entered — aborting" >&2; exit 1; }
   tmp="$(mktemp)"
-  if grep -qE '^GH_TOKEN_RO=' "$ENV"; then
-    sed "s|^GH_TOKEN_RO=.*|GH_TOKEN_RO=${tok}|" "$ENV" > "$tmp"
+  if grep -qE '^GH_TOKEN_RO_INFRA=' "$ENV"; then
+    sed "s|^GH_TOKEN_RO_INFRA=.*|GH_TOKEN_RO_INFRA=${tok}|" "$ENV" > "$tmp"
   else
-    cat "$ENV" > "$tmp"; printf 'GH_TOKEN_RO=%s\n' "$tok" >> "$tmp"
+    cat "$ENV" > "$tmp"; printf 'GH_TOKEN_RO_INFRA=%s\n' "$tok" >> "$tmp"
   fi
   mv "$tmp" "$ENV"; chmod 600 "$ENV"
   echo "  ✓ token saved to .env (0600)" >&2
 else
-  echo "  = GH_TOKEN_RO already set in .env" >&2
+  echo "  = GH_TOKEN_RO_INFRA already set in .env" >&2
 fi
 
 # 3. submodules — ADD on a fresh repo, UPDATE if already present.
@@ -48,36 +48,17 @@ export GIT_TERMINAL_PROMPT=0 GIT_CONFIG_COUNT=1 \
   GIT_CONFIG_KEY_0=http.extraHeader GIT_CONFIG_VALUE_0="Authorization: Basic ${b64}"
 
 ensure_sub() {          # ensure_sub <path> <url>  → 0 ok, 1 failed
-  # Converges to target state (cloned + registered, ignore=all) from ANY prior state — fresh,
-  # healthy, or half-added (stale index gitlink / leftover .git/modules / orphaned config /
-  # empty or partial working dir). No manual cleanup is ever required; re-running is safe.
   path="$1"; url="$2"
-  [ -n "$path" ] || { echo "    ✗ empty submodule path — refusing" >&2; return 1; }
-
-  # already a healthy checkout → just update.
-  if git -C "$ROOT/$path" rev-parse --git-dir >/dev/null 2>&1; then
-    if git -C "$ROOT" submodule update --init "$path" >/dev/null 2>&1; then
-      echo "    = $path present — updated" >&2; return 0
-    fi
-    echo "    · $path checkout unhealthy — rebuilding" >&2
+  if [ -e "$ROOT/$path/.git" ]; then
+    git -C "$ROOT" submodule update --init "$path" >/dev/null 2>&1 \
+      && { echo "    = $path present — updated" >&2; return 0; }
+    echo "    ✗ $path present but update FAILED" >&2; return 1
   fi
-
-  # tear down any partial/leftover state so the fresh add starts from a clean slate.
-  gitdir="$(git -C "$ROOT" rev-parse --absolute-git-dir 2>/dev/null || true)"
-  git -C "$ROOT" rm --cached -f -- "$path"                  >/dev/null 2>&1 || true  # stale index gitlink
-  git -C "$ROOT" config --remove-section "submodule.$path"  >/dev/null 2>&1 || true  # orphaned .git/config
-  if [ -f "$ROOT/.gitmodules" ]; then
-    git config -f "$ROOT/.gitmodules" --remove-section "submodule.$path" >/dev/null 2>&1 || true
-  fi
-  if [ -n "$gitdir" ] && [ -d "$gitdir/modules/$path" ]; then rm -rf "$gitdir/modules/$path"; fi  # leftover module dir
-  if [ -d "$ROOT/$path" ]; then rm -rf "$ROOT/$path"; fi                                          # empty/partial working dir
-
   if git -C "$ROOT" submodule add --force "$url" "$path" >/dev/null 2>&1; then
     git config -f "$ROOT/.gitmodules" "submodule.$path.ignore" all >/dev/null 2>&1 || true
     echo "    + $path added (cloned + registered, ignore=all)" >&2; return 0
   fi
-  echo "    ✗ $path add FAILED — auth or network. Reproduce: git submodule add '$url' '$path'" >&2
-  return 1
+  echo "    ✗ $path add FAILED — does GH_TOKEN_RO_INFRA have read access to $url ?" >&2; return 1
 }
 
 echo "  → ensuring submodules …" >&2
@@ -98,8 +79,8 @@ EOF
 else
   cat >&2 <<'EOF'
   ❌ Setup INCOMPLETE — a submodule could not be set up (see ✗ above).
-     Most likely GH_TOKEN_RO lacks read access to a Sevelantis repo, or the token expired.
-     Fix GH_TOKEN_RO in .env, then re-run:  bash .devcontainer/setup.sh
+     Most likely GH_TOKEN_RO_INFRA lacks read access to a Sevelantis repo, or the token expired.
+     Fix GH_TOKEN_RO_INFRA in .env, then re-run:  bash .devcontainer/setup.sh
 EOF
   exit 1
 fi
