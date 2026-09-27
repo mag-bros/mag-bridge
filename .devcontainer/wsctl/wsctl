@@ -66,17 +66,25 @@ cmd_setup() {
     log "$TOKEN_VAR already set in .env"
   fi
 
-  local rc=0 s
+  local rc=0 s out
   info "→ ensuring submodules …"
   for s in $SUBMODULES; do
     if [ -e "$ROOT/$s/.git" ]; then
       log "  $s: present — leaving as-is (use 'wsctl update' to pull)"
-    elif git_ro "$tok" -C "$ROOT" submodule add --force "$(url_for "$s")" "$s" >/dev/null 2>&1; then
+      continue
+    fi
+    # Not a healthy submodule. A client repo commonly pre-declares the infra submodules (repo template),
+    # or a prior run left a half-registered/stale checkout — any of which makes a plain `submodule add`
+    # abort ("already exists / not a valid git repo"). Reset this infra submodule to a clean slate, then
+    # add it fresh. Scoped to $SUBMODULES only — the client's own submodules are never touched.
+    reset_infra_submodule "$s"
+    if out="$(git_ro "$tok" -C "$ROOT" submodule add --force "$(url_for "$s")" "$s" 2>&1)"; then
       git config -f "$ROOT/.gitmodules" "submodule.$s.ignore" all >/dev/null 2>&1 || true
       ensure_on_branch "$s"
-      ok "  $s: added (on $(current_branch "$s"))"
+      ok "  $s: ready (on $(current_branch "$s"))"
     else
-      warn "  $s: clone FAILED — does $TOKEN_VAR have Contents:Read on $(url_for "$s") ?"; rc=1
+      printf '%s\n' "$out" | sed 's/^/      /' >&2
+      warn "  $s: setup FAILED (see git output above) — check $TOKEN_VAR has Contents:Read on $(url_for "$s")"; rc=1
     fi
   done
 

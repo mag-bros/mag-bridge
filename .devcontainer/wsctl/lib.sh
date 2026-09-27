@@ -81,6 +81,20 @@ ensure_on_branch() {   # if detached, try to land on master (belt-and-suspenders
   git -C "$ROOT/$1" symbolic-ref -q HEAD >/dev/null 2>&1 && return 0
   git -C "$ROOT/$1" checkout -q master 2>/dev/null || true
 }
+# reset_infra_submodule <name> — wipe any partial/stale registration of an INFRA submodule so it can be
+# re-added from scratch. Handles the common client cases a plain `submodule add` chokes on: a repo template
+# that pre-declares the submodule, or a leftover from a failed run (.gitmodules entry, index gitlink, an
+# existing/invalid working dir, or a stale .git/modules/<name>). ONLY ever called for names in $SUBMODULES
+# — the client's own submodules are never touched — and hard-guarded so it can never delete outside $ROOT.
+reset_infra_submodule() {
+  local s="$1"
+  [ -n "${ROOT:-}" ] && [ -n "$s" ] || return 0
+  git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1 || return 0   # refuse unless $ROOT is a real git repo
+  git -C "$ROOT" submodule deinit -f "$s"                           >/dev/null 2>&1 || true
+  git -C "$ROOT" rm -rf --cached "$s"                               >/dev/null 2>&1 || true
+  git config -f "$ROOT/.gitmodules" --remove-section "submodule.$s" >/dev/null 2>&1 || true
+  rm -rf -- "$ROOT/.git/modules/$s" "$ROOT/$s" || true   # never abort the loop on a stubborn delete
+}
 diagnose_pull() {   # diagnose_pull <submodule> <git-output> — separate auth failure from dirty/diverged
   local s="$1" out="$2"
   case "$out" in
