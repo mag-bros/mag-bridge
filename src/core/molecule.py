@@ -1,13 +1,7 @@
 from typing import Any
 
 from rdkit import Chem
-from rdkit.Chem import (
-    Mol,
-    MolFromSmarts,
-    MolToSmarts,
-    MolToSmiles,
-    RemoveHs,
-)
+from rdkit.Chem import Descriptors, Mol, MolFromSmarts, MolToSmarts, MolToSmiles, RemoveHs
 from src.constants.provider import COMMON_DIAMAG_NOT_MATCHED, ConstDB
 from src.core.atom import MBAtom
 
@@ -40,6 +34,16 @@ class MBMolecule:
             return contr_all_atoms + constitutive_corr
 
         return self.common_diamag
+
+    def CalcMolarMass(self) -> float:
+        """Calculate this molecule's molar mass in g/mol.
+
+        Uses RDKit's average molecular weight (standard atomic weights),
+        which already accounts for every hydrogen on the molecule.
+        Pure calculation: return a raw float — no rounding, no printing.
+        """
+        average_molar_mass = Descriptors.MolWt(self._mol)
+        return average_molar_mass
 
     def CalcConstitutiveCorrections(self, verbose=False) -> float:
         """Calculate constitutive corrections for matched bond types for uncommon molecule."""

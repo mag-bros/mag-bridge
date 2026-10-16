@@ -1,25 +1,29 @@
 {
-  // =========================================================================
-  // 🧭 Client pointer — the whole per-repo control surface. No containers, no
-  // tooling, no egress env (all inherited from the platform compose / image).
-  // =========================================================================
-  "name": "MagBridge Devcontainer",
-  // The ONE platform compose, a flat-sibling clone (../ = client repo root).
-  "dockerComposeFile": [
-    "../devcontainers/docker-compose.yaml",
-    "docker-compose.client.yaml" // client overlay (this repo's mongo + mongo-express), merges over the base
+  "name": "Claude Isolation",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "runArgs": [
+    "--shm-size=1g",
+    // "--memory=6g", // hard limit
+    "--env-file",
+    "${localWorkspaceFolder}/.env"
   ],
-  // `service` = which container VS Code attaches to. Only `runServices` below actually starts —
-  // the gateway is a separate platform project brought up by initializeCommand, not by this file.
-  // Source mount + workspaceFolder live in compose.
-  "service": "workspace",
-  "workspaceFolder": "/workspaces/repo",
-  "shutdownAction": "none",
-  // Per-repo app + tooling ports (settings/extensions/credential-sandbox ride the image metadata label).
-  // Grafana/Prometheus + the Caddy ingress live in the shared `devcentral` project. The ingress is
-  // HOST-PUBLISHED on localhost:8080 by the gateway (not VS Code-forwarded) → open localhost:8080/grafana,
-  // /cbm, /agent-canvas. These per-workspace ports stay forwarded for direct access as a fallback.
-  "forwardPorts": [4200, 8000],
+  "mounts": [
+    "source=${localWorkspaceFolderBasename}-history,target=/commandhistory,type=volume",
+    "source=${localWorkspaceFolder}/.devcontainer/dotfiles/.p10k.zsh,target=/home/vscode_server/.p10k.zsh,type=bind",
+    "source=${localWorkspaceFolderBasename}-claude-config,target=/home/vscode_server/.claude,type=volume"
+  ],
+  "overrideCommand": true,
+  // "hostRequirements": {
+  //   "memory": "6gb"
+  // },
+  "forwardPorts": [
+    4200,
+    8000,
+    9749,
+    15500
+  ],
   "portsAttributes": {
     "4200": {
       "label": "Angular Frontend",
@@ -28,48 +32,204 @@
     "8000": {
       "label": "FastAPI Backend",
       "onAutoForward": "silent"
+    },
+    "9749": {
+      "label": "Codebase Memory UI",
+      "onAutoForward": "silent"
+    },
+    "15500": {
+      "label": "Promptfoo UI",
+      "onAutoForward": "silent"
     }
   },
-  // Extensions install for the attached workspace; settings + the credential-sandbox come from the image.
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "username": "vscode_server",
+      "upgradePackages": false
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22",
+      "nodeGypDependencies": false
+    }``
+  },
+  "remoteUser": "vscode_server",
+  "remoteEnv": {
+    "PATH": "${containerWorkspaceFolder}/.devcontainer/node_modules/.bin:${containerWorkspaceFolder}/.venv/bin:${containerEnv:PATH}",
+    "CBM_CACHE_DIR": "/home/vscode_server/.claude/.cbm-cache",
+    "UV_LINK_MODE": "copy",
+    "HISTFILE": "/commandhistory/.zsh_history",
+  },
   "customizations": {
     "vscode": {
+      "settings": {
+        // --- Editor & Workbench (Global UI) ---
+        "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+        "editor.detectIndentation": true,
+        "editor.insertSpaces": true,
+        "editor.largeFileOptimizations": false,
+        "editor.minimap.enabled": false,
+        "editor.tabSize": 2,
+        "editor.unicodeHighlight.ambiguousCharacters": false,
+        "explorer.confirmDelete": false,
+        "explorer.confirmDragAndDrop": false,
+        "launch": {
+          "justMyCode": false
+        },
+        "workbench.colorCustomizations": {},
+        "workbench.secondarySideBar.defaultVisibility": "hidden",
+        "workbench.startupEditor": "none",
+        // --- Terminal & Shell ---
+        "remote.autoForwardPorts": false,
+        "terminal.integrated.enableMultiLinePasteWarning": "never",
+        "terminal.integrated.env.osx": {
+          "PYTHONPATH": "${workspaceFolder}"
+        },
+        "terminal.integrated.environmentChangesRelaunch": true,
+        "terminal.integrated.fontFamily": "'MesloLGS NF', 'MesloLGS Nerd Font Mono'",
+        // --- Files & Git ---
+        "files.associations": {
+          "*.sh": "shellscript"
+        },
+        "files.autoSave": "onFocusChange",
+        "files.exclude": {},
+        "files.watcherExclude": {},
+        "git.defaultBranchName": "master",
+        "git.openRepositoryInParentFolders": "never",
+        "gitlens.graph.layout": "editor",
+        // --- AI (Claude & Chat) ---
+        "chat.useClaudeHooks": true,
+        "claudeCode.environmentVariables": [
+          {
+            "name": "PYTHONPATH",
+            "value": "${workspaceFolder}:${workspaceFolder}/src:${workspaceFolder}/tests"
+          },
+          {
+            "name": "CONTEXT7_API_KEY",
+            "value": "${containerEnv:CONTEXT7_API_KEY}"
+          },
+          {
+            "name": "EXA_API_KEY",
+            "value": "${containerEnv:EXA_API_KEY}"
+          },
+          {
+            "name": "TAVILY_API_KEY",
+            "value": "${containerEnv:TAVILY_API_KEY}"
+          },
+          {
+            "name": "GIT_READONLY",
+            "value": "${containerEnv:GIT_READONLY}"
+          }
+        ],
+        "claudeCode.preferredLocation": "sidebar",
+        "claudeCode.selectedModel": "default",
+        // --- Python, Jupyter & Testing ---
+        "jupyter.askForKernelRestart": false,
+        "jupyter.notebookFileRoot": "${workspaceFolder}",
+        "python.analysis.autoImportCompletions": true,
+        "python.analysis.indexing": true,
+        "python.analysis.languageServerMode": "full",
+        "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+        "python.languageServer": "Pylance",
+        "python.terminal.useEnvFile": true,
+        "python.testing.pytestArgs": [
+          "tests",
+          ".devcontainer/tests"
+        ],
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.terminal.activateEnvironment": false,
+        "ruff.configuration": "${workspaceFolder}/pyproject.toml",
+        // --- Extensions & Utilities ---
+        "evenBetterToml.schema.associations": {
+          "tox.toml": "null"
+        },
+        "latex-workshop.view.pdf.viewer": "tab",
+        "resmon.show.battery": false,
+        "resmon.show.cpufreq": false,
+        // --- Language-Specific Overrides ---
+        "[css]": {
+          "editor.formatOnSave": true
+        },
+        "[dotenv]": {
+          "editor.formatOnSave": true
+        },
+        "[html]": {
+          "editor.formatOnSave": true
+        },
+        "[javascript]": {
+          "editor.formatOnSave": true
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[jsonc]": {
+          "editor.formatOnSave": true,
+          "editor.defaultFormatter": "vscode.json-language-features"
+        },
+        "[markdown]": {
+          "editor.defaultFormatter": "vscode.markdown-language-features",
+          "editor.formatOnSave": true,
+          "editor.tabSize": 4,
+          "editor.insertSpaces": true
+        },
+        "[python]": {
+          "editor.formatOnSave": true,
+          "editor.tabSize": 4,
+          "editor.formatOnType": true,
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.codeActionsOnSave": {
+            "source.organizeImports.ruff": "explicit",
+            "source.fixAll.ruff": "explicit"
+          }
+        },
+        "[scss]": {
+          "editor.formatOnSave": true
+        },
+        "[shellscript]": {
+          "editor.formatOnSave": true
+        },
+        "[toml]": {
+          "editor.formatOnSave": true,
+          "editor.tabSize": 4,
+          "editor.insertSpaces": true
+        },
+        "[typescript]": {
+          "editor.formatOnSave": true
+        },
+        "[yaml]": {
+          "editor.formatOnSave": true,
+          "editor.defaultFormatter": "redhat.vscode-yaml"
+        }
+      },
       "extensions": [
-        "angular.ng-template@22.0.0",
-        "anthropic.claude-code@2.1.217",
-        "bierner.github-markdown-preview@0.4.0",
-        "charliermarsh.ruff@2026.46.0",
-        "eamodio.gitlens@18.0.0",
-        "esbenp.prettier-vscode@12.4.0",
-        "tamasfe.even-better-toml@0.21.2",
-        "ionutvmi.path-autocomplete@1.25.0",
-        "james-yu.latex-workshop@10.16.1",
-        "mechatroner.rainbow-csv@3.24.1",
-        "ms-python.debugpy@2026.6.0",
-        "ms-python.python@2026.4.0",
-        "ms-python.vscode-pylance@2026.2.1",
-        "ms-toolsai.jupyter@2025.9.1",
-        "ms-vscode.test-adapter-converter@0.2.1",
+        "angular.ng-template",
+        "anthropic.claude-code",
+        "bierner.github-markdown-preview",
+        "charliermarsh.ruff",
+        "eamodio.gitlens",
+        "esbenp.prettier-vscode",
+        "tamasfe.even-better-toml",
+        "ionutvmi.path-autocomplete",
+        "james-yu.latex-workshop",
+        "mechatroner.rainbow-csv",
+        "ms-python.debugpy",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter",
+        "ms-vscode.test-adapter-converter",
         "ms-vscode.vscode-typescript-next",
-        "mutantdino.resourcemonitor@1.0.7",
-        "oderwat.indent-rainbow@8.3.1",
-        "postman.postman-for-vscode@1.19.1",
-        "redhat.vscode-yaml@1.23.0"
+        "mutantdino.resourcemonitor",
+        "oderwat.indent-rainbow",
+        "postman.postman-for-vscode",
+        "redhat.vscode-yaml"
       ]
     }
   },
-  // Consumers run ONLY the workspace. The gateway is a shared singleton owned by the central
-  // `devcentral` platform project (see initializeCommand); it is NOT pulled per-consumer.
-  "runServices": ["workspace"],
-  // =========================================================================
-  // ♻️ Lifecycle — initializeCommand runs FIRST, on the HOST, before the workspace builds: ensures the
-  // shared --internal network (fail-closed if it exists but isn't internal) and the central `devcentral`
-  // stack — gateway + observability (prometheus + grafana) — are up (idempotent). Compose can't birth a
-  // cross-project singleton itself, so this is the one imperative step here. The three *Command scripts
-  // below live in the mounted platform clone (edit-and-rerun, no rebuild) and each gates on
-  // wait_for_egress_proxy() (_lib.sh) before installing.
-  // =========================================================================
-  "initializeCommand": "bash devcontainers/scripts/initializeCommand.sh",
-  "updateContentCommand": "bash devcontainers/scripts/updateContentCommand.sh",
-  "onCreateCommand": "bash devcontainers/scripts/onCreateCommand.sh",
-  "postStartCommand": "bash devcontainers/scripts/postStartCommand.sh"
+  "updateContentCommand": "bash .devcontainer/updateContentCommand.sh",
+  "onCreateCommand": "echo '==> [Lifecycle: onCreateCommand] Base OS built. Workspace not mounted yet.'",
+  "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
+  "postStartCommand": "echo '==> [Lifecycle: postStartCommand] Container awake.'"
 }
