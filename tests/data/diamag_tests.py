@@ -23,6 +23,8 @@ class DiamagneticContributionTestSDF:
         Expected sum of atomic Pascal constants and/or common molecule(s) diamagnetic contribution - used ONLY as reference
     constitutive_corr_sum_reference : float, optional
         Expected sum of constitutive correction(s), atomic Pascal constants and/or common molecule(s) diamagnetic contribution - used ONLY as reference
+    molar_mass_reference: float, optional
+        Molar mass of the compound taken from ChemSketch (unit: g/mol)
     description : str, optional
         Optional note or context for the test case.
     """
@@ -32,6 +34,7 @@ class DiamagneticContributionTestSDF:
     atomic_sum_reference: Optional[float] = None
     molecular_sum_reference: Optional[float] = None
     constitutive_corr_sum_reference: Optional[float] = None
+    molar_mass_reference: Optional[float] = None
     description: Optional[str] = ""
 
     def __str__(self) -> str:
@@ -58,6 +61,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=-57.9,
         molecular_sum_reference=-57.9,
         constitutive_corr_sum_reference=-57.9,
+        molar_mass_reference=74.12,
         description="Simple test for adding atomic Pascal constants",
     ),
     DiamagneticContributionTestSDF(
@@ -66,6 +70,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=-72.19,
         molecular_sum_reference=-72.19,
         constitutive_corr_sum_reference=-76.09,
+        molar_mass_reference=112.56,
         description="Tests for adding Pascal constants for ring and non-ring atoms and relevant constitutive corrections.",
     ),
     DiamagneticContributionTestSDF(
@@ -74,6 +79,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=-95.58,
         molecular_sum_reference=-119.6,
         constitutive_corr_sum_reference=-119.6,
+        molar_mass_reference=283.59,
         description="Tests adding diamag contribution for metal cations and common polyatomic anions.",
     ),
     DiamagneticContributionTestSDF(
@@ -82,6 +88,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=-178.78,
         molecular_sum_reference=-187.72,
         constitutive_corr_sum_reference=-187.72,
+        molar_mass_reference=359.98,
         description="Tests different oxidation state/charge scenario for given atom",
     ),
     DiamagneticContributionTestSDF(
@@ -90,6 +97,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=-206.32,
         molecular_sum_reference=-206.32,
         constitutive_corr_sum_reference=-209.12,
+        molar_mass_reference=630.72,
         description="Tests different oxidation state/charge scenario for given atom",
     ),
     DiamagneticContributionTestSDF(
@@ -98,6 +106,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=-788.64,
         molecular_sum_reference=-788.64,
         constitutive_corr_sum_reference=-806.64,
+        molar_mass_reference=1354.68,
         description="Real paramagnetic compound example. DOI: 10.1021/jacs.2c08568",
     ),
     DiamagneticContributionTestSDF(
@@ -106,6 +115,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=-160.99,
         molecular_sum_reference=-159.66,
         constitutive_corr_sum_reference=-159.66,
+        molar_mass_reference=334.14,
         description="Tests both 9-membered macrocycle ring and adding diamag contribution for common anion.",
     ),
     DiamagneticContributionTestSDF(
@@ -114,6 +124,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=-169.88,
         molecular_sum_reference=-169.88,
         constitutive_corr_sum_reference=-166.88,
+        molar_mass_reference=236.36,
         description="Tests structure with joint rings and macrocyclic rings",
     ),
     DiamagneticContributionTestSDF(
@@ -122,6 +133,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=-116.92,
         molecular_sum_reference=-116.92,
         constitutive_corr_sum_reference=-109.92,
+        molar_mass_reference=154.26,
         description="Tests a macrocyclic ring within bicyclic structure",
     ),
     DiamagneticContributionTestSDF(
@@ -130,6 +142,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=-519.24,
         molecular_sum_reference=-519.24,
         constitutive_corr_sum_reference=-517.44,
+        molar_mass_reference=739.06,
         description="Tests a large macrocycle containing 6-membered rings.",
     ),
     DiamagneticContributionTestSDF(
@@ -138,6 +151,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=-29.98,
         molecular_sum_reference=-29.98,
         constitutive_corr_sum_reference=FEATURE_NOT_IMPLEMENTED,
+        molar_mass_reference=39.08,
         description="This file must not contain Be-C bonds",
     ),
     DiamagneticContributionTestSDF(
@@ -146,6 +160,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=NO_REFERENCE,
         molecular_sum_reference=-170.1,
         constitutive_corr_sum_reference=FEATURE_NOT_IMPLEMENTED,
+        molar_mass_reference=414.52,
         description="Tests combination of common ligand, monoatomic ions and unknown molecule",
     ),
     DiamagneticContributionTestSDF(
@@ -154,6 +169,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=NO_REFERENCE,
         molecular_sum_reference=-210.8,
         constitutive_corr_sum_reference=FEATURE_NOT_IMPLEMENTED,
+        molar_mass_reference=524.03,
         description="Tests PF6- anion",
     ),
     DiamagneticContributionTestSDF(
@@ -162,6 +178,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=NO_REFERENCE,
         molecular_sum_reference=-423.67,
         constitutive_corr_sum_reference=FEATURE_NOT_IMPLEMENTED,
+        molar_mass_reference=739.74,
         description="Tests combination of common and unknown ligands, metal cation and common anions",
     ),
     DiamagneticContributionTestSDF(
@@ -170,6 +187,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=NO_REFERENCE,
         molecular_sum_reference=-781.11,
         constitutive_corr_sum_reference=-802.71,
+        molar_mass_reference=1275.01,
         description="Tests H2Pc (phthalocyanine) and HPc- ligands. Charged form of the same molecule should not be recognized.",
     ),
     DiamagneticContributionTestSDF(
@@ -178,6 +196,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=NO_REFERENCE,
         molecular_sum_reference=-643.33,
         constitutive_corr_sum_reference=-641.68,
+        molar_mass_reference=1426.77,
         description="Tests combination of o-PBMA ligand, large unknown molecule, different oxidation/charge scenario of one atom and solvents. ",
     ),
     DiamagneticContributionTestSDF(
@@ -186,6 +205,7 @@ CALC_DIAMAG_CONTR_TESTS: list[DiamagneticContributionTestSDF] = [
         atomic_sum_reference=NO_REFERENCE,
         molecular_sum_reference=-322.9,
         constitutive_corr_sum_reference=FEATURE_NOT_IMPLEMENTED,
+        molar_mass_reference=722.38,
         description="Tests many common solvents and ligand with similar structures in compound with metal cation and H2O, OH- and O2- molecules.",
     ),
 ]
