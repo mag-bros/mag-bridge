@@ -263,3 +263,5 @@ yarn-error.log*
 
 # --- AI platform scaffold (managed) ---
 .ai/
+.claude/
+devcontainers/
