@@ -241,9 +241,6 @@ rdkit/
 # Local MCP repos and indexes
 !.local-mcp/manifest.json
 
-# [mcpmenago] automatically generated content — do not edit
-.claude/settings.local.json
-.local-mcp/
 .mcp.idx
 external_repos/
 node_modules/
@@ -263,5 +260,3 @@ yarn-error.log*
 
 # --- AI platform scaffold (managed) ---
 .ai/
-.claude/
-devcontainers/
