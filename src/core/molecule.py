@@ -36,12 +36,8 @@ class MBMolecule:
         return self.common_diamag
 
     def CalcMolarMass(self) -> float:
-        """Calculate this molecule's molar mass in g/mol.
+        """Calculate this molecule's molar mass in g/mol."""
 
-        Uses RDKit's average molecular weight (standard atomic weights),
-        which already accounts for every hydrogen on the molecule.
-        Pure calculation: return a raw float — no rounding, no printing.
-        """
         average_molar_mass = Descriptors.MolWt(self._mol)
         return average_molar_mass
 
