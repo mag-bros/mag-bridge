@@ -52,7 +52,7 @@
     "ghcr.io/devcontainers/features/node:1": {
       "version": "22",
       "nodeGypDependencies": false
-    }``
+    }
   },
   "remoteUser": "vscode_server",
   "remoteEnv": {
