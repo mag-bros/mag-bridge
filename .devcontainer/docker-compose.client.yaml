@@ -1,0 +1,49 @@
+# =============================================================================
+# 🔌 Client appliances — THIS repo's own project-level services (MagBridge test-data DB).
+# -----------------------------------------------------------------------------
+# CLIENT-OWNED (lives in .devcontainer/, NEVER in the devcontainers/ platform submodule — that
+# repo is shared by ~50 projects and must stay generic). This file MERGES over the platform
+# docker-compose.yaml (add-only): it introduces new services, it does not touch gateway/observability/
+# workspace. Everything joins the SAME compose project as the workspace (COMPOSE_PROJECT_NAME).
+#
+# Reaching these (per .devcontainer/README.md "Reaching it"):
+#   - mongo  (TCP DB): stays INTERNAL — reached by name `mongo:27017` from workspace code. No host URL.
+#   - mongo-express (web UI): gets a host URL AUTOMATICALLY via the platform ingress, no ports/forwarding:
+#       http://mongo-express.8081.<COMPOSE_PROJECT_NAME>.localhost:<DEVCONTAINER_INGRESS_PORT>
+#       (behind the ingress admin basic_auth gate, user `admin`).
+#
+# Relative bind paths resolve against the platform compose dir (devcontainers/), so `../magbridge-mongodb`
+# and `../.devcontainer/mongodb` land at the repo root — the same way the platform's `..:/workspaces/repo` works.
+# The loader script is client-owned (.devcontainer/mongodb/10-seed.sh); the DATA it loads is confidential and
+# lives ONLY in the private submodule magbridge-mongodb/ — never in this public parent repo.
+# =============================================================================
+services:
+  # --- MongoDB — project test-data store (World A: seed files are the source of truth) ---------------
+  mongo:
+    container_name: ${COMPOSE_PROJECT_NAME}-mongo   # clean name in the project box (platform convention)
+    image: docker.io/library/mongo:8.0              # official pinned image; pulled host-side by docker
+    command: ["mongod", "--bind_ip_all"]            # reachable as mongo:27017 on the wall — no config file needed
+    networks: [central-gateway-internal]            # the shared no-internet wall the workspace lives on
+    environment:
+      MONGO_INITDB_DATABASE: magbridge_testdata     # default DB context for the initdb seed
+    tmpfs:
+      - /data/db                                    # ephemeral World-A store → re-seeded from files every start
+    volumes:
+      - ../.devcontainer/mongodb:/docker-entrypoint-initdb.d:ro     # loader (10-seed.sh) — client-owned, non-confidential
+      - ../magbridge-mongodb/seed:/seed:ro                          # confidential SEED DATA — private submodule (mag-bros/magbridge-mongodb)
+    restart: unless-stopped
+
+  # --- mongo-express — browser UI, reached via the platform ingress (no ports:) --------------------
+  mongo-express:
+    container_name: ${COMPOSE_PROJECT_NAME}-mongo-express
+    image: docker.io/library/mongo-express:1.0.2    # official pinned image; pulled host-side by docker
+    depends_on: [mongo]
+    networks: [central-gateway-internal]
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"        # show all DBs (this sealed dev mongo has no auth)
+      ME_CONFIG_BASICAUTH: "false"                  # skip mongo-express's own login — the ingress admin gate fronts it
+
+# NOTE: `central-gateway-internal` is intentionally NOT redeclared — Compose merges top-level networks
+# across the file set, so the platform base's definition (internal: true, project-scoped) is used.
+# No top-level `volumes:` — data is tmpfs (ephemeral by design); no platform volume is ever mounted.
