@@ -32,6 +32,7 @@ class DiamagneticContributionTestSDF:
     atomic_sum_reference: Optional[float] = None
     molecular_sum_reference: Optional[float] = None
     constitutive_corr_sum_reference: Optional[float] = None
+    molar_mass_reference: Optional[float] = None
     description: Optional[str] = ""
 
     def __str__(self) -> str:

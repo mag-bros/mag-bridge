@@ -19,6 +19,13 @@ class MBCompound:
 
         return diamag_contr
 
+    def CalcMolarMass(self) -> float:
+        """Calculate the compound's molar mass (g/mol): the sum of its molecules' molar masses."""
+        average_compound_mass = 0.0
+        for mol in self._mols:
+            average_compound_mass += mol.CalcMolarMass()
+        return average_compound_mass
+
     # --- Overloads visible to callers ---------------------------------
     @overload
     def GetMols(self, to_rdkit: Literal[True] = True) -> list[Mol]: ...
