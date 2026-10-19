@@ -19,7 +19,10 @@
   // Grafana/Prometheus + the Caddy ingress live in the shared `devcentral` project. The ingress is
   // HOST-PUBLISHED on localhost:8080 by the gateway (not VS Code-forwarded) → open localhost:8080/grafana,
   // /cbm, /agent-canvas. These per-workspace ports stay forwarded for direct access as a fallback.
-  "forwardPorts": [4200, 8000],
+  "forwardPorts": [
+    4200,
+    8000
+  ],
   "portsAttributes": {
     "4200": {
       "label": "Angular Frontend",
@@ -59,7 +62,11 @@
   },
   // Consumers run ONLY the workspace. The gateway is a shared singleton owned by the central
   // `devcentral` platform project (see initializeCommand); it is NOT pulled per-consumer.
-  "runServices": ["workspace", "mongo", "mongo-express"],
+  "runServices": [
+    "workspace",
+    "mongo",
+    "mongo-express"
+  ],
   // =========================================================================
   // ♻️ Lifecycle — initializeCommand runs FIRST, on the HOST, before the workspace builds: ensures the
   // shared --internal network (fail-closed if it exists but isn't internal) and the central `devcentral`
